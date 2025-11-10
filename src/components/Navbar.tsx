@@ -1,0 +1,43 @@
+import { useAuth } from "@saintrelion/auth-lib";
+import { Link } from "react-router-dom";
+// import UserMenu from "./UserMenu";
+import { renderNavItems } from "@saintrelion/routers";
+
+const Navbar = () => {
+  const { user } = useAuth();
+
+  return (
+    <nav
+      className={`flex items-center justify-between border-b px-6 py-3 shadow-sm`}
+    >
+      <div className="flex flex-col text-white">
+        <Link to="/" className="text-xl font-semibold">
+          TeacherHub Pro
+        </Link>
+        <span className="text-xs text-gray-300">
+          Educational Administration Platform
+        </span>
+      </div>
+      <div className="flex items-center gap-4">
+        {renderNavItems({
+          role: user.role ?? "",
+          baseClass:
+            "flex items-center gap-3 text-white rounded-xl px-3 py-2 text-sm font-medium transition-all  hover:bg-blue-100 hover:text-primary",
+          activeClass: "bg-blue-600 text-white pointer-events-none",
+        })}
+
+        {/* <UserMenu /> */}
+        <button
+          onClick={() => {
+            console.log("Logging out...");
+            window.location.href = "/login";
+          }}
+          className="cursor-pointer items-center gap-2 bg-red-300 px-4 py-2 text-left text-xs hover:bg-red-400"
+        >
+          Logout
+        </button>
+      </div>
+    </nav>
+  );
+};
+export default Navbar;
