@@ -1,54 +1,24 @@
-import {
-  firebaseLoginWithEmail,
-  firebaseLoginWithOtherInfo,
-  registerUser,
-  useAuth,
-} from "@saintrelion/auth-lib";
+import { firebaseLoginWithEmail, useAuth } from "@saintrelion/auth-lib";
 import { useNavigate } from "react-router-dom";
-import { FormProvider, useForm, type SubmitHandler } from "react-hook-form";
-import { RenderFormButton } from "../to-be-library/forms/render-form-button";
-import { firebaseRegister } from "@saintrelion/data-access-layer";
-
-interface LoginFormInputs {
-  email: string;
-  password: string;
-  remember: boolean;
-}
+import {
+  RenderForm,
+  RenderFormField,
+  RenderFormButton,
+} from "@saintrelion/forms";
+import { useLockedAuth } from "@saintrelion/auth-lib/dist/FirebaseAuth";
 
 const LoginPage = () => {
-  const form = useForm<LoginFormInputs>({
-    defaultValues: {
-      email: "",
-      password: "",
-      remember: false,
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = form;
-
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin: SubmitHandler<LoginFormInputs> = (data) => {
-    console.log("Login submitted:", data);
-    // You can trigger API call or context login logic here
+  const { run: loginLocking, isLocked: isLoggingIn } = useLockedAuth(
+    firebaseLoginWithEmail,
+  );
 
-    firebaseLoginWithEmail(
-      data.email,
-      data.password,
-      setUser,
-      (loggedInUser) => {
-        navigate("/");
-
-        console.log(loggedInUser.createdAt);
-      },
-    );
-
-    // registerUser(data.email, data.password, { remember: data.remember });
+  const handleLogin = (data: Record<string, string>) => {
+    loginLocking(data.email, data.password, setUser, () => {
+      navigate("/");
+    });
   };
 
   return (
@@ -80,85 +50,56 @@ const LoginPage = () => {
           </div>
 
           {/* Form */}
-          <FormProvider {...form}>
-            <form
-              onSubmit={handleSubmit(handleLogin)}
-              className="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg"
-            >
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-1 block text-sm font-medium text-gray-300"
-                >
-                  Email
-                </label>
-                <div className="relative">
-                  <i className="fas fa-envelope absolute top-3 left-3 text-gray-400"></i>
-                  <input
-                    type="email"
-                    id="email"
-                    {...register("email", { required: "Email is required" })}
-                    placeholder="teacher@school.edu"
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pr-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                {errors.email && (
-                  <p className="mt-1 text-xs text-red-400">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
+          <RenderForm
+            wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg"
+            onSubmit={handleLogin}
+          >
+            <RenderFormField
+              field={{
+                label: "Email",
+                icon: true,
+                type: "email",
+                name: "email",
+                placeholder: "user@gmail.com",
+              }}
+              labelClassName="mb-1 block text-sm font-medium text-gray-300"
+              iconClassName="fas fa-envelope absolute top-3 left-3 text-gray-400"
+              inputClassName="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pr-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <RenderFormField
+              field={{
+                label: "Password",
+                icon: true,
+                type: "password",
+                name: "password",
+                placeholder: "••••••••",
+              }}
+              labelClassName="mb-1 block text-sm font-medium text-gray-300"
+              iconClassName="fas fa-lock absolute top-3 left-3 text-gray-400"
+              inputClassName="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pr-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
 
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-1 block text-sm font-medium text-gray-300"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <i className="fas fa-lock absolute top-3 left-3 text-gray-400"></i>
-                  <input
-                    type="password"
-                    id="password"
-                    {...register("password", {
-                      required: "Password is required",
-                    })}
-                    placeholder="••••••••"
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pr-10 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                {errors.password && (
-                  <p className="mt-1 text-xs text-red-400">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
+            {/* Remember / Forgot */}
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-gray-300">Remember me</span>
+              </label>
+              <a href="/forgot" className="text-blue-400 hover:underline">
+                Forgot password?
+              </a>
+            </div>
 
-              {/* Remember / Forgot */}
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    {...register("remember")}
-                    className="rounded text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-300">Remember me</span>
-                </label>
-                <a href="#" className="text-blue-400 hover:underline">
-                  Forgot password?
-                </a>
-              </div>
-
-              {/* Submit */}
-              <RenderFormButton
-                buttonClass="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
-                buttonLabel="Login"
-              />
-            </form>
-          </FormProvider>
+            {/* Submit */}
+            <RenderFormButton
+              buttonClass="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
+              buttonLabel="Login"
+              isDisabled={isLoggingIn}
+            />
+          </RenderForm>
         </div>
       </div>
     </div>

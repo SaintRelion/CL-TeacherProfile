@@ -9,7 +9,7 @@ import { router } from "./navigations";
 
 import "@/lib/firebase-client";
 
-import "@/dalconfig";
+import "@/data-access-config";
 import "@/repositories/attendance";
 import "@/repositories/classes";
 import "@/repositories/user";
