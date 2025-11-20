@@ -1,8 +1,20 @@
-import { useAuth } from "@saintrelion/auth-lib";
+import { firebaseLogout, useAuth } from "@saintrelion/auth-lib";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { useLockedAuth } from "@saintrelion/auth-lib/dist/FirebaseAuth";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   console.log(user);
+
+  const { run: lockingFirebaseLogOut, isLocked: isLoggingOut } =
+    useLockedAuth(firebaseLogout);
 
   return (
     <header className="bg-primary-800 sticky top-0 z-50 text-white shadow-lg">
@@ -39,52 +51,45 @@ const Navbar = () => {
               </span>
             </button>
 
-            <div className="relative">
-              <div className="group flex cursor-pointer items-center space-x-2">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop"
-                  alt="Admin Profile"
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-                <span className="text-sm font-medium transition-colors duration-150 group-hover:text-white/70">
-                  {user.email}
-                </span>
-                <i className="fas fa-chevron-down text-primary-300 group-hover:text-primary-600 text-xs transition-colors duration-150"></i>
-              </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="group flex cursor-pointer items-center space-x-2">
+                  <img
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop"
+                    alt="Admin Profile"
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                  <span className="text-sm font-medium transition-colors duration-150 group-hover:text-white/70">
+                    {user.email}
+                  </span>
+                  <i className="fas fa-chevron-down text-primary-300 group-hover:text-primary-600 text-xs transition-colors duration-150"></i>
+                </div>
+              </DropdownMenuTrigger>
 
-              <div
-                id="profileMenu"
-                className="absolute right-0 z-20 mt-2 hidden w-44 rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-150"
+              <DropdownMenuContent
+                align="end"
+                className="mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
               >
-                <ul className="py-2 text-sm text-gray-700">
-                  <li>
-                    <a
-                      href="#"
-                      className="hover:bg-primary-50 hover:text-primary-600 block px-4 py-2 transition-colors duration-150"
-                    >
-                      Profile
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="hover:bg-primary-50 hover:text-primary-600 block px-4 py-2 transition-colors duration-150"
-                    >
-                      Settings
-                    </a>
-                  </li>
-                  <li>
-                    <hr className="my-1 border-gray-200" />
-                  </li>
-                  <li>
-                    <a className="block flex items-center space-x-2 px-4 py-2 font-medium text-red-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600">
-                      <i className="fas fa-sign-out-alt"></i>
-                      <span>Logout</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
+                <DropdownMenuItem className="hover:bg-primary-50 hover:text-primary-600 px-4 py-2 transition-colors duration-150">
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem className="hover:bg-primary-50 hover:text-primary-600 px-4 py-2 transition-colors duration-150">
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    lockingFirebaseLogOut(() => {
+                      navigate("/login");
+                    })
+                  }
+                  disabled={isLoggingOut}
+                  className="flex items-center space-x-2 px-4 py-2 font-medium text-red-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
+                >
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

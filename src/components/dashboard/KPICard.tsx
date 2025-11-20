@@ -11,9 +11,7 @@ const KPICard = ({ kvp }: { kvp: Record<string, string> }) => {
             <i className={kvp.detailsIcon}></i> {kvp.details}
           </p>
         </div>
-        <div className="bg-primary-100 rounded-lg p-3">
-          <i className={kvp.kpiIcon}></i>
-        </div>
+        <i className={kvp.kpiIcon}></i>
       </div>
     </div>
   );

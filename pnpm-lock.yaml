@@ -36,8 +36,8 @@ importers:
         specifier: ^1.1.13
         version: 1.1.13(@types/react-dom@19.1.8(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@saintrelion/auth-lib':
-        specifier: ^3.3.0
-        version: 3.3.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: ^3.3.2
+        version: 3.3.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@saintrelion/cache':
         specifier: ^1.0.1
         version: 1.0.1
@@ -1869,8 +1869,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@saintrelion/auth-lib@3.3.0':
-    resolution: {integrity: sha512-2rNYrccgAPQnPokoYGEX6RiUOsVR11+m9cm/ekL5PLflU1rc3LLiUiltm4hVMCLnrKyp0EtPIQ3CL5mQ/Ur2Kw==, tarball: https://npm.pkg.github.com/download/@saintrelion/auth-lib/3.3.0/c341b220bbcc740334d002bfff4c376ad915bfab}
+  '@saintrelion/auth-lib@3.3.2':
+    resolution: {integrity: sha512-ybBO6ZqJyRL8748HiZ5v87qM+KkzkavwycUWFsWgmlYX/BU8PiCybpGtk6HNI16oLpxcDqfi9EbWeNo72MwnFQ==, tarball: https://npm.pkg.github.com/download/@saintrelion/auth-lib/3.3.2/4ffff92ed43f872394607f9e743f293ab395f637}
 
   '@saintrelion/cache@1.0.1':
     resolution: {integrity: sha512-4GXJGbvoS+DK4jCNsH/l6EUdmjbyBL76wghtGJS/ryZiwiGG05v60LWto+EYIXWKROhf9NxDn93/wPbcE3IBLQ==, tarball: https://npm.pkg.github.com/download/@saintrelion/cache/1.0.1/1aa40a67a8396a40cff61200155fecb9e7297ce8}
@@ -6454,7 +6454,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.48.1':
     optional: true
 
-  '@saintrelion/auth-lib@3.3.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@saintrelion/auth-lib@3.3.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@saintrelion/cache': 1.0.1
       '@saintrelion/notifications': 1.0.2
@@ -6514,7 +6514,7 @@ snapshots:
 
   '@saintrelion/routers@1.1.18(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
-      '@saintrelion/auth-lib': 3.3.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@saintrelion/auth-lib': 3.3.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-router-dom: 7.8.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'

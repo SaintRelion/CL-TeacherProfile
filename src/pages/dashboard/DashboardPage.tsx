@@ -9,14 +9,16 @@ const DashboardPage = () => {
       value: "247",
       details: "+12 this month",
       detailsIcon: "fas fa-arrow-up",
-      kpiIcon: "fas fa-chalkboard-teacher text-primary-600 text-xl",
+      kpiIcon:
+        "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
     },
     {
       title: "Documents Processed",
       value: "1,834",
       details: "+156 this month",
       detailsIcon: "fas fa-arrow-up",
-      kpiIcon: "fas fa-file-alt text-accent-600 text-xl",
+      kpiIcon:
+        "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
     },
 
     {
@@ -24,7 +26,8 @@ const DashboardPage = () => {
       value: "94.5%",
       details: "14 expiring soon",
       detailsIcon: "fas fa-exclamation-triangle",
-      kpiIcon: "fas fa-shield-alt text-success-600 text-xl",
+      kpiIcon:
+        "fas fa-shield-alt text-success-600 text-xl bg-success-100 p-3 rounded-lg",
     },
 
     {
@@ -32,7 +35,8 @@ const DashboardPage = () => {
       value: "23",
       details: "Requires attention",
       detailsIcon: "fas fa-clock",
-      kpiIcon: "fas fa-tasks text-error-600 text-xl",
+      kpiIcon:
+        "fas fa-tasks text-error-600 text-xl bg-error-100 p-3 rounded-lg",
     },
   ];
 
@@ -178,8 +182,7 @@ const DashboardPage = () => {
               <div className="space-y-4">
                 <ComplianceStatusCard
                   wrapperColor="bg-success-50"
-                  iconClassName="fas fa-check text-white"
-                  iconWrapperClassName="bg-success-500 rounded-lg p-2"
+                  iconClassName="fas fa-check text-white bg-success-500 rounded-lg p-2"
                   title="Teaching Licenses"
                   description="All current and valid"
                   value="100%"
@@ -187,8 +190,7 @@ const DashboardPage = () => {
                 />
                 <ComplianceStatusCard
                   wrapperColor="bg-warning-50"
-                  iconClassName="fas fa-exclamation-triangle text-white"
-                  iconWrapperClassName="bg-warning-500 rounded-lg p-2"
+                  iconClassName="fas fa-exclamation-triangle text-white bg-warning-500 rounded-lg p-2"
                   title="CPD Certificates"
                   description="14 expiring within 30 days"
                   value="94%"
@@ -196,8 +198,7 @@ const DashboardPage = () => {
                 />
                 <ComplianceStatusCard
                   wrapperColor="bg-primary-50"
-                  iconClassName="fas fa-exclamation-triangle text-white"
-                  iconWrapperClassName="bg-primary-600 rounded-lg p-2"
+                  iconClassName="fas fa-exclamation-triangle text-white bg-primary-600 rounded-lg p-2"
                   title="Educational Credentials"
                   description="All verified and up-to-date"
                   value="98%"

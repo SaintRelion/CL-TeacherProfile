@@ -1,7 +1,6 @@
 const ComplianceStatusCard = ({
   wrapperColor,
   iconClassName,
-  iconWrapperClassName,
   title,
   description,
   value,
@@ -9,7 +8,6 @@ const ComplianceStatusCard = ({
 }: {
   wrapperColor: string;
   iconClassName: string;
-  iconWrapperClassName: string;
   title: string;
   description: string;
   value: string;
@@ -20,9 +18,7 @@ const ComplianceStatusCard = ({
       className={`${wrapperColor} flex items-center justify-between rounded-lg p-4`}
     >
       <div className="flex items-center space-x-3">
-        <div className={iconWrapperClassName}>
-          <i className={iconClassName}></i>
-        </div>
+        <i className={iconClassName}></i>
         <div>
           <p className="text-secondary-900 font-medium">{title}</p>
           <p className="text-secondary-600 text-sm">{description}</p>
