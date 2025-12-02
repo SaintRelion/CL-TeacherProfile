@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  console.log(user);
 
   const { run: lockingFirebaseLogOut, isLocked: isLoggingOut } =
     useLockedAuth(firebaseLogout);
@@ -70,12 +69,6 @@ const Navbar = () => {
                 align="end"
                 className="mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
               >
-                <DropdownMenuItem className="hover:bg-primary-50 hover:text-primary-600 px-4 py-2 transition-colors duration-150">
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-primary-50 hover:text-primary-600 px-4 py-2 transition-colors duration-150">
-                  Settings
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
                     lockingFirebaseLogOut(() => {

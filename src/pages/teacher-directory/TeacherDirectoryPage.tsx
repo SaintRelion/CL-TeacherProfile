@@ -1,6 +1,15 @@
+import AddTeacherForm from "@/components/teacher-directory/AddTeacher";
 import BulkActions from "@/components/teacher-directory/BulkActions";
 import Filters from "@/components/teacher-directory/Filters";
 import TeacherCard from "@/components/teacher-directory/TeacherCard";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 
 const TeacherDirectoryPage = () => {
@@ -130,16 +139,24 @@ const TeacherDirectoryPage = () => {
               Manage and view all teacher profiles in your institution
             </p>
           </div>
-          <div className="flex items-center space-x-3">
-            <button className="bg-secondary-600 hover:bg-secondary-700 flex items-center space-x-2 rounded-lg px-4 py-2 text-white transition-colors">
-              <i className="fas fa-download"></i>
-              <span>Export</span>
-            </button>
-            <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 text-white transition-colors">
-              <i className="fas fa-plus"></i>
-              <span>Add Teacher</span>
-            </button>
-          </div>
+          <Dialog>
+            <DialogTrigger>
+              <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 text-white transition-colors">
+                <i className="fas fa-plus"></i>
+                <span>Add Teacher</span>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+              <DialogHeader>
+                <DialogTitle>Add Teacher</DialogTitle>
+                <DialogDescription>
+                  Click the "Add Teacher" button to add a new teacher to the
+                  system.
+                </DialogDescription>
+              </DialogHeader>
+              <AddTeacherForm />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

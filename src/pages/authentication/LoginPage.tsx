@@ -17,7 +17,7 @@ const LoginPage = () => {
 
   const handleLogin = (data: Record<string, string>) => {
     loginLocking(data.email, data.password, setUser, () => {
-      navigate("/");
+      navigate("/admin");
     });
   };
 
@@ -95,7 +95,7 @@ const LoginPage = () => {
 
             {/* Submit */}
             <RenderFormButton
-              buttonClass="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
+              buttonClassName="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
               buttonLabel="Login"
               isDisabled={isLoggingIn}
             />

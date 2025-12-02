@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
             <RenderFormButton
               isDisabled={isResetting}
               buttonLabel={isResetting ? "Sending..." : "Send Reset Email"}
-              buttonClass="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+              buttonClassName="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             />
 
             <div className="text-center text-sm text-gray-400">

@@ -25,34 +25,35 @@ registerGroupAppRoutes({
   children: [
     {
       index: true,
-      path: "/",
+      path: "/admin/",
       element: <DashboardPage />,
       label: "Dashboard",
       iconClassName: "fas fa-tachometer-alt",
-      // allowedRoles: ["admin"],
+      allowedRoles: ["admin"],
     },
     {
-      index: true,
       path: "/teacherdirectory",
       element: <TeacherDirectoryPage />,
       label: "Teacher Directory",
       iconClassName: "fas fa-users",
-      // allowedRoles: ["admin"],
+      allowedRoles: ["admin"],
     },
     {
-      index: true,
       path: "/documentrepository",
       element: <DocumentRepositoryPage />,
       label: "Document Repository",
       iconClassName: "fas fa-folder-open",
-      // allowedRoles: ["admin"],
+      allowedRoles: ["admin"],
     },
+
+    // Instructor
     {
-      path: "/teacherprofile",
+      index: true,
+      path: "/",
       element: <TeacherProfilePage />,
       // label: "Teacher Profile",
       // iconClassName: "fas fa-user-edit"
-      // allowedRoles: ["admin"],
+      allowedRoles: ["instructor"],
     },
   ],
 });
