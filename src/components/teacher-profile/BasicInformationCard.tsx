@@ -1,4 +1,10 @@
-const BasicInformationCard = () => {
+import type { PersonalInformation } from "@/models/personal-information";
+
+const BasicInformationCard = ({
+  myInformation,
+}: {
+  myInformation: PersonalInformation | undefined;
+}) => {
   return (
     <div className="mb-6 rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="p-6">
@@ -22,14 +28,18 @@ const BasicInformationCard = () => {
           <div className="flex-1">
             <div className="mb-2 flex items-center space-x-3">
               <h3 className="text-secondary-900 text-2xl font-bold">
-                Test Teacher
+                {myInformation != undefined
+                  ? `${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`
+                  : "No Name"}
               </h3>
               <span className="bg-success-100 text-success-700 rounded-full px-3 py-1 text-sm font-medium">
                 Active
               </span>
             </div>
             <p className="text-secondary-600 mb-3 text-lg">
-              Senior Mathematics Teacher
+              {myInformation != undefined
+                ? myInformation.position
+                : "No position"}
             </p>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -43,7 +53,9 @@ const BasicInformationCard = () => {
                 <p className="text-secondary-700 text-sm font-medium">
                   Department
                 </p>
-                <p className="text-secondary-900">Mathematics</p>
+                <p className="text-secondary-900">
+                  {myInformation?.department}
+                </p>
               </div>
               <div>
                 <p className="text-secondary-700 text-sm font-medium">

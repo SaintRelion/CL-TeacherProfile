@@ -19,7 +19,7 @@ export default function AddTeacherForm() {
   };
 
   return (
-    <RenderForm wrapperClass="space-y-4" onSubmit={handleAddTeacher}>
+    <RenderForm wrapperClass="space-y-4">
       <RenderFormField
         field={{
           label: "Email *",
@@ -32,6 +32,7 @@ export default function AddTeacherForm() {
 
       <RenderFormButton
         buttonLabel="Add Teacher"
+        onSubmit={handleAddTeacher}
         isDisabled={isLoggingIn}
         buttonClassName="w-full rounded-md bg-green-600 px-4 py-2 font-medium text-white shadow-md transition-colors hover:bg-green-700 hover:shadow-lg"
       />

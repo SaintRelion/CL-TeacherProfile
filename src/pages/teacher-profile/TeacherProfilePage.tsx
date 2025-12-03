@@ -1,16 +1,50 @@
 import BasicInformationCard from "@/components/teacher-profile/BasicInformationCard";
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
+import { type PersonalInformation } from "@/models/personal-information";
+import { useAuth } from "@saintrelion/auth-lib";
+import { useDBOperations } from "@saintrelion/data-access-layer";
+import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
 import { useState } from "react";
 
 const TeacherProfilePage = () => {
+  const { user } = useAuth();
+
   const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
     "personal",
   );
 
+  const {
+    useSelect: informationSelect,
+    useInsert: informationInsert,
+    useUpdate: informationUpdate,
+  } = useDBOperations<PersonalInformation>("PersonalInformation");
+
+  const { data: informations } = informationSelect({
+    firebaseOptions: {
+      filterField: "userID",
+      value: user.id,
+    },
+  });
+
+  const myInformation = informations != null ? informations[0] : undefined;
+
+  const handleInformationSaveChanges = (data: Record<string, string>) => {
+    data.userID = user.id;
+    console.log(data);
+
+    if (myInformation == undefined) informationInsert.mutate(data);
+    else
+      informationUpdate.mutate({
+        field: "userID",
+        value: user.id,
+        updates: data,
+      });
+  };
+
   return (
-    <>
+    <RenderForm>
       <div className="font-inter bg-slate-50">
         <div className="flex-1 p-6">
           <div className="mb-6">
@@ -23,14 +57,15 @@ const TeacherProfilePage = () => {
                   Manage comprehensive teacher profiles and documentation
                 </p>
               </div>
-              <button className="bg-accent-500 hover:bg-accent-600 rounded-lg px-4 py-2 text-white transition-colors">
-                <i className="fas fa-save mr-2"></i>
-                Save Changes
-              </button>
+              <RenderFormButton
+                onSubmit={handleInformationSaveChanges}
+                buttonLabel="Save Changes"
+                buttonClassName="bg-accent-500 hover:bg-accent-600 rounded-lg px-4 py-2 text-white transition-colors"
+              />
             </div>
           </div>
 
-          <BasicInformationCard />
+          <BasicInformationCard myInformation={myInformation} />
 
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200">
@@ -43,7 +78,6 @@ const TeacherProfilePage = () => {
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
-                  data-tab="personal"
                 >
                   <i className="fas fa-user mr-2"></i>
                   Personal Information
@@ -57,7 +91,6 @@ const TeacherProfilePage = () => {
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
-                  data-tab="documents"
                 >
                   <i className="fas fa-folder mr-2"></i>
                   Documents
@@ -67,7 +100,9 @@ const TeacherProfilePage = () => {
 
             <div className="p-6">
               {/* PERSONAL INFORMATION */}
-              {tabSelected == "personal" && <PersonalInformationForm />}
+              {tabSelected == "personal" && (
+                <PersonalInformationForm myInformation={myInformation} />
+              )}
 
               {/* DOCUMENTS */}
               {tabSelected == "documents" && <DocumentsTab />}
@@ -75,7 +110,7 @@ const TeacherProfilePage = () => {
           </div>
         </div>
       </div>
-    </>
+    </RenderForm>
   );
 };
 export default TeacherProfilePage;

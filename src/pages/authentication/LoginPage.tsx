@@ -50,10 +50,7 @@ const LoginPage = () => {
           </div>
 
           {/* Form */}
-          <RenderForm
-            wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg"
-            onSubmit={handleLogin}
-          >
+          <RenderForm wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg">
             <RenderFormField
               field={{
                 label: "Email",
@@ -97,6 +94,7 @@ const LoginPage = () => {
             <RenderFormButton
               buttonClassName="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
               buttonLabel="Login"
+              onSubmit={handleLogin}
               isDisabled={isLoggingIn}
             />
           </RenderForm>

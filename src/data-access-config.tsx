@@ -6,4 +6,4 @@ import {
 
 setAuthLibClientAppName("teacherprofile");
 setDataAccessLayerClientAppName("teacherprofile");
-setGlobalMode("mock");
+setGlobalMode("firebase");

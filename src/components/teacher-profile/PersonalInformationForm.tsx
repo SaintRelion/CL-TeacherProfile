@@ -1,11 +1,14 @@
-import { useAuth } from "@saintrelion/auth-lib";
-import { RenderForm, RenderFormField } from "@saintrelion/forms";
+import { RenderFormField } from "@saintrelion/forms";
 
-const PersonalInformationForm = () => {
-  const { user } = useAuth();
+import { type PersonalInformation } from "@/models/personal-information";
 
+const PersonalInformationForm = ({
+  myInformation,
+}: {
+  myInformation?: PersonalInformation;
+}) => {
   return (
-    <RenderForm wrapperClass="tab-content">
+    <>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div>
           <h4 className="text-secondary-900 mb-4 text-lg font-semibold">
@@ -19,6 +22,9 @@ const PersonalInformationForm = () => {
                   type: "text",
                   name: "firstName",
                 }}
+                defaultValue={
+                  myInformation == undefined ? "" : myInformation.firstName
+                }
                 labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
                 inputClassName="input-field"
               />
@@ -28,6 +34,9 @@ const PersonalInformationForm = () => {
                   type: "text",
                   name: "lastName",
                 }}
+                defaultValue={
+                  myInformation == undefined ? "" : myInformation.lastName
+                }
                 labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
                 inputClassName="input-field"
               />
@@ -38,6 +47,9 @@ const PersonalInformationForm = () => {
                 type: "text",
                 name: "middleName",
               }}
+              defaultValue={
+                myInformation == undefined ? "" : myInformation.middleName
+              }
               labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
               inputClassName="input-field"
             />
@@ -48,6 +60,9 @@ const PersonalInformationForm = () => {
                   type: "date",
                   name: "dateOfBirth",
                 }}
+                defaultValue={
+                  myInformation == undefined ? "" : myInformation.dateOfBirth
+                }
                 labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
                 inputClassName="input-field"
               />
@@ -58,6 +73,9 @@ const PersonalInformationForm = () => {
                   name: "gender",
                   options: ["Female", "Male", "Other"],
                 }}
+                defaultValue={
+                  myInformation == undefined ? "" : myInformation.gender
+                }
                 labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
                 inputClassName="input-field text-md !py-6"
               />
@@ -69,6 +87,9 @@ const PersonalInformationForm = () => {
                 name: "civilStatus",
                 options: ["Married", "Single", "Divorced", "Widowed"],
               }}
+              defaultValue={
+                myInformation == undefined ? "" : myInformation.civilStatus
+              }
               labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
               inputClassName="input-field text-md !py-6"
             />
@@ -86,7 +107,9 @@ const PersonalInformationForm = () => {
                 type: "email",
                 name: "emailAddress",
               }}
-              defaultValue={user.email}
+              defaultValue={
+                myInformation == undefined ? "" : myInformation.emailAddress
+              }
               labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
               inputClassName="input-field"
             />
@@ -97,6 +120,9 @@ const PersonalInformationForm = () => {
                   type: "text",
                   name: "mobileNumber",
                 }}
+                defaultValue={
+                  myInformation == undefined ? "" : myInformation.mobileNumber
+                }
                 labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
                 inputClassName="input-field"
               />
@@ -108,7 +134,7 @@ const PersonalInformationForm = () => {
                 name: "homeAddress",
               }}
               defaultValue={
-                "123 Sampaguita Street, Barangay San Antonio, Quezon\nCity, Metro Manila 1105"
+                myInformation == undefined ? "" : myInformation.homeAddress
               }
               labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
               inputClassName="input-field"
@@ -128,7 +154,9 @@ const PersonalInformationForm = () => {
               type: "text",
               name: "position",
             }}
-            defaultValue={"Senior Mathematics Teacher"}
+            defaultValue={
+              myInformation == undefined ? "" : myInformation.position
+            }
             labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
             inputClassName="input-field"
           />
@@ -145,6 +173,9 @@ const PersonalInformationForm = () => {
                 "Social Studies",
               ],
             }}
+            defaultValue={
+              myInformation == undefined ? "" : myInformation.department
+            }
             labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
             inputClassName="input-field text-md !py-6"
           />
@@ -152,9 +183,12 @@ const PersonalInformationForm = () => {
             field={{
               label: "Employment Status",
               type: "select",
-              name: "employementStatus",
+              name: "employmentStatus",
               options: ["Permanent", "Temporary", "Contractual", "Substitute"],
             }}
+            defaultValue={
+              myInformation == undefined ? "" : myInformation.employmentStatus
+            }
             labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
             inputClassName="input-field text-md !py-6"
           />
@@ -164,7 +198,9 @@ const PersonalInformationForm = () => {
               type: "date",
               name: "dateHired",
             }}
-            defaultValue={"2012-06-15"}
+            defaultValue={
+              myInformation == undefined ? "" : myInformation.dateHired
+            }
             labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
             inputClassName="input-field"
           />
@@ -174,7 +210,9 @@ const PersonalInformationForm = () => {
               type: "text",
               name: "salaryGrade",
             }}
-            defaultValue={"Grade 18"}
+            defaultValue={
+              myInformation == undefined ? "" : myInformation.salaryGrade
+            }
             labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
             inputClassName="input-field"
           />
@@ -184,13 +222,13 @@ const PersonalInformationForm = () => {
               type: "text",
               name: "tin",
             }}
-            defaultValue={"123-456-789-000"}
+            defaultValue={myInformation == undefined ? "" : myInformation.tin}
             labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
             inputClassName="input-field"
           />
         </div>
       </div>
-    </RenderForm>
+    </>
   );
 };
 export default PersonalInformationForm;

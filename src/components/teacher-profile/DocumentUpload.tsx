@@ -33,14 +33,11 @@ export default function DocumentForm() {
       return;
     }
 
-    console.log(file);
     console.log("Form submitted:", data);
-
-    alert("Form submitted successfully! Check console for details.");
   };
 
   return (
-    <RenderForm wrapperClass="space-y-3" onSubmit={handleSubmit}>
+    <RenderForm wrapperClass="space-y-3">
       {/* Document Title */}
       <RenderFormField
         field={{
@@ -74,7 +71,7 @@ export default function DocumentForm() {
           field={{
             label: `${selectedLicense} Number *`,
             type: "text",
-            name: "certificateNumber",
+            name: "licenseNumber",
             placeholder: `Enter ${selectedLicense.toLowerCase()} number`,
           }}
           labelClassName="mb-1 block text-xs font-medium text-gray-700"
@@ -162,6 +159,7 @@ export default function DocumentForm() {
       {/* Submit Button */}
       <RenderFormButton
         buttonLabel="Submit Document"
+        onSubmit={handleSubmit}
         buttonClassName="w-full rounded-md bg-blue-600 px-4 py-2.5 text-base font-medium text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
       />
     </RenderForm>
