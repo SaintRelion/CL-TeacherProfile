@@ -251,10 +251,10 @@ const DocumentRepositoryPage = () => {
             </p>
           </div>
           <div className="mt-4 flex items-center space-x-3 md:mt-0">
-            <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">
+            {/* <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">
               <i className="fas fa-cloud-upload-alt"></i>
               <span>Bulk Upload</span>
-            </button>
+            </button> */}
             <button className="bg-primary-600 hover:bg-primary-700 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">
               <i className="fas fa-plus"></i>
               <span>New Folder</span>

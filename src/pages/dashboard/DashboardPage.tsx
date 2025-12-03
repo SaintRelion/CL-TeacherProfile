@@ -122,53 +122,6 @@ const DashboardPage = () => {
         <div className="space-y-6 lg:col-span-2">
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200 p-6">
-              <h3 className="text-secondary-900 text-lg font-semibold">
-                Quick Actions
-              </h3>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <button className="border-accent-300 hover:border-accent-500 hover:bg-accent-50 group flex flex-col items-center rounded-lg border-2 border-dashed p-4 transition-colors">
-                  <div className="bg-accent-500 group-hover:bg-accent-600 mb-3 rounded-lg p-3 transition-colors">
-                    <i className="fas fa-user-plus text-xl text-white"></i>
-                  </div>
-                  <span className="text-secondary-900 font-medium">
-                    Add New Teacher
-                  </span>
-                  <span className="text-secondary-600 mt-1 text-xs">
-                    Create teacher profile
-                  </span>
-                </button>
-
-                <button className="border-primary-300 hover:border-primary-500 hover:bg-primary-50 group flex flex-col items-center rounded-lg border-2 border-dashed p-4 transition-colors">
-                  <div className="bg-primary-600 group-hover:bg-primary-700 mb-3 rounded-lg p-3 transition-colors">
-                    <i className="fas fa-cloud-upload-alt text-xl text-white"></i>
-                  </div>
-                  <span className="text-secondary-900 font-medium">
-                    Upload Document
-                  </span>
-                  <span className="text-secondary-600 mt-1 text-xs">
-                    Add certificates & files
-                  </span>
-                </button>
-
-                <button className="border-secondary-300 hover:border-secondary-500 hover:bg-secondary-50 group flex flex-col items-center rounded-lg border-2 border-dashed p-4 transition-colors">
-                  <div className="bg-secondary-600 group-hover:bg-secondary-700 mb-3 rounded-lg p-3 transition-colors">
-                    <i className="fas fa-chart-bar text-xl text-white"></i>
-                  </div>
-                  <span className="text-secondary-900 font-medium">
-                    Generate Report
-                  </span>
-                  <span className="text-secondary-600 mt-1 text-xs">
-                    Analytics & insights
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-secondary-900 text-lg font-semibold">
                   Compliance Status

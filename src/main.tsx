@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "./css/main.css";
+// import "./css/tailwind.css";
 
 import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,9 +11,8 @@ import { router } from "./navigations";
 import "@/lib/firebase-client";
 
 import "@/data-access-config";
-import "@/repositories/attendance";
-import "@/repositories/classes";
-import "@/repositories/user";
+import "@/repositories/personal-information";
+import "@/repositories/documents";
 
 const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(

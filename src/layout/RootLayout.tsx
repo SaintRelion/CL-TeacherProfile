@@ -1,18 +1,19 @@
 import Navbar from "@/components/Navbar";
-import Sidebar from "@/components/Sidebar";
-import { Outlet, useLocation } from "react-router-dom";
+import AdminSidebar from "@/components/AdminSidebar";
+import { useAuth } from "@saintrelion/auth-lib";
+import { Outlet } from "react-router-dom";
 
 const RootLayout = () => {
-  const location = useLocation();
-
+  const { user } = useAuth();
+  console.log(user);
   return (
     <div className="min-h-lvh">
       <Navbar />
-      {location.pathname == "/teacherprofile" ? (
+      {user.role == "instructor" ? (
         <Outlet />
       ) : (
         <div className="flex min-h-screen">
-          <Sidebar />
+          <AdminSidebar />
           <Outlet />
         </div>
       )}
