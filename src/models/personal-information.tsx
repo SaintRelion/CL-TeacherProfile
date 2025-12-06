@@ -1,7 +1,8 @@
 export interface PersonalInformation {
   id: string;
-  userID: string; // FK
-  teacherID: string;
+  userId: string; // FK
+  employeeId: string;
+  photoBase64: string;
   firstName: string;
   lastName: string;
   middleName: string;

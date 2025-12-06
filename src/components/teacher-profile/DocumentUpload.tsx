@@ -5,21 +5,33 @@ import {
   RenderFormField,
 } from "@saintrelion/forms";
 import { useState } from "react";
+import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import { fileToBase64 } from "@/lib/utils";
+import { DOCUMENT_TYPES } from "@/constants";
+import { useAuth } from "@saintrelion/auth-lib";
+import type { TeacherDocument } from "@/models/teacher-document";
 
 export default function DocumentForm() {
-  const licenseTypes = [
-    "Certificate",
-    "License",
-    "Permit",
-    "Registration",
-    "Accreditation",
-  ];
+  const { user } = useAuth();
 
-  const [selectedLicense, setSelectedLicense] = useState("");
+  const { useInsert: documentInsert } =
+    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
+
+  const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
 
+  const maxKB = 50;
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+
+    if (!file) return;
+
+    const maxSize = maxKB * 1024;
+    if (file && file.size > maxSize) {
+      alert(`For testing, keep it (<${maxKB}KB)`);
+      return;
+    }
+
     setFile(file);
   };
 
@@ -27,13 +39,22 @@ export default function DocumentForm() {
     setFile(null);
   };
 
-  const handleSubmit = (data: Record<string, string>) => {
+  const handleSubmit = async (data: Record<string, string>) => {
     if (!file) {
-      alert("Please select an image to upload");
+      alert("Please select a file to upload");
       return;
     }
 
-    console.log("Form submitted:", data);
+    const extension = file.name.split(".").pop() ?? "";
+    const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+    const base64 = await fileToBase64(file);
+
+    data.extension = extension;
+    data.fileSizeInMB = fileSizeInMB;
+    data.fileBase64 = base64;
+    data.userId = user.id;
+
+    documentInsert.run(data);
   };
 
   return (
@@ -43,7 +64,7 @@ export default function DocumentForm() {
         field={{
           label: "Document Title *",
           type: "text",
-          name: "title",
+          name: "documentTitle",
           placeholder: "Enter title",
         }}
         labelClassName="mb-1 block text-xs font-medium text-gray-700"
@@ -53,12 +74,12 @@ export default function DocumentForm() {
       {/* License Type */}
       <RenderFormField
         field={{
-          label: "License Type",
+          label: "Document Type",
           type: "select",
-          name: "licenseType",
-          options: licenseTypes,
+          name: "documentType",
+          options: DOCUMENT_TYPES,
           onValueChange: (value) => {
-            if (typeof value === "string") setSelectedLicense(value);
+            if (typeof value === "string") setSelectedDocumentType(value);
           },
         }}
         labelClassName="mb-1 block text-xs font-medium text-gray-700"
@@ -66,13 +87,13 @@ export default function DocumentForm() {
       />
 
       {/* Conditional Certificate/License Number */}
-      {selectedLicense !== "" && (
+      {selectedDocumentType !== "" && (
         <RenderFormField
           field={{
-            label: `${selectedLicense} Number *`,
+            label: `${selectedDocumentType} Number *`,
             type: "text",
-            name: "licenseNumber",
-            placeholder: `Enter ${selectedLicense.toLowerCase()} number`,
+            name: "documentNumber",
+            placeholder: `Enter ${selectedDocumentType.toLowerCase()} number`,
           }}
           labelClassName="mb-1 block text-xs font-medium text-gray-700"
           inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
@@ -115,11 +136,11 @@ export default function DocumentForm() {
             <Upload className="mb-1 h-8 w-8 text-gray-400" />
 
             <p className="text-xs text-gray-500">
-              <span className="font-semibold">Click to upload</span> or drag
+              <span className="font-semibold">Click to upload</span>
             </p>
 
             <p className="mt-1 text-[10px] text-gray-400">
-              PDF, DOC, JPG, PNG (MAX 10MB)
+              PDF, DOC, JPG, PNG (MAX {maxKB}KB)
             </p>
 
             <input
@@ -160,6 +181,7 @@ export default function DocumentForm() {
       <RenderFormButton
         buttonLabel="Submit Document"
         onSubmit={handleSubmit}
+        isDisabled={documentInsert.isLocked}
         buttonClassName="w-full rounded-md bg-blue-600 px-4 py-2.5 text-base font-medium text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
       />
     </RenderForm>

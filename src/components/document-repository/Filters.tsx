@@ -27,19 +27,6 @@ const Filters = ({
 
         <div className="flex items-center space-x-3">
           <select
-            value={filters.category}
-            onChange={(e) => onFilterChange("category", e.target.value)}
-            className="focus:ring-primary-500 rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
-          >
-            <option value="">All Categories</option>
-            <option value="certifications">Certifications</option>
-            <option value="evaluations">Evaluations</option>
-            <option value="training">Training Records</option>
-            <option value="contracts">Contracts</option>
-            <option value="personal">Personal Documents</option>
-          </select>
-
-          <select
             value={filters.sort}
             onChange={(e) => onFilterChange("sort", e.target.value)}
             className="focus:ring-primary-500 rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
@@ -71,18 +58,6 @@ const Filters = ({
           className={`${filters.quickTag == "recent" ? "bg-primary-100" : "bg-slate-100"} text-primary-700 hover:bg-primary-200 rounded-full px-3 py-1 text-sm font-medium transition-colors`}
         >
           Recent
-        </button>
-        <button
-          onClick={() => onFilterChange("quickTag", "shared")}
-          className={`${filters.quickTag == "shared" ? "bg-primary-100" : "bg-slate-100"} text-primary-700 hover:bg-primary-200 rounded-full px-3 py-1 text-sm font-medium transition-colors`}
-        >
-          Shared with me
-        </button>
-        <button
-          onClick={() => onFilterChange("quickTag", "favorites")}
-          className={`${filters.quickTag == "favorites" ? "bg-primary-100" : "bg-slate-100"} text-primary-700 hover:bg-primary-200 rounded-full px-3 py-1 text-sm font-medium transition-colors`}
-        >
-          Favorites
         </button>
         <button
           onClick={() => onFilterChange("quickTag", "expiring")}

@@ -1,8 +1,4 @@
 import {
-  firebaseSendPasswordReset,
-  useLockedAuth,
-} from "@saintrelion/auth-lib/dist/FirebaseAuth";
-import {
   RenderForm,
   RenderFormButton,
   RenderFormField,
@@ -10,14 +6,13 @@ import {
 import { toast } from "@saintrelion/notifications";
 
 export default function ForgotPasswordPage() {
-  const { run: lockedPasswordReset, isLocked: isResetting } = useLockedAuth(
-    firebaseSendPasswordReset,
-  );
+  // const { run: lockedPasswordReset, isLocked: isResetting } =
+  //   useLockedAuth(updatePassword);
 
   const handleForgotPassword = async (data: Record<string, string>) => {
     if (!data["email"]) return toast.error("Please enter your email");
 
-    lockedPasswordReset(data["email"]);
+    // lockedPasswordReset(data["email"]);
   };
 
   return (
@@ -49,10 +44,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          <RenderForm
-            wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg"
-            onSubmit={handleForgotPassword}
-          >
+          <RenderForm wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg">
             {/* Email Field */}
             <RenderFormField
               field={{
@@ -68,8 +60,9 @@ export default function ForgotPasswordPage() {
             />
 
             <RenderFormButton
-              isDisabled={isResetting}
-              buttonLabel={isResetting ? "Sending..." : "Send Reset Email"}
+              // isDisabled={isResetting}
+              buttonLabel={/*isResetting ? "Sending..." : */ "Send Reset Email"}
+              onSubmit={handleForgotPassword}
               buttonClassName="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             />
 
