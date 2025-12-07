@@ -1,3 +1,4 @@
+import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/teacher-document";
 
 const getDocumentIcon = (ext: string) => {
@@ -47,32 +48,20 @@ const getDocumentIcon = (ext: string) => {
 };
 
 const getStatus = (expiry: string) => {
-  const today = new Date();
-  const exp = new Date(expiry);
+  const status = getExpiryState(expiry);
 
-  if (isNaN(exp.getTime())) {
-    return {
-      label: "No Expiry",
-      className: "bg-secondary-100 text-secondary-700",
-    };
+  if (status == "expired") {
+    return { label: "Expired", className: "bg-red-300 text-error-700" };
   }
 
-  if (exp < today) {
-    return { label: "Expired", className: "bg-error-100 text-error-700" };
-  }
-
-  const diffDays = Math.ceil(
-    (exp.getTime() - today.getTime()) / (1000 * 86400),
-  );
-
-  if (diffDays <= 30) {
+  if (status == "expiring") {
     return {
       label: "Expires Soon",
-      className: "bg-warning-100 text-warning-700",
+      className: "bg-orange-200 text-warning-700",
     };
   }
 
-  return { label: "Valid", className: "bg-success-100 text-success-700" };
+  return { label: "Valid", className: "bg-green-200 text-success-700" };
 };
 
 const FileCard = ({ doc }: { doc: TeacherDocument }) => {

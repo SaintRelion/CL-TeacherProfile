@@ -1,6 +1,6 @@
 import {
   getYearsOfService,
-  resizeImageTo144p,
+  resizeImage,
   resolveImageSource,
 } from "@/lib/utils";
 import type { PersonalInformation } from "@/models/personal-information";
@@ -26,7 +26,7 @@ const BasicInformationCard = ({
                 const file = e.target.files?.[0];
                 if (!file) return;
 
-                const resizedBase64 = await resizeImageTo144p(file);
+                const resizedBase64 = await resizeImage(file);
                 onProfilePicChanged(resizedBase64);
               }}
             />

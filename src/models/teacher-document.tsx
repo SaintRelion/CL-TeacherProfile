@@ -1,5 +1,6 @@
 export interface TeacherDocument {
   id: string;
+  userId: string;
   documentTitle: string;
   documentType: string;
   documentNumber: string;

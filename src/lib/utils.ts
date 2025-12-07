@@ -51,7 +51,7 @@ export function resolveImageSource(photoBase64: string | undefined) {
   return `data:image/jpeg;base64,${photoBase64}`;
 }
 
-export function resizeImageTo144p(file: File): Promise<string> {
+export function resizeImage(file: File): Promise<string> {
   return new Promise((resolve) => {
     const reader = new FileReader();
 
@@ -87,4 +87,18 @@ export const fileToBase64 = (file: File): Promise<string> => {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+};
+
+export const getExpiryState = (expiryDate: string) => {
+  const today = toDate(getCurrentDateTimeString());
+  const exp = toDate(expiryDate);
+
+  if (today == null || exp == null || isNaN(exp.getTime())) return "valid";
+
+  if (exp < today) return "expired";
+
+  const diffDays = (exp.getTime() - today.getTime()) / (1000 * 86400);
+  if (diffDays <= 30) return "expiring";
+
+  return "valid";
 };

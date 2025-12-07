@@ -24,7 +24,7 @@ const DocumentRepositoryPage = () => {
   const kpi: Record<string, string>[] = [
     {
       title: "Total Documents",
-      value: selectDocuments.length.toString(),
+      value: documents == undefined ? "0" : documents.length.toString(),
       iconClassName:
         "fas fa-file-alt text-primary-600 bg-primary-100 rounded-lg p-2",
     },
@@ -35,7 +35,7 @@ const DocumentRepositoryPage = () => {
     },
     {
       title: "Recent Uploads",
-      value: selectDocuments.length.toString(),
+      value: documents == undefined ? "0" : documents.length.toString(),
       iconClassName:
         "fas fa-upload text-success-600 bg-success-100 rounded-lg p-2",
     },
