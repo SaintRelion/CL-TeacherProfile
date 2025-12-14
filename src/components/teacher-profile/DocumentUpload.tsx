@@ -20,7 +20,7 @@ export default function DocumentForm() {
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
 
-  const maxKB = 50;
+  const maxKB = 5000;
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
 
