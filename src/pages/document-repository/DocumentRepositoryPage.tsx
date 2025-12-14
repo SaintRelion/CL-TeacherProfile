@@ -49,10 +49,7 @@ const DocumentRepositoryPage = () => {
             <h2 className="text-secondary-900 mb-2 text-3xl font-bold">
               Document Repository
             </h2>
-            <p className="text-secondary-600">
-              Centralized file management with advanced organization and search
-              capabilities
-            </p>
+            
           </div>
           <div className="mt-4 flex items-center space-x-3 md:mt-0">
             {/* <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">

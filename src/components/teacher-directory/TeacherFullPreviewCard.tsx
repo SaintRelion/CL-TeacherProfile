@@ -79,6 +79,8 @@ const TeacherFullPreviewCard = ({ info }: { info: Record<string, string> }) => {
                 ))}
               </div>
             </div>
+            
+            {/* subject for changes */}
             <div className="flex justify-between">
               <span className="text-secondary-600">License Status:</span>
               <span className="text-success-600 font-medium">
@@ -96,6 +98,9 @@ const TeacherFullPreviewCard = ({ info }: { info: Record<string, string> }) => {
           </div>
         </div>
       </div>
+         {/* subject for changes */}
+
+
 
       <div className="mt-6 border-t border-slate-200 pt-6">
         <div className="flex items-center justify-between">
@@ -103,10 +108,10 @@ const TeacherFullPreviewCard = ({ info }: { info: Record<string, string> }) => {
             View Full Profile
           </button> */}
           <div className="flex items-center space-x-2">
-            <button className="bg-secondary-100 text-secondary-700 hover:bg-secondary-200 rounded-lg px-4 py-2 transition-colors">
+            {/* <button className="bg-secondary-100 text-secondary-700 hover:bg-secondary-200 rounded-lg px-4 py-2 transition-colors">
               <i className="fas fa-envelope mr-1"></i>
               Send Message
-            </button>
+            </button> */}
             {/* <button className="bg-accent-100 text-accent-700 hover:bg-accent-200 rounded-lg px-4 py-2 transition-colors">
               <i className="fas fa-edit mr-1"></i>
               Edit Profile

@@ -106,16 +106,10 @@ const TeacherCard = ({
             <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
               View Profile
             </button>
-            <div className="flex items-center space-x-2">
-              <button className="text-secondary-400 hover:text-secondary-600">
-                <i className="fas fa-envelope"></i>
-              </button>
-              <button className="text-secondary-400 hover:text-secondary-600">
-                <i className="fas fa-phone"></i>
-              </button>
-            </div>
+          
           </div>
         )}
+        
       </div>
     </div>
   );

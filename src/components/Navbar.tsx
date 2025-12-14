@@ -39,7 +39,7 @@ const Navbar = () => {
               <i className="fas fa-graduation-cap text-xl text-white"></i>
             </div>
             <div>
-              <h1 className="text-xl font-bold">TeacherHub Pro</h1>
+              <h1 className="text-xl font-bold">Katipunan Central School & SPED Center</h1>
               <p className="text-primary-200 text-xs">
                 Educational Administration Platform
               </p>

@@ -21,7 +21,7 @@ const TeacherProfilePage = () => {
     useSelect: informationSelect,
     useInsert: informationInsert,
     useUpdate: informationUpdate,
-  } = useDBOperationsLocked<PersonalInformation>("PersonalInformation");
+  } = useDBOperationsLocked<PersonalInformation>("PersonalInformation",  false, false);
 
   const { data: informations } = informationSelect({
     firebaseOptions: {

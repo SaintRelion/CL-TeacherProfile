@@ -1,5 +1,8 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/teacher-document";
+import { MoreVertical, Download, Trash2 } from 'lucide-react';
+import { useState } from "react";
+
 
 const getDocumentIcon = (ext: string) => {
   const e = ext.toLowerCase();
@@ -68,14 +71,63 @@ const FileCard = ({ doc }: { doc: TeacherDocument }) => {
   const { iconClass, bg } = getDocumentIcon(doc.extension);
   const status = getStatus(doc.expiryDate);
 
+const [isOpen, setIsOpen] = useState(false);
+
+  const handleDownload = () => {
+    alert(`Downloading ${doc.documentTitle}.pdf...`);
+    setIsOpen(false);
+  };
+
+  const handleRemove = () => {
+    if (window.confirm(`Are you sure you want to remove "${doc.documentTitle}"?`)) {
+      alert('File removed successfully');
+      setIsOpen(false);
+    }
+  };
+
+  const handleView = () => {
+    alert(`Viewing ${doc.documentTitle}...`);
+    setIsOpen(false);
+  };
+
+
+
   return (
     <div className="group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md">
       <div className="mb-3 flex items-start justify-between">
         <i className={`${bg} rounded-lg p-2 ${iconClass}`}></i>
 
         <div className="opacity-0 transition-opacity group-hover:opacity-100">
-          <button className="text-secondary-400 hover:text-secondary-600 p-1">
+
+
+          <button onClick={() => setIsOpen(!isOpen)} className="relative text-secondary-400 hover:text-secondary-600 p-1" >
             <i className="fas fa-ellipsis-v"></i>
+             {isOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+              <button
+                onClick={handleView}
+                className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 transition-colors"
+              >
+                <span className="text-sm">View</span>
+              </button>
+              
+              <button
+                onClick={handleDownload}
+                className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 transition-colors"
+              >
+                <Download size={16} className="text-gray-600" />
+                <span className="text-sm">Download</span>
+              </button>
+              
+              <button
+                onClick={handleRemove}
+                className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+              >
+                <Trash2 size={16} />
+                <span className="text-sm">Remove</span>
+              </button>
+            </div>
+          )}
           </button>
         </div>
       </div>
