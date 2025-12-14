@@ -7,25 +7,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import type { Document } from "@/models/document";
-
-import DocumentsCard from "@/components/teacher-profile/DocumentCard";
 import DocumentUpload from "@/components/teacher-profile/DocumentUpload";
-import { useDBOperations } from "@saintrelion/data-access-layer";
+import DocumentExplorer from "../document-repository/DocumentExplorer";
 
 const DocumentsTab = () => {
-  const { useSelect: documentSelect } = useDBOperations<Document>("Document");
-
-  const { data: allDocuments } = documentSelect({});
-  console.log(allDocuments);
-
-  const personalDocuments = allDocuments?.filter(
-    (v) => v.documentType == "personal",
-  );
-  const professionalDocuments = allDocuments?.filter(
-    (v) => v.documentType == "professional",
-  );
-
   return (
     <div>
       <h4 className="text-secondary-900 mb-6 text-lg font-semibold">
@@ -41,9 +26,8 @@ const DocumentsTab = () => {
               </div>
               <div>
                 <p className="text-secondary-900 text-lg font-medium">
-                  Drag and drop files here
+                  Click to upload files
                 </p>
-                <p className="text-secondary-600">or click to browse files</p>
               </div>
               <p className="text-secondary-500 text-sm">
                 Supports PDF, DOC, DOCX, JPG, PNG (Max 10MB)
@@ -62,29 +46,7 @@ const DocumentsTab = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div>
-          <h5 className="text-secondary-900 mb-3 font-semibold">
-            Personal Documents
-          </h5>
-          <div className="space-y-3">
-            {personalDocuments?.map((value, index) => (
-              <DocumentsCard key={index} document={value} />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h5 className="text-secondary-900 mb-3 font-semibold">
-            Professional Documents
-          </h5>
-          <div className="space-y-3">
-            {professionalDocuments?.map((value, index) => (
-              <DocumentsCard key={index} document={value} />
-            ))}
-          </div>
-        </div>
-      </div>
+      <DocumentExplorer />
     </div>
   );
 };

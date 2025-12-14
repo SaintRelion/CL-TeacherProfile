@@ -1,5 +1,6 @@
-import { registerUser } from "@saintrelion/auth-lib";
-import { useLockedAuth } from "@saintrelion/auth-lib/dist/FirebaseAuth";
+import { type TeacherPerformance } from "@/models/performance";
+import { useRegisterUser } from "@saintrelion/auth-lib";
+import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import {
   RenderForm,
   RenderFormButton,
@@ -7,24 +8,29 @@ import {
 } from "@saintrelion/forms";
 
 export default function AddTeacherForm() {
-  const { run: loginLocking, isLocked: isLoggingIn } =
-    useLockedAuth(registerUser);
+  const registerUser = useRegisterUser();
+  const { useInsert: teacherPerformanceInsert } =
+    useDBOperationsLocked<TeacherPerformance>("TeacherPerformance");
 
-  const handleAddTeacher = (data: Record<string, string>) => {
+  const handleAddTeacher = async (data: Record<string, string>) => {
     console.log("Teacher added:", data);
 
-    loginLocking(data.email, "12345678", { role: "instructor" });
+    const result = await registerUser.run({
+      info: { username: data.username, role: "instructor" },
+      password: "123456",
+    });
 
-    alert(`Teacher added successfully!\nUsername: ${data.email}`);
+    if (result != null)
+      teacherPerformanceInsert.run({ userId: result.id, rating: "5" });
   };
 
   return (
     <RenderForm wrapperClass="space-y-4">
       <RenderFormField
         field={{
-          label: "Email *",
-          type: "email",
-          name: "email",
+          label: "Username *",
+          type: "text",
+          name: "username",
         }}
         labelClassName="mb-2 block text-sm font-medium text-gray-700"
         inputClassName="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-green-500"
@@ -33,7 +39,7 @@ export default function AddTeacherForm() {
       <RenderFormButton
         buttonLabel="Add Teacher"
         onSubmit={handleAddTeacher}
-        isDisabled={isLoggingIn}
+        isDisabled={registerUser.isLocked}
         buttonClassName="w-full rounded-md bg-green-600 px-4 py-2 font-medium text-white shadow-md transition-colors hover:bg-green-700 hover:shadow-lg"
       />
     </RenderForm>

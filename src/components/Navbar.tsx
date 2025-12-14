@@ -1,19 +1,34 @@
-import { firebaseLogout, useAuth } from "@saintrelion/auth-lib";
+import { useAuth } from "@saintrelion/auth-lib";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useLockedAuth } from "@saintrelion/auth-lib/dist/FirebaseAuth";
-import { useNavigate } from "react-router-dom";
+import { logout } from "@saintrelion/auth-lib/dist/FirebaseAuth";
+import type { PersonalInformation } from "@/models/personal-information";
+import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import { resolveImageSource } from "@/lib/utils";
+import { NO_FACE_IMAGE } from "@/constants";
 
 const Navbar = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
-  const { run: lockingFirebaseLogOut, isLocked: isLoggingOut } =
-    useLockedAuth(firebaseLogout);
+  const { useSelect: informationSelect } =
+    useDBOperationsLocked<PersonalInformation>("PersonalInformation");
+
+  const { data: informations } = informationSelect({
+    firebaseOptions: {
+      filterField: "userId",
+      value: user.id,
+    },
+  });
+  console.log(informations);
+
+  const profilePic =
+    informations != null && informations.length > 0
+      ? informations[0].photoBase64
+      : NO_FACE_IMAGE;
 
   return (
     <header className="bg-primary-800 sticky top-0 z-50 text-white shadow-lg">
@@ -54,12 +69,12 @@ const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <div className="group flex cursor-pointer items-center space-x-2">
                   <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop"
+                    src={resolveImageSource(profilePic)}
                     alt="Admin Profile"
                     className="h-8 w-8 rounded-full object-cover"
                   />
                   <span className="text-sm font-medium transition-colors duration-150 group-hover:text-white/70">
-                    {user.email}
+                    {user.username}
                   </span>
                   <i className="fas fa-chevron-down text-primary-300 group-hover:text-primary-600 text-xs transition-colors duration-150"></i>
                 </div>
@@ -71,11 +86,10 @@ const Navbar = () => {
               >
                 <DropdownMenuItem
                   onClick={() =>
-                    lockingFirebaseLogOut(() => {
-                      navigate("/login");
+                    logout(() => {
+                      window.location.href = "/login";
                     })
                   }
-                  disabled={isLoggingOut}
                   className="flex items-center space-x-2 px-4 py-2 font-medium text-red-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
                 >
                   <i className="fas fa-sign-out-alt"></i>

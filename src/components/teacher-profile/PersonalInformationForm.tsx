@@ -148,6 +148,19 @@ const PersonalInformationForm = ({
           Employment Details
         </h4>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {" "}
+          <RenderFormField
+            field={{
+              label: "Employee ID",
+              type: "text",
+              name: "employeeId",
+            }}
+            defaultValue={
+              myInformation == undefined ? "" : myInformation.employeeId
+            }
+            labelClassName="text-secondary-700 mb-2 block text-sm font-medium"
+            inputClassName="input-field"
+          />
           <RenderFormField
             field={{
               label: "Position",

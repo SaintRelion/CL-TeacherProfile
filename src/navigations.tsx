@@ -3,11 +3,7 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/authentication/LoginPage";
 
 import { ProtectedRoute } from "@saintrelion/auth-lib";
-import {
-  registerGroupAppRoutes,
-  registerAppRoute,
-  createAppRouter,
-} from "@saintrelion/routers";
+import { registerGroupAppRoutes, createAppRouter } from "@saintrelion/routers";
 import TeacherProfilePage from "./pages/teacher-profile/TeacherProfilePage";
 import ForgotPasswordPage from "./pages/authentication/ForgotPasswordPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
@@ -16,13 +12,17 @@ import DocumentRepositoryPage from "./pages/document-repository/DocumentReposito
 // ✅ Register protected routes (with layout)
 registerGroupAppRoutes({
   layout: (
-    // <ProtectedRoute>
-    <RootLayout />
-    // </ProtectedRoute>
+    <ProtectedRoute>
+      <RootLayout />
+    </ProtectedRoute>
   ),
   path: "/",
   errorElement: <NotFound />,
   children: [
+    // PUBLIC
+    { path: "/login", public: true, element: <LoginPage /> },
+    { path: "/forgot", public: true, element: <ForgotPasswordPage /> },
+    // RESITRICTED
     {
       index: true,
       path: "/admin/",
@@ -57,10 +57,6 @@ registerGroupAppRoutes({
     },
   ],
 });
-
-// ✅ Public routes
-registerAppRoute({ path: "/login", element: <LoginPage /> });
-registerAppRoute({ path: "/forgot", element: <ForgotPasswordPage /> });
 
 // ✅ Create router
 export const router = createAppRouter();

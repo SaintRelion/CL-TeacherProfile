@@ -10,9 +10,45 @@ import {
   DialogDescription,
   DialogHeader,
 } from "@/components/ui/dialog";
+import { NO_FACE_IMAGE } from "@/constants";
+import { getYearsOfService } from "@/lib/utils";
+import type { TeacherPerformance } from "@/models/performance";
+import { type PersonalInformation } from "@/models/personal-information";
+import type { User } from "@/models/user";
+import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { useState } from "react";
 
+function createFallbackTeacher(user: User): PersonalInformation {
+  return {
+    id: "",
+    userId: "",
+    employeeId: "",
+    photoBase64: "",
+    firstName: user.username ?? "",
+    lastName: "",
+    middleName: "",
+    dateOfBirth: "",
+    gender: "",
+    civilStatus: "",
+    emailAddress: "",
+    mobileNumber: "",
+    homeAddress: "",
+    position: "",
+    department: "",
+    employmentStatus: "",
+    dateHired: "",
+    salaryGrade: "",
+    tin: "",
+  };
+}
+
 const TeacherDirectoryPage = () => {
+  const { useSelect: selectUsers } = useDBOperationsLocked<User>("User");
+  const { useSelect: selectTeachersInformation } =
+    useDBOperationsLocked<PersonalInformation>("PersonalInformation");
+  const { useSelect: selectTeacherPerformance } =
+    useDBOperationsLocked<TeacherPerformance>("TeacherPerformance");
+
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
 
   const [search, setSearch] = useState<string>("");
@@ -23,109 +59,76 @@ const TeacherDirectoryPage = () => {
     performanceRating: "",
   });
 
-  const mockTeacher: Record<string, string>[] = [
-    {
-      name: "Dr. Elena Rodriguez",
-      photoURL:
-        "https://images.pexels.com/photos/5212317/pexels-photo-5212317.jpeg?auto=compress&cs=tinysrgb&w=400",
-      department: "Mathematics Department",
-      employeeID: "TCH-2021-001",
-      yearOfService: "8 years",
-      rating: "5",
-      status: "Current",
-      statusColor: "bg-success-500",
-    },
-    {
-      name: "Prof. Juan Dela Cruz",
-      photoURL:
-        "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop",
-      department: "Science Department",
-      employeeID: "TCH-2019-045",
-      yearOfService: "12 years",
-      rating: "4",
-      status: "Expiring",
-      statusColor: "bg-warning-500",
-    },
-    {
-      name: "Ms. Ana Reyes",
-      photoURL:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop",
-      department: "English Department",
-      employeeID: "TCH-2022-089",
-      yearOfService: "3 years",
-      rating: "5",
-      status: "Current",
-      statusColor: "bg-success-500",
-    },
-    {
-      name: "Mr. Carlos Mendoza",
-      photoURL:
-        "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop",
-      department: "Physical Education",
-      employeeID: "TCH-2018-123",
-      yearOfService: "15 years",
-      rating: "3",
-      status: "Expired",
-      statusColor: "bg-error-500",
-    },
-    {
-      name: "Dr. Maria Santos",
-      photoURL:
-        "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop",
-      department: "Social Studies",
-      employeeID: "TCH-2020-067",
-      yearOfService: "6 years",
-      rating: "4",
-      status: "Current",
-      statusColor: "bg-success-500",
-    },
-  ];
+  const { data: users } = selectUsers();
+  const { data: teachersInformation } = selectTeachersInformation();
+  const { data: teacherPerformances } = selectTeacherPerformance();
 
-  const filteredTeachers = mockTeacher.filter((t) => {
-    const name = t.name.toLowerCase();
-    const department = t.department.toLowerCase();
-    const employeeID = t.employeeID.toLowerCase();
-    const rating = t.rating.toLowerCase();
-    const yearOfService = t.yearOfService.toLowerCase();
-    const status = t.status.toLowerCase();
+  const filteredTeachers = users
+    ?.map((user) => {
+      const teacherInformation =
+        teachersInformation?.find((ti) => ti.userId == user.id) ??
+        createFallbackTeacher(user);
 
-    // --- TEXT SEARCH ---
-    const s = search.toLowerCase();
-    if (s != "") {
-      const matchesSearch =
-        name.includes(s) || department.includes(s) || employeeID.includes(s);
+      if (teacherInformation.photoBase64 == "")
+        teacherInformation.photoBase64 = NO_FACE_IMAGE;
 
-      if (!matchesSearch) return false;
-    }
+      const teacherPerformance = teacherPerformances?.find(
+        (p) => p.userId == user.id,
+      );
 
-    // --- FILTERS (case-insensitive) ---
-    if (
-      filters.department &&
-      department !== filters.department.toLowerCase().replaceAll("-", " ")
-    )
-      return false;
+      if (teacherPerformance == null) return null; // Shouldn't happen
 
-    if (
-      filters.performanceRating &&
-      rating !== filters.performanceRating.toLowerCase()
-    )
-      return false;
+      // Create searchable fields
+      const name =
+        `${teacherInformation.firstName} ${teacherInformation.middleName} ${teacherInformation.lastName}`.toLowerCase();
+      const department = teacherInformation.department.toLowerCase();
+      const employeeID = teacherInformation.employeeId.toLowerCase();
+      const yearOfService = teacherInformation.dateHired
+        ? getYearsOfService(teacherInformation.dateHired).toLowerCase()
+        : "";
 
-    if (
-      filters.yearsOfService &&
-      yearOfService !==
-        filters.yearsOfService.toLowerCase().replaceAll("-", " ")
-    )
-      return false;
+      // ---------- SEARCH ----------
+      const s = search.toLowerCase();
+      if (s !== "") {
+        const matchesSearch =
+          name.includes(s) || department.includes(s) || employeeID.includes(s);
 
-    if (
-      filters.certificationStatus &&
-      status !== filters.certificationStatus.toLowerCase().replaceAll("-", " ")
-    )
-      return false;
+        if (!matchesSearch) return null;
+      }
 
-    return true;
-  });
+      // ---------- FILTERS ----------
+      if (
+        filters.department &&
+        department !== filters.department.toLowerCase().replaceAll("-", " ")
+      )
+        return null;
+
+      if (
+        filters.performanceRating &&
+        teacherPerformance.rating.toLowerCase() !==
+          filters.performanceRating.toLowerCase()
+      )
+        return null;
+
+      if (
+        filters.yearsOfService &&
+        yearOfService !==
+          filters.yearsOfService.toLowerCase().replaceAll("-", " ")
+      )
+        return null;
+
+      // if (
+      //   filters.certificationStatus &&
+      //   status !== filters.certificationStatus.toLowerCase().replaceAll("-", " ")
+      // )
+      //   return false;
+
+      return {
+        ...teacherInformation,
+        rating: teacherPerformance.rating,
+      };
+    })
+    .filter(Boolean);
 
   return (
     <main className="flex-1 p-6">
@@ -140,7 +143,7 @@ const TeacherDirectoryPage = () => {
             </p>
           </div>
           <Dialog>
-            <DialogTrigger>
+            <DialogTrigger asChild>
               <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 text-white transition-colors">
                 <i className="fas fa-plus"></i>
                 <span>Add Teacher</span>
@@ -161,7 +164,9 @@ const TeacherDirectoryPage = () => {
       </div>
 
       <Filters
-        dataCount={filteredTeachers.length.toString()}
+        dataCount={
+          filteredTeachers != null ? filteredTeachers.length.toString() : "0"
+        }
         filters={filters}
         onSearchChange={(search) => setSearch(search)}
         onFilterChange={(filterType, value) => {
@@ -186,136 +191,35 @@ const TeacherDirectoryPage = () => {
         />
       )}
 
-      <div
-        id="teachersGrid"
-        className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      >
-        {filteredTeachers.map((value, index) => (
-          <TeacherCard
-            key={index}
-            kvp={value}
-            isSelected={selectedTeachers.indexOf(value.employeeID) != -1}
-            onTeacherSelect={(employeeID, checked) => {
-              setSelectedTeachers(
-                (prev) =>
-                  checked
-                    ? [...prev, employeeID] // Add ID when checked
-                    : prev.filter((id) => id !== employeeID), // Remove ID when unchecked
-              );
-            }}
-          />
-        ))}
-      </div>
-
-      <div
-        id="teachersList"
-        className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
-              <tr>
-                <th className="px-6 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded"
-                  />
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Teacher
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Department
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Employee ID
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Experience
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Status
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Performance
-                </th>
-                <th className="text-secondary-500 px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
-              <tr className="hover:bg-slate-50">
-                <td className="px-6 py-4">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded"
-                  />
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <img
-                      src="https://images.pexels.com/photos/5212317/pexels-photo-5212317.jpeg?auto=compress&cs=tinysrgb&w=100"
-                      alt="Dr. Elena Rodriguez"
-                      className="mr-3 h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <div className="text-secondary-900 text-sm font-medium">
-                        Dr. Elena Rodriguez
-                      </div>
-                      <div className="text-secondary-500 text-sm">
-                        elena.rodriguez@school.edu
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="text-secondary-900 px-6 py-4 text-sm">
-                  Mathematics
-                </td>
-                <td className="text-secondary-900 px-6 py-4 text-sm">
-                  TCH-2021-001
-                </td>
-                <td className="text-secondary-900 px-6 py-4 text-sm">
-                  8 years
-                </td>
-                <td className="px-6 py-4">
-                  <span className="bg-success-100 text-success-800 inline-flex rounded-full px-2 py-1 text-xs font-semibold">
-                    Current
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-1">
-                    <i className="fas fa-star text-warning-500 text-xs"></i>
-                    <i className="fas fa-star text-warning-500 text-xs"></i>
-                    <i className="fas fa-star text-warning-500 text-xs"></i>
-                    <i className="fas fa-star text-warning-500 text-xs"></i>
-                    <i className="fas fa-star text-warning-500 text-xs"></i>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm font-medium">
-                  <div className="flex items-center space-x-2">
-                    <button className="text-primary-600 hover:text-primary-900">
-                      View
-                    </button>
-                    <button className="text-secondary-400 hover:text-secondary-600">
-                      <i className="fas fa-envelope"></i>
-                    </button>
-                    <button className="text-secondary-400 hover:text-secondary-600">
-                      <i className="fas fa-phone"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {filteredTeachers != null
+          ? filteredTeachers.map((value, index) => (
+              <TeacherCard
+                key={index}
+                info={value}
+                isSelected={
+                  selectedTeachers.indexOf(value?.employeeId ?? "") != -1
+                }
+                onTeacherSelect={(employeeID, checked) => {
+                  setSelectedTeachers(
+                    (prev) =>
+                      checked
+                        ? [...prev, employeeID] // Add ID when checked
+                        : prev.filter((id) => id !== employeeID), // Remove ID when unchecked
+                  );
+                }}
+              />
+            ))
+          : "No teachers found"}
       </div>
 
       <div className="mt-8 flex items-center justify-between">
         <div className="text-secondary-600 text-sm">
           Showing <span className="font-medium">1</span> to{" "}
           <span className="font-medium">20</span> of{" "}
-          <span className="font-medium">{filteredTeachers.length}</span>{" "}
+          <span className="font-medium">
+            {filteredTeachers != null ? filteredTeachers.length : 0}
+          </span>{" "}
           teachers
         </div>
         <div className="flex items-center space-x-2">

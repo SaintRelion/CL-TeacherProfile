@@ -1,24 +1,28 @@
-import { firebaseLoginWithEmail, useAuth } from "@saintrelion/auth-lib";
+import { useAuth } from "@saintrelion/auth-lib";
 import { useNavigate } from "react-router-dom";
 import {
   RenderForm,
   RenderFormField,
   RenderFormButton,
 } from "@saintrelion/forms";
-import { useLockedAuth } from "@saintrelion/auth-lib/dist/FirebaseAuth";
+import { useLoginWithCredentials } from "@saintrelion/auth-lib/dist/FirebaseAuth";
 
 const LoginPage = () => {
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
-  const { run: loginLocking, isLocked: isLoggingIn } = useLockedAuth(
-    firebaseLoginWithEmail,
-  );
+  const loginWithCredentials = useLoginWithCredentials();
 
   const handleLogin = (data: Record<string, string>) => {
-    loginLocking(data.email, data.password, setUser, () => {
-      navigate("/admin");
-    });
+    loginWithCredentials.run(
+      "username",
+      data.username,
+      data.password,
+      setUser,
+      (user) => {
+        navigate("/admin");
+      },
+    );
   };
 
   return (
@@ -53,11 +57,11 @@ const LoginPage = () => {
           <RenderForm wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg">
             <RenderFormField
               field={{
-                label: "Email",
+                label: "Username",
                 icon: true,
-                type: "email",
-                name: "email",
-                placeholder: "user@gmail.com",
+                type: "text",
+                name: "username",
+                placeholder: "teacher1",
               }}
               labelClassName="mb-1 block text-sm font-medium text-gray-300"
               iconClassName="fas fa-envelope absolute top-3 left-3 text-gray-400"
@@ -95,7 +99,7 @@ const LoginPage = () => {
               buttonClassName="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
               buttonLabel="Login"
               onSubmit={handleLogin}
-              isDisabled={isLoggingIn}
+              isDisabled={loginWithCredentials.isLocked}
             />
           </RenderForm>
         </div>

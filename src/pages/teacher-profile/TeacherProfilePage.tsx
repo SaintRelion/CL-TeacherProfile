@@ -1,9 +1,10 @@
 import BasicInformationCard from "@/components/teacher-profile/BasicInformationCard";
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
+import { NO_FACE_IMAGE } from "@/constants";
 import { type PersonalInformation } from "@/models/personal-information";
-import { useAuth } from "@saintrelion/auth-lib";
-import { useDBOperations } from "@saintrelion/data-access-layer";
+import { useAuth, useUpdateUser } from "@saintrelion/auth-lib";
+import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
 import { useState } from "react";
@@ -15,32 +16,49 @@ const TeacherProfilePage = () => {
     "personal",
   );
 
+  const updateUser = useUpdateUser();
   const {
     useSelect: informationSelect,
     useInsert: informationInsert,
     useUpdate: informationUpdate,
-  } = useDBOperations<PersonalInformation>("PersonalInformation");
+  } = useDBOperationsLocked<PersonalInformation>("PersonalInformation");
 
   const { data: informations } = informationSelect({
     firebaseOptions: {
-      filterField: "userID",
+      filterField: "userId",
       value: user.id,
     },
   });
 
+  const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
+
   const myInformation = informations != null ? informations[0] : undefined;
+  if (myInformation != null) {
+    if (selectedProfilePic != "")
+      myInformation.photoBase64 = selectedProfilePic;
+    else if (myInformation.photoBase64 == "")
+      myInformation.photoBase64 = NO_FACE_IMAGE;
+  }
 
   const handleInformationSaveChanges = (data: Record<string, string>) => {
-    data.userID = user.id;
+    data.userId = user.id;
+    if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
     console.log(data);
 
-    if (myInformation == undefined) informationInsert.mutate(data);
-    else
-      informationUpdate.mutate({
-        field: "userID",
+    if (myInformation == undefined) {
+      if (selectedProfilePic == "") data.photoBase64 = "";
+      informationInsert.run(data);
+    } else {
+      informationUpdate.run({
+        field: "userId",
         value: user.id,
         updates: data,
       });
+    }
+
+    if (data.emailAddress) {
+      updateUser.run({ userId: user.id, info: { email: data.emailAddress } });
+    }
   };
 
   return (
@@ -65,7 +83,10 @@ const TeacherProfilePage = () => {
             </div>
           </div>
 
-          <BasicInformationCard myInformation={myInformation} />
+          <BasicInformationCard
+            myInformation={myInformation}
+            onProfilePicChanged={(value) => setSelectedProfilePic(value)}
+          />
 
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200">
