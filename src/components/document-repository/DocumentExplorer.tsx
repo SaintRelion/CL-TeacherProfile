@@ -3,15 +3,13 @@ import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
 import { DOCUMENT_TYPES } from "@/constants";
 import type { TeacherDocument } from "@/models/teacher-document";
-import { useAuth } from "@saintrelion/auth-lib";
+import type { User } from "@/models/user";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
 import React from "react";
 import { useState } from "react";
 
-const DocumentExplorer = () => {
-  const { user } = useAuth();
-
+const DocumentExplorer = ({ user }: { user: User }) => {
   const [selectedFolder, setSelectedFolder] = useState("");
 
   const [search, setSearch] = useState("");

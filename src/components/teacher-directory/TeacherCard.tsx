@@ -1,12 +1,5 @@
-import { DialogDescription } from "@radix-ui/react-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTrigger,
-} from "../ui/dialog";
-import TeacherFullPreviewCard from "./TeacherFullPreviewCard";
 import { getYearsOfService } from "@/lib/utils";
+import { createImpersonationToken, useAuth } from "@saintrelion/auth-lib";
 
 const TeacherCard = ({
   info,
@@ -17,7 +10,19 @@ const TeacherCard = ({
   isSelected: boolean;
   onTeacherSelect: (employeeID: string, checked: boolean) => void;
 }) => {
+  const { user } = useAuth();
+
   if (info == null) return <p>This shouldn't happen, null</p>;
+
+  const handleViewProfile = async () => {
+    const token = await createImpersonationToken(user.id, info.userId);
+
+    window.open(
+      `/teacherprofileinspect?token=${token}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
 
   const complete = info.userId != "";
 
@@ -26,17 +31,10 @@ const TeacherCard = ({
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="relative">
         <img
-          src={info.photoBase64} // Currently a link
+          src={info.photoBase64}
           alt={fullName}
           className="h-48 w-full object-cover"
         />
-        {/* <div className="absolute top-3 right-3">
-          <span
-            className={`${kvp.statusColor} rounded-full px-2 py-1 text-xs text-white`}
-          >
-            {kvp.status}
-          </span>
-        </div> */}
         <div className="absolute top-3 left-3">
           <input
             type="checkbox"
@@ -52,27 +50,6 @@ const TeacherCard = ({
             <h3 className="text-secondary-900 font-semibold">{fullName}</h3>
             <p className="text-secondary-600 text-sm">{info.department}</p>
           </div>
-
-          {complete && (
-            <Dialog>
-              <DialogTrigger>
-                <i className="fas fa-eye text-secondary-400 hover:text-secondary-600"></i>
-              </DialogTrigger>
-              <DialogContent className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white">
-                <div className="border-b border-slate-200 p-2">
-                  <DialogHeader>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-secondary-900 text-xl font-semibold">
-                        Teacher Profile Preview
-                      </h3>
-                    </div>
-                  </DialogHeader>
-                </div>
-                <DialogDescription></DialogDescription>
-                <TeacherFullPreviewCard info={info} />
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
@@ -103,7 +80,10 @@ const TeacherCard = ({
         </div>
         {complete && (
           <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
-            <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            <button
+              onClick={() => handleViewProfile()}
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
               View Profile
             </button>
           </div>

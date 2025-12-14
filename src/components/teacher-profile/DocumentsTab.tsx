@@ -9,8 +9,16 @@ import {
 
 import DocumentUpload from "@/components/teacher-profile/DocumentUpload";
 import DocumentExplorer from "../document-repository/DocumentExplorer";
+import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import type { User } from "@/models/user";
 
-const DocumentsTab = () => {
+const DocumentsTab = ({ userId }: { userId: string }) => {
+  const { useSelect: userSelect } = useDBOperationsLocked<User>("User");
+  const { data: users } = userSelect({
+    firebaseOptions: { filterField: "id", value: userId },
+  });
+  const user = users != undefined ? users[0] : null;
+
   return (
     <div>
       <h4 className="text-secondary-900 mb-6 text-lg font-semibold">
@@ -42,11 +50,11 @@ const DocumentsTab = () => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <DocumentUpload />
+          <DocumentUpload userId={userId} />
         </DialogContent>
       </Dialog>
 
-      <DocumentExplorer />
+      {user && <DocumentExplorer user={user} />}
     </div>
   );
 };

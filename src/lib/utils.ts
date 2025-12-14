@@ -62,7 +62,7 @@ export function resizeImage(file: File): Promise<string> {
       img.onload = () => {
         const canvas = document.createElement("canvas");
 
-        const maxHeight = 64;
+        const maxHeight = 512;
         const scale = maxHeight / img.height;
 
         canvas.width = img.width * scale;

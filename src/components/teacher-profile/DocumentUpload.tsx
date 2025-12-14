@@ -8,12 +8,9 @@ import { useState } from "react";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
-import { useAuth } from "@saintrelion/auth-lib";
 import type { TeacherDocument } from "@/models/teacher-document";
 
-export default function DocumentForm() {
-  const { user } = useAuth();
-
+export default function DocumentForm({ userId }: { userId: string }) {
   const { useInsert: documentInsert } =
     useDBOperationsLocked<TeacherDocument>("TeacherDocument");
 
@@ -52,7 +49,7 @@ export default function DocumentForm() {
     data.extension = extension;
     data.fileSizeInMB = fileSizeInMB;
     data.fileBase64 = base64;
-    data.userId = user.id;
+    data.userId = userId;
 
     documentInsert.run(data);
   };
