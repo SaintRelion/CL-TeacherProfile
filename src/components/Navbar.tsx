@@ -39,7 +39,9 @@ const Navbar = () => {
               <i className="fas fa-graduation-cap text-xl text-white"></i>
             </div>
             <div>
-              <h1 className="text-xl font-bold">Katipunan Central School & SPED Center</h1>
+              <h1 className="text-xl font-bold">
+                Katipunan Central School & SPED Center
+              </h1>
               <p className="text-primary-200 text-xs">
                 Educational Administration Platform
               </p>
@@ -85,14 +87,14 @@ const Navbar = () => {
                 className="mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
               >
                 <DropdownMenuItem
-  onClick={() => {
-    // Handle update photo
-  }}
-  className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
->
-  <i className="fas fa-camera"></i>
-  <span>Update Photo</span>
-</DropdownMenuItem>
+                  onClick={() => {
+                    // Handle update photo
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <i className="fas fa-camera"></i>
+                  <span>Update Photo</span>
+                </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={() => {
@@ -115,7 +117,6 @@ const Navbar = () => {
                   <i className="fas fa-sign-out-alt"></i>
                   <span>Logout</span>
                 </DropdownMenuItem>
-                
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

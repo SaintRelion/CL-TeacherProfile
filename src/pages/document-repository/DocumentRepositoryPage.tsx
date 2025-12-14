@@ -3,8 +3,11 @@ import DocumentExplorer from "@/components/document-repository/DocumentExplorer"
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { type TeacherDocument } from "@/models/teacher-document";
 import React from "react";
+import { useAuth } from "@saintrelion/auth-lib";
 
 const DocumentRepositoryPage = () => {
+  const { user } = useAuth();
+
   const { useSelect: selectDocuments } =
     useDBOperationsLocked<TeacherDocument>("TeacherDocument");
   const { data: documents } = selectDocuments();
@@ -49,7 +52,6 @@ const DocumentRepositoryPage = () => {
             <h2 className="text-secondary-900 mb-2 text-3xl font-bold">
               Document Repository
             </h2>
-            
           </div>
           <div className="mt-4 flex items-center space-x-3 md:mt-0">
             {/* <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">
@@ -70,7 +72,9 @@ const DocumentRepositoryPage = () => {
         </div>
       </div>
 
-      <DocumentExplorer />
+      <DocumentExplorer
+        user={{ id: user.id, role: user.role, username: user.username }}
+      />
     </main>
   );
 };

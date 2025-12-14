@@ -3,15 +3,13 @@ import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
 import { DOCUMENT_TYPES } from "@/constants";
 import type { TeacherDocument } from "@/models/teacher-document";
-import { useAuth } from "@saintrelion/auth-lib";
+import type { User } from "@/models/user";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
 import React from "react";
 import { useState } from "react";
 
-const DocumentExplorer = () => {
-  const { user } = useAuth();
-
+const DocumentExplorer = ({ user }: { user: User }) => {
   const [selectedFolder, setSelectedFolder] = useState("");
 
   const [search, setSearch] = useState("");
@@ -215,8 +213,6 @@ const DocumentExplorer = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sortedDocuments.map((doc, index) => (
               <FileCard key={index} doc={doc} />
-
-              
             ))}
           </div>
         </div>

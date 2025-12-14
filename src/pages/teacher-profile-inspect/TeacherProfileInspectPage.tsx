@@ -3,14 +3,18 @@ import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
 import { NO_FACE_IMAGE } from "@/constants";
 import { type PersonalInformation } from "@/models/personal-information";
-import { useAuth, useUpdateUser } from "@saintrelion/auth-lib";
+import {
+  useUpdateUser,
+  validateImpersonationToken,
+} from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const TeacherProfilePage = () => {
-  const { user } = useAuth();
+const TeacherProfileInspectPage = () => {
+  const [tokenStatus, setTokenStatus] = useState<string>("");
+  const [inspectUserId, setInspectUserId] = useState<string | null>(null);
 
   const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
     "personal",
@@ -30,7 +34,7 @@ const TeacherProfilePage = () => {
   const { data: informations } = informationSelect({
     firebaseOptions: {
       filterField: "userId",
-      value: user.id,
+      value: inspectUserId == null ? "-1" : inspectUserId,
     },
   });
 
@@ -45,7 +49,9 @@ const TeacherProfilePage = () => {
   }
 
   const handleInformationSaveChanges = (data: Record<string, string>) => {
-    data.userId = user.id;
+    if (inspectUserId == null) return;
+
+    data.userId = inspectUserId;
     if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
     console.log(data);
 
@@ -55,15 +61,50 @@ const TeacherProfilePage = () => {
     } else {
       informationUpdate.run({
         field: "userId",
-        value: user.id,
+        value: inspectUserId,
         updates: data,
       });
     }
 
     if (data.emailAddress) {
-      updateUser.run({ userId: user.id, info: { email: data.emailAddress } });
+      updateUser.run({
+        userId: inspectUserId,
+        info: { email: data.emailAddress },
+      });
     }
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+
+      if (token) {
+        try {
+          const targetUserId = await validateImpersonationToken(token);
+
+          setInspectUserId(targetUserId);
+        } catch {
+          setTokenStatus("expired");
+        }
+      } else {
+        setTokenStatus("none");
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (tokenStatus == "expired")
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        Token expired
+      </div>
+    );
+  else if (tokenStatus == "none") return;
+  <div className="flex h-screen w-full items-center justify-center">
+    No Token
+  </div>;
 
   return (
     <RenderForm>
@@ -98,7 +139,6 @@ const TeacherProfilePage = () => {
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200">
               <nav className="flex space-x-8 px-6" aria-label="Tabs">
-                
                 {/* Personal */}
                 <button
                   onClick={() => setTabSelected("personal")}
@@ -134,7 +174,10 @@ const TeacherProfilePage = () => {
               )}
 
               {/* DOCUMENTS */}
-              {tabSelected == "documents" && <DocumentsTab userId={user.id} />}
+
+              {tabSelected == "documents" && inspectUserId != null && (
+                <DocumentsTab userId={inspectUserId} />
+              )}
             </div>
           </div>
         </div>
@@ -142,4 +185,4 @@ const TeacherProfilePage = () => {
     </RenderForm>
   );
 };
-export default TeacherProfilePage;
+export default TeacherProfileInspectPage;

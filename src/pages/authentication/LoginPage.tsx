@@ -1,5 +1,5 @@
 import { useAuth } from "@saintrelion/auth-lib";
-import { useNavigate } from "react-router-dom";
+
 import {
   RenderForm,
   RenderFormField,
@@ -9,54 +9,46 @@ import { useLoginWithCredentials } from "@saintrelion/auth-lib/dist/FirebaseAuth
 
 const LoginPage = () => {
   const { setUser } = useAuth();
-  const navigate = useNavigate();
   const loginWithCredentials = useLoginWithCredentials();
 
-  const handleLogin = (data: Record<string, string>) => {
-    loginWithCredentials.run(
+  const handleLogin = async (data: Record<string, string>) => {
+    await loginWithCredentials.run(
       "username",
       data.username,
       data.password,
       setUser,
-      () => navigate("/admin")
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 text-white">
-      <div className="w-full max-w-6xl bg-gray-900/60 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden flex flex-col md:flex-row">
-        
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 text-white">
+      <div className="flex w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-gray-900/60 shadow-2xl backdrop-blur-xl md:flex-row">
         {/* LEFT PANEL (Hidden on small screens) */}
-        <div className="hidden md:flex md:flex-col md:w-1/2 items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-10 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
+        <div className="hidden items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-10 text-center md:flex md:w-1/2 md:flex-col">
+          <h2 className="mb-4 text-3xl font-bold text-white">
             Teacher Profiling System
           </h2>
-          <p className="text-blue-100 max-w-sm mb-6">
+          <p className="mb-6 max-w-sm text-blue-100">
             Securely manage, update, and track teacher profiles with ease.
           </p>
 
           <img
             src="https://img.freepik.com/free-vector/teacher-concept-illustration_114360-7501.jpg"
             alt="Teaching Illustration"
-            className="w-72 rounded-xl shadow-xl border border-white/20"
+            className="w-72 rounded-xl border border-white/20 shadow-xl"
           />
         </div>
 
         {/* RIGHT PANEL (Login Form) */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-12 space-y-6">
-          
+        <div className="flex w-full flex-col justify-center space-y-6 p-8 md:w-1/2 md:p-12">
           {/* Header */}
           <div className="text-center">
             <h1 className="text-4xl font-bold">Welcome Back</h1>
-            <p className="text-gray-400 text-sm mt-1">
-              Login to continue
-            </p>
+            <p className="mt-1 text-sm text-gray-400">Login to continue</p>
           </div>
 
           {/* Form */}
-          <RenderForm
-            wrapperClass="w-full max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-5"
-          >
+          <RenderForm wrapperClass="w-full max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-5">
             <RenderFormField
               field={{
                 label: "Username",
@@ -92,7 +84,7 @@ const LoginPage = () => {
 
               <a
                 href="/forgot"
-                className="text-blue-400 hover:text-blue-300 transition"
+                className="text-blue-400 transition hover:text-blue-300"
               >
                 Forgot password?
               </a>
@@ -106,7 +98,6 @@ const LoginPage = () => {
               buttonClassName="w-full bg-blue-600 hover:bg-blue-700 transition-colors rounded-lg py-2 font-semibold shadow-lg"
             />
           </RenderForm>
-
         </div>
       </div>
     </div>
