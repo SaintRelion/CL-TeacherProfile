@@ -91,6 +91,7 @@ const TeacherProfilePage = () => {
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200">
               <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                
                 {/* Personal */}
                 <button
                   onClick={() => setTabSelected("personal")}
