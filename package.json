@@ -21,8 +21,13 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@saintrelion/auth-lib": "^4.2.7",
     "@saintrelion/cache": "^1.0.1",
+<<<<<<< HEAD
     "@saintrelion/data-access-layer": "^5.0.6",
     "@saintrelion/forms": "^1.0.20",
+=======
+    "@saintrelion/data-access-layer": "^5.0.7",
+    "@saintrelion/forms": "^1.1.11",
+>>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
     "@saintrelion/notifications": "^1.0.2",
     "@saintrelion/routers": "^2.0.0",
     "@saintrelion/time-functions": "^1.0.2",

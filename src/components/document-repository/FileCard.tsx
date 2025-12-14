@@ -1,8 +1,19 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/teacher-document";
+<<<<<<< HEAD
 import { MoreVertical, Download, Trash2 } from 'lucide-react';
 import { useState } from "react";
 
+=======
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+>>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
 
 const getDocumentIcon = (ext: string) => {
   const e = ext.toLowerCase();
@@ -93,10 +104,12 @@ const [isOpen, setIsOpen] = useState(false);
 
 
   return (
-    <div className="group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md">
-      <div className="mb-3 flex items-start justify-between">
-        <i className={`${bg} rounded-lg p-2 ${iconClass}`}></i>
+    <Dialog>
+      <DialogTrigger className="group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md">
+        <div className="mb-3 flex items-start justify-between">
+          <i className={`${bg} rounded-lg p-2 ${iconClass}`}></i>
 
+<<<<<<< HEAD
         <div className="opacity-0 transition-opacity group-hover:opacity-100">
 
 
@@ -129,31 +142,67 @@ const [isOpen, setIsOpen] = useState(false);
             </div>
           )}
           </button>
+=======
+          <div className="opacity-0 transition-opacity group-hover:opacity-100">
+            <button className="text-secondary-400 hover:text-secondary-600 p-1">
+              <i className="fas fa-ellipsis-v"></i>
+            </button>
+          </div>
+>>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
         </div>
-      </div>
 
-      <h4 className="text-secondary-900 mb-1 truncate font-medium">
-        {doc.documentTitle}
-      </h4>
+        <div className="flex flex-col items-start">
+          <h4 className="text-secondary-900 mb-1 truncate font-medium">
+            {doc.documentTitle}
+          </h4>
 
-      <p className="text-secondary-500 mb-2 text-xs">
-        {doc.extension.toUpperCase()} • {doc.fileSizeInMB} MB
-      </p>
-
-      <div className="text-secondary-500 flex items-center justify-between text-xs">
-        <span>{doc.issueDate}</span>
-        <div className="flex items-center space-x-1">
-          <i className="fas fa-calendar"></i>
-          <span>{doc.expiryDate}</span>
+          <p className="text-secondary-500 mb-2 text-xs">
+            {doc.extension.toUpperCase()} • {doc.fileSizeInMB} MB
+          </p>
         </div>
-      </div>
+        <div className="text-secondary-500 flex items-center justify-between text-xs">
+          <span>{doc.issueDate}</span>
+          <div className="flex items-center space-x-1">
+            <i className="fas fa-calendar"></i>
+            <span>{doc.expiryDate}</span>
+          </div>
+        </div>
 
-      <div className="mt-2 flex items-center space-x-1">
-        <span className={`${status.className} rounded-full px-2 py-1 text-xs`}>
-          {status.label}
-        </span>
-      </div>
-    </div>
+        <div className="mt-2 flex items-center space-x-1">
+          <span
+            className={`${status.className} rounded-full px-2 py-1 text-xs`}
+          >
+            {status.label}
+          </span>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
+        {/* Header */}
+        <DialogHeader className="text-md truncate px-4 py-2 font-medium">
+          <DialogTitle>{doc.documentTitle}</DialogTitle>
+          <DialogDescription></DialogDescription>
+        </DialogHeader>
+
+        {/* Content */}
+        <div className="min-h-0 flex-1">
+          {doc.extension === "pdf" && (
+            <iframe src={doc.fileBase64} className="h-full w-full" />
+          )}
+
+          {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
+            <div className="flex h-full items-center justify-center">
+              <img src={doc.fileBase64} className="max-h-full max-w-full" />
+            </div>
+          )}
+
+          {!["pdf", "png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
+            <div className="text-muted-foreground p-4 text-sm">
+              Preview not supported for this file type
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
