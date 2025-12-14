@@ -36,8 +36,8 @@ importers:
         specifier: ^1.1.13
         version: 1.1.13(@types/react-dom@19.1.8(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@saintrelion/auth-lib':
-        specifier: ^4.2.7
-        version: 4.2.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: ^4.2.8
+        version: 4.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@saintrelion/cache':
         specifier: ^1.0.1
         version: 1.0.1
@@ -1895,8 +1895,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@saintrelion/auth-lib@4.2.7':
-    resolution: {integrity: sha512-rT8uPTQww6NM4uxZzHzcW30uy377S+LScEUmum/Stwf3cUN5BTGey7o2eI/fG6xgqq916FMgvy3+Qo3+PgpjWw==, tarball: https://npm.pkg.github.com/download/@saintrelion/auth-lib/4.2.7/3dcabbfd8eb35d4f6edb84a525f50a1ded3c1e5d}
+  '@saintrelion/auth-lib@4.2.8':
+    resolution: {integrity: sha512-yA0eAx4UkVEz54saMCyJCedLOTTWLud0NzZ5p/ac6j/x/V6p4wSxNLYlGjYNYHGgHBNqkgu1tipBU+Fvo+9yAw==, tarball: https://npm.pkg.github.com/download/@saintrelion/auth-lib/4.2.8/e4c170693b57d00c435957cef541f9a06c144271}
 
   '@saintrelion/cache@1.0.1':
     resolution: {integrity: sha512-4GXJGbvoS+DK4jCNsH/l6EUdmjbyBL76wghtGJS/ryZiwiGG05v60LWto+EYIXWKROhf9NxDn93/wPbcE3IBLQ==, tarball: https://npm.pkg.github.com/download/@saintrelion/cache/1.0.1/1aa40a67a8396a40cff61200155fecb9e7297ce8}
@@ -4388,6 +4388,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
@@ -6504,13 +6508,14 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.48.1':
     optional: true
 
-  '@saintrelion/auth-lib@4.2.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@saintrelion/auth-lib@4.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@saintrelion/cache': 1.0.1
       '@saintrelion/notifications': 1.0.2
       '@saintrelion/routers': 2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       firebase: 12.2.1
       react-router-dom: 7.8.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      uuid: 13.0.0
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
       - react
@@ -6570,7 +6575,7 @@ snapshots:
 
   '@saintrelion/routers@2.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
-      '@saintrelion/auth-lib': 4.2.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@saintrelion/auth-lib': 4.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-router-dom: 7.8.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
@@ -9128,6 +9133,8 @@ snapshots:
       '@types/react': 19.1.11
 
   util-deprecate@1.0.2: {}
+
+  uuid@13.0.0: {}
 
   vary@1.1.2: {}
 

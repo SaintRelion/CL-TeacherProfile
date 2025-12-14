@@ -21,7 +21,11 @@ const TeacherProfilePage = () => {
     useSelect: informationSelect,
     useInsert: informationInsert,
     useUpdate: informationUpdate,
-  } = useDBOperationsLocked<PersonalInformation>("PersonalInformation");
+  } = useDBOperationsLocked<PersonalInformation>(
+    "PersonalInformation",
+    false,
+    false,
+  );
 
   const { data: informations } = informationSelect({
     firebaseOptions: {
@@ -77,6 +81,9 @@ const TeacherProfilePage = () => {
               </div>
               <RenderFormButton
                 onSubmit={handleInformationSaveChanges}
+                isDisabled={
+                  informationInsert.isLocked || informationUpdate.isLocked
+                }
                 buttonLabel="Save Changes"
                 buttonClassName="bg-accent-500 hover:bg-accent-600 rounded-lg px-4 py-2 text-white transition-colors"
               />
@@ -126,7 +133,7 @@ const TeacherProfilePage = () => {
               )}
 
               {/* DOCUMENTS */}
-              {tabSelected == "documents" && <DocumentsTab />}
+              {tabSelected == "documents" && <DocumentsTab userId={user.id} />}
             </div>
           </div>
         </div>
