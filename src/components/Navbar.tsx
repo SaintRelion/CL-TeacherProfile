@@ -85,6 +85,26 @@ const Navbar = () => {
                 className="mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
               >
                 <DropdownMenuItem
+  onClick={() => {
+    // Handle update photo
+  }}
+  className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+>
+  <i className="fas fa-camera"></i>
+  <span>Update Photo</span>
+</DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    // Handle update password
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <i className="fas fa-key"></i>
+                  <span>Update Password</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
                   onClick={() =>
                     logout(() => {
                       window.location.href = "/login";
@@ -95,6 +115,7 @@ const Navbar = () => {
                   <i className="fas fa-sign-out-alt"></i>
                   <span>Logout</span>
                 </DropdownMenuItem>
+                
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

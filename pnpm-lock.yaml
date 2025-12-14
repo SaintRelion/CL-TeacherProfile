@@ -42,13 +42,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       '@saintrelion/data-access-layer':
-<<<<<<< HEAD
-        specifier: ^5.0.6
-        version: 5.0.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-=======
         specifier: ^5.0.7
         version: 5.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
->>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
       '@saintrelion/forms':
         specifier: ^1.1.11
         version: 1.1.11(vite@7.1.3(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))
@@ -1906,13 +1901,8 @@ packages:
   '@saintrelion/cache@1.0.1':
     resolution: {integrity: sha512-4GXJGbvoS+DK4jCNsH/l6EUdmjbyBL76wghtGJS/ryZiwiGG05v60LWto+EYIXWKROhf9NxDn93/wPbcE3IBLQ==, tarball: https://npm.pkg.github.com/download/@saintrelion/cache/1.0.1/1aa40a67a8396a40cff61200155fecb9e7297ce8}
 
-<<<<<<< HEAD
-  '@saintrelion/data-access-layer@5.0.6':
-    resolution: {integrity: sha512-WQ/9RJmG2FTGX3d5JJ3lCamOT3Sn40hgJJajHrxVWBtI1kskYwLvUVV0iCSZoDkGSyxwS37yfTWjQ/S4npVkxA==, tarball: https://npm.pkg.github.com/download/@saintrelion/data-access-layer/5.0.6/03bb1d030f1705095469bda9c813f329da5eb9b0}
-=======
   '@saintrelion/data-access-layer@5.0.7':
     resolution: {integrity: sha512-WLYUpk1Hl0BwxlLNNfEKKx44pDE2mrDU8O3MtJjxDSDcpdPVGCAoSRJ04+/JJFrMzgcnGFM50Zcq6B6Sp1mcbA==, tarball: https://npm.pkg.github.com/download/@saintrelion/data-access-layer/5.0.7/f231248594b2c26cf09e04180436224224f219ff}
->>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
 
   '@saintrelion/forms@1.1.11':
     resolution: {integrity: sha512-Fj6M4TrHJL1RJn4dsWZDvvB5/m5fuI05dGiUxp0hiZiUjeydiaU9XSNYOUhBJVmSS01aiGYUP3TBGB7wVu1E9Q==, tarball: https://npm.pkg.github.com/download/@saintrelion/forms/1.1.11/0d60287b90b3b4307ccaaa5436c2df703c16e5a7}
@@ -6530,11 +6520,7 @@ snapshots:
     dependencies:
       idb: 8.0.3
 
-<<<<<<< HEAD
-  '@saintrelion/data-access-layer@5.0.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
-=======
   '@saintrelion/data-access-layer@5.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
->>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
     dependencies:
       '@saintrelion/cache': 1.0.1
       '@saintrelion/notifications': 1.0.2

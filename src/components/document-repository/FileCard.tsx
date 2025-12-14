@@ -1,10 +1,8 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/teacher-document";
-<<<<<<< HEAD
 import { MoreVertical, Download, Trash2 } from 'lucide-react';
 import { useState } from "react";
 
-=======
 import {
   Dialog,
   DialogContent,
@@ -13,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
->>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
 
 const getDocumentIcon = (ext: string) => {
   const e = ext.toLowerCase();
@@ -109,11 +106,8 @@ const [isOpen, setIsOpen] = useState(false);
         <div className="mb-3 flex items-start justify-between">
           <i className={`${bg} rounded-lg p-2 ${iconClass}`}></i>
 
-<<<<<<< HEAD
-        <div className="opacity-0 transition-opacity group-hover:opacity-100">
-
-
-          <button onClick={() => setIsOpen(!isOpen)} className="relative text-secondary-400 hover:text-secondary-600 p-1" >
+          <div className="opacity-0 transition-opacity group-hover:opacity-100">
+            <button onClick={() => setIsOpen(!isOpen)} className="relative text-secondary-400 hover:text-secondary-600 p-1" >
             <i className="fas fa-ellipsis-v"></i>
              {isOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
@@ -142,13 +136,7 @@ const [isOpen, setIsOpen] = useState(false);
             </div>
           )}
           </button>
-=======
-          <div className="opacity-0 transition-opacity group-hover:opacity-100">
-            <button className="text-secondary-400 hover:text-secondary-600 p-1">
-              <i className="fas fa-ellipsis-v"></i>
-            </button>
           </div>
->>>>>>> 8264b1024ccd79433373df27adf09c8b31bd3b87
         </div>
 
         <div className="flex flex-col items-start">
