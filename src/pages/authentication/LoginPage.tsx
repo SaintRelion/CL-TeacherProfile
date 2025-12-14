@@ -20,7 +20,7 @@ const LoginPage = () => {
       data.password,
       setUser,
       (user) => {
-        navigate("/admin");
+        navigate("/admin/");
       },
     );
   };
