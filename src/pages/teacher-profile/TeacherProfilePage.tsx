@@ -2,7 +2,8 @@ import BasicInformationCard from "@/components/teacher-profile/BasicInformationC
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
 import { NO_FACE_IMAGE } from "@/constants";
-import { type PersonalInformation } from "@/models/personal-information";
+import type { MyNotification } from "@/models/MyNotification";
+import { type PersonalInformation } from "@/models/PersonalInformation";
 import { useAuth, useUpdateUser } from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
@@ -12,11 +13,14 @@ import { useState } from "react";
 const TeacherProfilePage = () => {
   const { user } = useAuth();
 
+  const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
+
   const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
     "personal",
   );
 
   const updateUser = useUpdateUser();
+
   const {
     useSelect: informationSelect,
     useInsert: informationInsert,
@@ -34,8 +38,6 @@ const TeacherProfilePage = () => {
     },
   });
 
-  const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
-
   const myInformation = informations != null ? informations[0] : undefined;
   if (myInformation != null) {
     if (selectedProfilePic != "")
@@ -44,7 +46,10 @@ const TeacherProfilePage = () => {
       myInformation.photoBase64 = NO_FACE_IMAGE;
   }
 
-  const handleInformationSaveChanges = (data: Record<string, string>) => {
+  const { useInsert: notificationInsert } =
+    useDBOperationsLocked<MyNotification>("MyNotification");
+
+  const handleInformationSaveChanges = async (data: Record<string, string>) => {
     data.userId = user.id;
     if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
     console.log(data);
@@ -52,16 +57,33 @@ const TeacherProfilePage = () => {
     if (myInformation == undefined) {
       if (selectedProfilePic == "") data.photoBase64 = "";
       informationInsert.run(data);
+
+      await notificationInsert.run({
+        userId: user.id,
+        type: "profileNew",
+        title: "New teacher profile created",
+        description: `${data.firstName} ${data.middleName} ${data.lastName} - ${data.department} Department`,
+      });
     } else {
       informationUpdate.run({
         field: "userId",
         value: user.id,
         updates: data,
       });
+
+      await notificationInsert.run({
+        userId: user.id,
+        type: "profileUpdate",
+        title: "Profile updated",
+        description: `${data.firstName} ${data.middleName} ${data.lastName}`,
+      });
     }
 
     if (data.emailAddress) {
-      updateUser.run({ userId: user.id, info: { email: data.emailAddress } });
+      await updateUser.run({
+        userId: user.id,
+        info: { email: data.emailAddress },
+      });
     }
   };
 
@@ -82,7 +104,10 @@ const TeacherProfilePage = () => {
               <RenderFormButton
                 onSubmit={handleInformationSaveChanges}
                 isDisabled={
-                  informationInsert.isLocked || informationUpdate.isLocked
+                  informationInsert.isLocked ||
+                  informationUpdate.isLocked ||
+                  updateUser.isLocked ||
+                  notificationInsert.isLocked
                 }
                 buttonLabel="Save Changes"
                 buttonClassName="bg-accent-500 hover:bg-accent-600 rounded-lg px-4 py-2 text-white transition-colors"

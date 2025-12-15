@@ -1,4 +1,4 @@
-import type { PersonalInformation } from "@/models/personal-information";
+import type { PersonalInformation } from "@/models/PersonalInformation";
 import {
   apiRegister,
   firebaseRegister,

@@ -11,10 +11,11 @@ import { router } from "./navigations";
 import "@/lib/firebase-client";
 
 import "@/data-access-config";
-import "@/repositories/user";
-import "@/repositories/personal-information";
-import "@/repositories/teacher-performance";
-import "@/repositories/teacher-document";
+import "@/repositories/UserRepo";
+import "@/repositories/MyNotificationRepo";
+import "@/repositories/PersonalInformationRepo";
+import "@/repositories/TeacherPerformanceRepo";
+import "@/repositories/TeacherDocumentRepo";
 
 const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(

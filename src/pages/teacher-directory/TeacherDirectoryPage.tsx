@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { NO_FACE_IMAGE } from "@/constants";
 import { getYearsOfService } from "@/lib/utils";
-import type { TeacherPerformance } from "@/models/performance";
-import { type PersonalInformation } from "@/models/personal-information";
-import type { User } from "@/models/user";
+import type { TeacherPerformance } from "@/models/Performance";
+import { type PersonalInformation } from "@/models/PersonalInformation";
+import type { User } from "@/models/User";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { useState } from "react";
 

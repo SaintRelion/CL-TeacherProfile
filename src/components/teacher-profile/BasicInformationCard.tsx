@@ -3,7 +3,7 @@ import {
   resizeImage,
   resolveImageSource,
 } from "@/lib/utils";
-import type { PersonalInformation } from "@/models/personal-information";
+import type { PersonalInformation } from "@/models/PersonalInformation";
 
 const BasicInformationCard = ({
   myInformation,

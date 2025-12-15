@@ -1,5 +1,5 @@
 import { getExpiryState } from "@/lib/utils";
-import type { TeacherDocument } from "@/models/teacher-document";
+import type { TeacherDocument } from "@/models/TeacherDocument";
 import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -58,7 +58,7 @@ const getDocumentIcon = (ext: string) => {
   };
 };
 
-const getStatus = (expiry: string) => {
+const getDocumentStatusClassName = (expiry: string) => {
   const status = getExpiryState(expiry);
 
   if (status == "expired") {
@@ -77,9 +77,8 @@ const getStatus = (expiry: string) => {
 
 const FileCard = ({ doc }: { doc: TeacherDocument }) => {
   const { iconClass, bg } = getDocumentIcon(doc.extension);
-  const status = getStatus(doc.expiryDate);
+  const statusClassName = getDocumentStatusClassName(doc.expiryDate);
 
-  const [isViewing, setIsViewing] = useState(false);
   const [isContextOpen, setIsContextOpen] = useState(false);
 
   const handleDownload = () => {
@@ -184,8 +183,10 @@ const FileCard = ({ doc }: { doc: TeacherDocument }) => {
       </div>
 
       <div className="mt-2 flex items-center space-x-1">
-        <span className={`${status.className} rounded-full px-2 py-1 text-xs`}>
-          {status.label}
+        <span
+          className={`${statusClassName.className} rounded-full px-2 py-1 text-xs`}
+        >
+          {statusClassName.label}
         </span>
       </div>
     </div>

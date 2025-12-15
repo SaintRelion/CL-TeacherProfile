@@ -1,7 +1,7 @@
 import KpiCard from "@/components/document-repository/KpiCard";
 import DocumentExplorer from "@/components/document-repository/DocumentExplorer";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
-import { type TeacherDocument } from "@/models/teacher-document";
+import { type TeacherDocument } from "@/models/TeacherDocument";
 import React from "react";
 import { useAuth } from "@saintrelion/auth-lib";
 

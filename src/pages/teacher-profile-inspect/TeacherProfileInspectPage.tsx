@@ -2,7 +2,7 @@ import BasicInformationCard from "@/components/teacher-profile/BasicInformationC
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
 import { NO_FACE_IMAGE } from "@/constants";
-import { type PersonalInformation } from "@/models/personal-information";
+import { type PersonalInformation } from "@/models/PersonalInformation";
 import {
   useUpdateUser,
   validateImpersonationToken,

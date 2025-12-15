@@ -1,12 +1,11 @@
 import ComplianceStatusCard from "@/components/dashboard/ComplianceStatusCard";
 import KPICard from "@/components/dashboard/KPICard";
-import RecentActivityCard from "@/components/dashboard/RecentActivityCard";
 import ViewComplianceReport from "@/components/dashboard/ViewComplianceReport";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { DOCUMENT_TYPES, NO_FACE_IMAGE } from "@/constants";
 import { getExpiryState, resolveImageSource } from "@/lib/utils";
-import type { TeacherDocument } from "@/models/teacher-document";
-import type { User } from "@/models/user";
+import type { TeacherDocument } from "@/models/TeacherDocument";
+import type { User } from "@/models/User";
 import { useAuth } from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import React from "react";
@@ -150,33 +149,6 @@ const DashboardPage = () => {
     },
   ];
 
-  const mockRecent: Record<string, string>[] = [
-    {
-      iconClassName: "fas fa-user-plus text-success-600",
-      title: "New teacher profile created",
-      description: "Dr. Elena Rodriguez - Mathematics Department",
-      time: "2 hours ago",
-    },
-    {
-      iconClassName: "fas fa-file-upload text-primary-600",
-      title: "Document uploaded",
-      description: "Teaching License - Prof. Juan Dela Cruz",
-      time: "4 hours ago",
-    },
-    {
-      iconClassName: "fas fa-edit text-accent-600",
-      title: "Profile updated",
-      description: "Ms. Ana Reyes - Contact information",
-      time: "6 hours ago",
-    },
-    {
-      iconClassName: "fas fa-exclamation-triangle text-warning-600",
-      title: "Certification expiring",
-      description: "Mr. Carlos Mendoza - CPD Certificate",
-      time: "1 day ago",
-    },
-  ];
-
   return (
     <main className="flex-1 p-6">
       <div className="mb-8">
@@ -207,27 +179,7 @@ const DashboardPage = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 p-6">
-              <h3 className="text-secondary-900 text-lg font-semibold">
-                Recent Activity
-              </h3>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {mockRecent.map((value, index) => (
-                  <RecentActivityCard key={index} kvp={value} />
-                ))}
-              </div>
-              <button className="text-primary-600 hover:text-primary-700 mt-4 w-full text-sm font-medium">
-                View all activity
-              </button>
-            </div>
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 gap-6">
         <div className="space-y-6 lg:col-span-2">
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200 p-6">

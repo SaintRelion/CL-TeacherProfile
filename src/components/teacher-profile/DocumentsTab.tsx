@@ -10,7 +10,8 @@ import {
 import DocumentUpload from "@/components/teacher-profile/DocumentUpload";
 import DocumentExplorer from "../document-repository/DocumentExplorer";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
-import type { User } from "@/models/user";
+import type { User } from "@/models/User";
+import type { PersonalInformation } from "@/models/PersonalInformation";
 
 const DocumentsTab = ({ userId }: { userId: string }) => {
   const { useSelect: userSelect } = useDBOperationsLocked<User>("User");
@@ -18,6 +19,21 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
     firebaseOptions: { filterField: "id", value: userId },
   });
   const user = users != undefined ? users[0] : null;
+
+  const { useSelect: informationSelect } =
+    useDBOperationsLocked<PersonalInformation>(
+      "PersonalInformation",
+      false,
+      false,
+    );
+  const { data: informations } = informationSelect({
+    firebaseOptions: {
+      filterField: "userId",
+      value: userId,
+    },
+  });
+
+  const myInformation = informations != null ? informations[0] : undefined;
 
   return (
     <div>
@@ -50,7 +66,12 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <DocumentUpload userId={userId} />
+          {myInformation != undefined && (
+            <DocumentUpload
+              userId={userId}
+              fullName={`${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
