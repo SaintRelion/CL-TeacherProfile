@@ -179,13 +179,16 @@ const DocumentExplorer = ({ user }: { user: User }) => {
   async function handleNewFolder(data: Record<string, string>) {
     const documentType = data.documentType.toLowerCase().trim();
 
-    const alreadyExist = documentFolders?.filter(
-      (value) => value.documentType == documentType.toLowerCase().trim(),
-    );
+    if (documentFolders) {
+      const alreadyExist =
+        documentFolders.filter(
+          (value) => value.documentType.toLowerCase().trim() == documentType,
+        ).length > 0;
 
-    if (alreadyExist) {
-      toast.error(`${documentType} already exist`);
-      return;
+      if (alreadyExist) {
+        toast.error(`${documentType} already exist`);
+        return;
+      }
     }
 
     await documentFolderInsert.run(data);
