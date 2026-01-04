@@ -2,11 +2,47 @@ import KpiCard from "@/components/document-repository/KpiCard";
 import DocumentExplorer from "@/components/document-repository/DocumentExplorer";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { type TeacherDocument } from "@/models/TeacherDocument";
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "@saintrelion/auth-lib";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface DocumentFolder {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+}
 
 const DocumentRepositoryPage = () => {
   const { user } = useAuth();
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+
+  // Rename folder state
+  const [showRenameFolderDialog, setShowRenameFolderDialog] = useState(false);
+  const [renameFolderId, setRenameFolderId] = useState("");
+  const [renameFolderName, setRenameFolderName] = useState("");
+  const [isRenamingFolder, setIsRenamingFolder] = useState(false);
+
+  // Custom folders from database
+  const {
+    useSelect: selectFolders,
+    useInsert: insertFolder,
+    useDelete: deleteFolder,
+    useUpdate: updateFolder,
+  } = useDBOperationsLocked<DocumentFolder>("DocumentFolder");
+
+  const { data: customFolders } = selectFolders({
+    firebaseOptions:
+      user.role === "admin" ? {} : { filterField: "userId", value: user.id },
+  });
 
   const { useSelect: selectDocuments } =
     useDBOperationsLocked<TeacherDocument>("TeacherDocument");
@@ -44,24 +80,81 @@ const DocumentRepositoryPage = () => {
     },
   ];
 
+  // Create new folder
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+
+    setIsCreatingFolder(true);
+    try {
+      await insertFolder.run({
+        name: newFolderName.trim(),
+        userId: user.id,
+        createdAt: new Date().toISOString(),
+      });
+      setNewFolderName("");
+      setShowNewFolderDialog(false);
+    } catch (error) {
+      console.error("Failed to create folder:", error);
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  };
+
+  // Delete folder
+  const handleDeleteFolder = async (folderId: string) => {
+    try {
+      await deleteFolder.run(folderId);
+    } catch (error) {
+      console.error("Failed to delete folder:", error);
+    }
+  };
+
+  // Open rename dialog
+  const handleOpenRenameDialog = (folderId: string, currentName: string) => {
+    setRenameFolderId(folderId);
+    setRenameFolderName(currentName);
+    setShowRenameFolderDialog(true);
+  };
+
+  // Rename folder
+  const handleRenameFolder = async () => {
+    if (!renameFolderName.trim() || !renameFolderId) return;
+
+    setIsRenamingFolder(true);
+    try {
+      const folder = customFolders?.find((f) => f.id === renameFolderId);
+      if (folder) {
+        await updateFolder.run({
+          ...folder,
+          name: renameFolderName.trim(),
+        });
+      }
+      setRenameFolderName("");
+      setRenameFolderId("");
+      setShowRenameFolderDialog(false);
+    } catch (error) {
+      console.error("Failed to rename folder:", error);
+    } finally {
+      setIsRenamingFolder(false);
+    }
+  };
+
   return (
     <main className="flex-1 p-6">
       <div className="mb-8">
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-secondary-900 mb-2 text-3xl font-bold">
-              Document Repository
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-900">Document Repository</h2>
+            <p className="text-sm text-slate-500">Manage and organize your documents</p>
           </div>
           <div className="mt-4 flex items-center space-x-3 md:mt-0">
-            {/* <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">
-              <i className="fas fa-cloud-upload-alt"></i>
-              <span>Bulk Upload</span>
-            </button> */}
-            {/* <button className="bg-primary-600 hover:bg-primary-700 flex items-center space-x-2 rounded-lg px-4 py-2 font-medium text-white transition-colors">
-              <i className="fas fa-plus"></i>
+            <button
+              onClick={() => setShowNewFolderDialog(true)}
+              className="bg-primary-600 hover:bg-primary-700 flex items-center space-x-2 rounded-lg px-4 py-2.5 font-medium text-white shadow-sm transition-all hover:shadow-md"
+            >
+              <i className="fas fa-folder-plus"></i>
               <span>New Folder</span>
-            </button> */}
+            </button>
           </div>
         </div>
 
@@ -74,7 +167,76 @@ const DocumentRepositoryPage = () => {
 
       <DocumentExplorer
         user={{ id: user.id, role: user.role, username: user.username }}
+        customFolders={customFolders || []}
+        onDeleteFolder={handleDeleteFolder}
+        onRenameFolder={handleOpenRenameDialog}
       />
+
+      {/* Rename Folder Dialog */}
+      <Dialog open={showRenameFolderDialog} onOpenChange={setShowRenameFolderDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500">
+                <i className="fas fa-edit text-white"></i>
+              </div>
+              Rename Folder
+            </DialogTitle>
+            <DialogDescription>
+              Enter a new name for this folder.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Folder Name
+              </label>
+              <input
+                type="text"
+                value={renameFolderName}
+                onChange={(e) => setRenameFolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleRenameFolder();
+                }}
+                placeholder="Enter folder name..."
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setShowRenameFolderDialog(false);
+                  setRenameFolderName("");
+                  setRenameFolderId("");
+                }}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRenameFolder}
+                disabled={!renameFolderName.trim() || isRenamingFolder}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isRenamingFolder ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Renaming...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check"></i>
+                    Rename
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };

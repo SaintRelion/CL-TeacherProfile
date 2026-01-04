@@ -25,7 +25,7 @@ export default function AddTeacherForm() {
   };
 
   return (
-    <RenderForm wrapperClass="space-y-4">
+    <RenderForm wrapperClassName="space-y-4">
       <RenderFormField
         field={{
           label: "Username *",

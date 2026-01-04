@@ -13,11 +13,15 @@ import { NO_FACE_IMAGE } from "@/constants";
 import NotificationCard from "./dashboard/NotificationCard";
 import type { MyNotification } from "@/models/MyNotification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toDate } from "@saintrelion/time-functions";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { useSelect: informationSelect } =
     useDBOperationsLocked<PersonalInformation>("PersonalInformation");
@@ -29,8 +33,11 @@ const Navbar = () => {
 
   const myInformation = informations != null ? informations[0] : undefined;
 
-  const { useSelect: notificationSelect, useInsert: notificationInsert } =
-    useDBOperationsLocked<MyNotification>("MyNotification");
+  const {
+    useSelect: notificationSelect,
+    useInsert: notificationInsert,
+    useUpdate: notificationUpdate,
+  } = useDBOperationsLocked<MyNotification>("MyNotification");
 
   const { data: notifications } = notificationSelect({
     firebaseOptions:
@@ -104,6 +111,21 @@ const Navbar = () => {
   const profilePic =
     myInformation != undefined ? myInformation.photoBase64 : NO_FACE_IMAGE;
 
+  // Count only unread notifications
+  const unreadNotifications = useMemo(() => {
+    if (!notifications) return [];
+    return notifications.filter((n) => !n.isRead);
+  }, [notifications]);
+
+  // Mark all notifications as read when dropdown opens
+  const handleNotificationOpen = async (isOpen: boolean) => {
+    if (isOpen && unreadNotifications.length > 0) {
+      for (const notification of unreadNotifications) {
+        await notificationUpdate.run({ ...notification, isRead: true });
+      }
+    }
+  };
+
   return (
     <header className="bg-primary-800 sticky top-0 z-50 text-white shadow-lg">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -134,13 +156,13 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={handleNotificationOpen}>
               <DropdownMenuTrigger asChild>
                 <button className="text-primary-200 relative p-2 transition-colors hover:text-white">
                   <i className="fas fa-bell text-lg"></i>
-                  {notifications != undefined && notifications.length > 0 && (
+                  {unreadNotifications.length > 0 && (
                     <span className="bg-accent-500 absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white">
-                      {notifications.length}
+                      {unreadNotifications.length > 9 ? "9+" : unreadNotifications.length}
                     </span>
                   )}
                 </button>

@@ -4,12 +4,19 @@ import {
   RenderFormButton,
   RenderFormField,
 } from "@saintrelion/forms";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { MyNotification } from "@/models/MyNotification";
+
+interface DocumentFolder {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+}
 
 export default function DocumentForm({
   userId,
@@ -23,6 +30,20 @@ export default function DocumentForm({
 
   const { useInsert: notificationInsert } =
     useDBOperationsLocked<MyNotification>("MyNotification");
+
+  // Fetch custom folders
+  const { useSelect: selectFolders } =
+    useDBOperationsLocked<DocumentFolder>("DocumentFolder");
+
+  const { data: customFolders } = selectFolders({
+    firebaseOptions: { filterField: "userId", value: userId },
+  });
+
+  // Combine default document types with custom folders
+  const allDocumentTypes = useMemo(() => {
+    const customFolderNames = customFolders?.map((f) => f.name) || [];
+    return [...DOCUMENT_TYPES, ...customFolderNames];
+  }, [customFolders]);
 
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
@@ -71,7 +92,7 @@ export default function DocumentForm({
   };
 
   return (
-    <RenderForm wrapperClass="space-y-3">
+    <RenderForm wrapperClassName="space-y-3">
       {/* Document Title */}
       <RenderFormField
         field={{
@@ -90,7 +111,7 @@ export default function DocumentForm({
           label: "Document Type",
           type: "select",
           name: "documentType",
-          options: DOCUMENT_TYPES,
+          options: allDocumentTypes,
           onValueChange: (value) => {
             if (typeof value === "string") setSelectedDocumentType(value);
           },

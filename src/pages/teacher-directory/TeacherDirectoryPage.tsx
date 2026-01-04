@@ -131,30 +131,35 @@ const TeacherDirectoryPage = () => {
     .filter(Boolean);
 
   return (
-    <main className="flex-1 p-6">
+    <main className="min-h-screen flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 md:p-6 lg:p-8">
+      {/* Page Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-secondary-900 text-3xl font-bold">
+            <h1 className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-2xl font-bold text-transparent md:text-3xl">
               Teacher Directory
-            </h2>
-            <p className="text-secondary-600 mt-1">
-              Manage and view all teacher profiles in your institution
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Manage and view all registered teachers
             </p>
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <button className="bg-accent-500 hover:bg-accent-600 flex items-center space-x-2 rounded-lg px-4 py-2 text-white transition-colors">
-                <i className="fas fa-plus"></i>
+              <button className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl">
+                <i className="fas fa-user-plus transition-transform duration-200 group-hover:scale-110"></i>
                 <span>Add Teacher</span>
               </button>
             </DialogTrigger>
-            <DialogContent className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <DialogContent className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <DialogHeader>
-                <DialogTitle>Add Teacher</DialogTitle>
-                <DialogDescription>
-                  Click the "Add Teacher" button to add a new teacher to the
-                  system.
+                <DialogTitle className="flex items-center gap-3 text-xl">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                    <i className="fas fa-user-plus text-white"></i>
+                  </div>
+                  Add New Teacher
+                </DialogTitle>
+                <DialogDescription className="text-slate-500">
+                  Register a new faculty member to the system.
                 </DialogDescription>
               </DialogHeader>
               <AddTeacherForm />
@@ -191,59 +196,69 @@ const TeacherDirectoryPage = () => {
         />
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredTeachers != null
-          ? filteredTeachers.map((value, index) => (
-              <TeacherCard
-                key={index}
-                info={value}
-                isSelected={
-                  selectedTeachers.indexOf(value?.employeeId ?? "") != -1
-                }
-                onTeacherSelect={(employeeID, checked) => {
-                  setSelectedTeachers(
-                    (prev) =>
-                      checked
-                        ? [...prev, employeeID] // Add ID when checked
-                        : prev.filter((id) => id !== employeeID), // Remove ID when unchecked
-                  );
-                }}
-              />
-            ))
-          : "No teachers found"}
+      {/* Teachers Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {filteredTeachers != null && filteredTeachers.length > 0 ? (
+          filteredTeachers.map((value, index) => (
+            <TeacherCard
+              key={index}
+              info={value}
+              isSelected={
+                selectedTeachers.indexOf(value?.employeeId ?? "") != -1
+              }
+              onTeacherSelect={(employeeID, checked) => {
+                setSelectedTeachers(
+                  (prev) =>
+                    checked
+                      ? [...prev, employeeID]
+                      : prev.filter((id) => id !== employeeID),
+                );
+              }}
+            />
+          ))
+        ) : (
+          <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+              <i className="fas fa-users text-2xl text-slate-400"></i>
+            </div>
+            <p className="text-lg font-medium text-slate-600">No teachers found</p>
+            <p className="mt-1 text-sm text-slate-400">Try adjusting your search or filters</p>
+          </div>
+        )}
       </div>
 
-      <div className="mt-8 flex items-center justify-between">
-        <div className="text-secondary-600 text-sm">
-          Showing <span className="font-medium">1</span> to{" "}
-          <span className="font-medium">20</span> of{" "}
-          <span className="font-medium">
-            {filteredTeachers != null ? filteredTeachers.length : 0}
+      {/* Pagination */}
+      <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row">
+        <p className="text-sm text-slate-600">
+          Showing <span className="font-semibold text-slate-900">1</span> to{" "}
+          <span className="font-semibold text-slate-900">
+            {Math.min(20, filteredTeachers?.length || 0)}
+          </span>{" "}
+          of{" "}
+          <span className="font-semibold text-slate-900">
+            {filteredTeachers?.length || 0}
           </span>{" "}
           teachers
-        </div>
-        <div className="flex items-center space-x-2">
+        </p>
+        <div className="flex items-center gap-2">
           <button
-            className="text-secondary-600 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             disabled
           >
-            Previous
+            <i className="fas fa-chevron-left text-xs"></i>
           </button>
-          <button className="bg-primary-600 rounded-lg px-3 py-2 text-sm text-white">
+          <button className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 font-medium text-white">
             1
           </button>
-          <button className="text-secondary-600 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
+          <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50">
             2
           </button>
-          <button className="text-secondary-600 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
+          <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50">
             3
           </button>
-          <span className="text-secondary-600 px-3 py-2 text-sm">...</span>
-          <button className="text-secondary-600 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
-            13
-          </button>
-          <button className="text-secondary-600 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
-            Next
+          <span className="px-2 text-slate-400">...</span>
+          <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50">
+            <i className="fas fa-chevron-right text-xs"></i>
           </button>
         </div>
       </div>

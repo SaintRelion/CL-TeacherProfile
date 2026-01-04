@@ -231,3 +231,398 @@
     transition: all var(--transition-slow);
   }
 }
+
+/* ===================================
+   PRINT STYLES - PDS Form Layout
+   A4 Paper Optimized Layout
+   =================================== */
+@media print {
+  /* Page Setup for A4 */
+  @page {
+    size: A4;
+    margin: 10mm 10mm 10mm 10mm;
+  }
+
+  /* Reset all backgrounds and shadows for print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Body and main container */
+  body {
+    background: white !important;
+    font-size: 9pt !important;
+    line-height: 1.3 !important;
+    color: #000 !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  /* Hide UI-only elements */
+  .print\:hidden,
+  button:not(.print-visible),
+  nav[aria-label="Tabs"],
+  .tab-button,
+  input[type="file"],
+  label[for="profilePicInput"],
+  .tooltip,
+  .group-hover\:opacity-100,
+  .rounded-2xl:not(.pds-print-view),
+  .overflow-hidden.rounded-2xl {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print\:block,
+  .pds-print-view {
+    display: block !important;
+  }
+
+  /* Container adjustments */
+  .font-inter {
+    background: white !important;
+    min-height: auto !important;
+  }
+
+  .flex-1 {
+    padding: 0 !important;
+  }
+
+  /* Hide the regular profile card for print */
+  .mb-6.overflow-hidden.rounded-2xl {
+    display: none !important;
+  }
+
+  /* Remove all transitions and animations */
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ===================================
+   PDS FORM SPECIFIC STYLES
+   =================================== */
+
+/* PDS Print View Container */
+.pds-print-view {
+  font-family: Arial, sans-serif;
+  font-size: 9pt;
+  line-height: 1.3;
+  color: #000;
+  background: white;
+  padding: 0;
+  max-width: 100%;
+}
+
+/* PDS Header */
+.pds-header {
+  margin-bottom: 8px;
+}
+
+.pds-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.pds-logo-placeholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ccc;
+}
+
+.pds-header-text {
+  text-align: center;
+  flex: 1;
+}
+
+.pds-title {
+  font-size: 16pt;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin: 0;
+  color: #000;
+}
+
+.pds-subtitle {
+  font-size: 9pt;
+  margin: 2px 0 0 0;
+  color: #333;
+}
+
+.pds-form-info {
+  text-align: right;
+}
+
+.pds-instructions {
+  background-color: #f0f0f0;
+  padding: 6px 10px;
+  font-size: 7pt;
+  border: 1px solid #999;
+  margin-bottom: 8px;
+}
+
+.pds-instructions p {
+  margin: 0;
+}
+
+/* PDS Sections */
+.pds-section {
+  margin-bottom: 8px;
+  page-break-inside: avoid;
+}
+
+.pds-section-header {
+  background-color: #808080;
+  color: white;
+  padding: 4px 8px;
+  font-weight: bold;
+  font-size: 9pt;
+  display: flex;
+  gap: 8px;
+}
+
+.pds-section-number {
+  min-width: 20px;
+}
+
+.pds-section-title {
+  letter-spacing: 1px;
+}
+
+/* PDS Table */
+.pds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8pt;
+}
+
+.pds-table td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: top;
+}
+
+.pds-label-cell {
+  background-color: #e8e8e8;
+  font-weight: normal;
+  font-size: 7pt;
+  width: 18%;
+  text-transform: uppercase;
+}
+
+.pds-sublabel {
+  background-color: #f5f5f5;
+  font-size: 6pt;
+  font-style: italic;
+  width: 12%;
+}
+
+.pds-value-cell {
+  background-color: white;
+  font-weight: bold;
+  font-size: 9pt;
+  min-height: 20px;
+}
+
+.pds-address-cell {
+  font-size: 8pt;
+  line-height: 1.4;
+}
+
+.pds-highlight {
+  background-color: #ffffcc !important;
+}
+
+.pds-field-number {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+/* Photo Cell */
+.pds-photo-cell {
+  width: 100px;
+  text-align: center;
+  vertical-align: top;
+  padding: 8px;
+}
+
+.pds-photo-box {
+  border: 2px solid #000;
+  padding: 4px;
+  display: inline-block;
+}
+
+.pds-photo {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+.pds-photo-label {
+  font-size: 6pt;
+  margin: 4px 0 0 0;
+  text-transform: uppercase;
+}
+
+.pds-photo-size {
+  font-size: 5pt;
+  font-style: italic;
+  margin: 0;
+  color: #666;
+}
+
+/* Checkbox styling */
+.pds-checkbox-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pds-checkbox {
+  font-size: 8pt;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Declaration Section */
+.pds-declaration {
+  border: 2px solid #000;
+  padding: 8px 12px;
+  margin: 12px 0;
+  font-size: 7pt;
+  font-style: italic;
+  background-color: #fafafa;
+}
+
+.pds-declaration p {
+  margin: 0;
+  text-align: justify;
+}
+
+/* Signature Section */
+.pds-signature-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 16px 0;
+}
+
+.pds-signature-box {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+}
+
+.pds-signature-line {
+  border-bottom: 1px solid #000;
+  height: 40px;
+  margin-bottom: 4px;
+}
+
+.pds-signature-label {
+  font-size: 6pt;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.pds-thumbmark-box {
+  border: 2px solid #000;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ID Section */
+.pds-id-section {
+  margin-top: 12px;
+}
+
+.pds-id-section .pds-label-cell {
+  width: 20%;
+}
+
+.pds-id-section .pds-value-cell {
+  width: 30%;
+  min-height: 24px;
+}
+
+/* Footer */
+.pds-footer {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  font-size: 7pt;
+  color: #666;
+}
+
+.pds-footer-left,
+.pds-footer-right {
+  margin: 0;
+}
+
+.pds-footer p {
+  margin: 0;
+}
+
+/* Print-specific overrides for PDS */
+@media print {
+  .pds-print-view {
+    display: block !important;
+  }
+
+  .pds-section-header {
+    background-color: #808080 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pds-label-cell {
+    background-color: #e8e8e8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pds-sublabel {
+    background-color: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pds-highlight {
+    background-color: #ffffcc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pds-instructions {
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pds-photo {
+    width: 80px !important;
+    height: 100px !important;
+  }
+
+  /* Hide non-PDS elements when printing */
+  .mb-6.overflow-hidden.rounded-2xl.border,
+  .overflow-hidden.rounded-2xl.border {
+    display: none !important;
+  }
+}
