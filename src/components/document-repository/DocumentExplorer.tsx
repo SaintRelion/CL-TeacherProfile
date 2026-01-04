@@ -2,14 +2,33 @@ import FileCard from "@/components/document-repository/FileCard";
 import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
 import { DOCUMENT_TYPES } from "@/constants";
-import type { TeacherDocument } from "@/models/teacher-document";
-import type { User } from "@/models/user";
+import type { TeacherDocument } from "@/models/TeacherDocument";
+import type { User } from "@/models/User";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
 import React from "react";
 import { useState } from "react";
 
-const DocumentExplorer = ({ user }: { user: User }) => {
+interface DocumentFolder {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+}
+
+interface DocumentExplorerProps {
+  user: User;
+  customFolders?: DocumentFolder[];
+  onDeleteFolder?: (folderId: string) => void;
+  onRenameFolder?: (folderId: string, currentName: string) => void;
+}
+
+const DocumentExplorer = ({
+  user,
+  customFolders = [],
+  onDeleteFolder,
+  onRenameFolder,
+}: DocumentExplorerProps) => {
   const [selectedFolder, setSelectedFolder] = useState("");
 
   const [search, setSearch] = useState("");
@@ -33,9 +52,17 @@ const DocumentExplorer = ({ user }: { user: User }) => {
   );
 
   const folders = React.useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { count: number; isCustom: boolean; id?: string }>();
 
-    DOCUMENT_TYPES.forEach((type) => map.set(type, 0));
+    // Add default document types
+    DOCUMENT_TYPES.forEach((type) => map.set(type, { count: 0, isCustom: false }));
+
+    // Add custom folders
+    customFolders.forEach((folder) => {
+      if (!map.has(folder.name)) {
+        map.set(folder.name, { count: 0, isCustom: true, id: folder.id });
+      }
+    });
 
     if (documents && documents.length > 0) {
       documents.forEach((doc) => {
@@ -43,18 +70,21 @@ const DocumentExplorer = ({ user }: { user: User }) => {
 
         // Ensure type exists in map (just in case)
         if (!map.has(type)) {
-          map.set(type, 0);
+          map.set(type, { count: 0, isCustom: false });
         }
 
-        map.set(type, (map.get(type) ?? 0) + 1);
+        const existing = map.get(type)!;
+        map.set(type, { ...existing, count: existing.count + 1 });
       });
     }
 
-    return Array.from(map.entries()).map(([title, count]) => ({
+    return Array.from(map.entries()).map(([title, data]) => ({
       title,
-      value: String(count),
+      value: String(data.count),
+      isCustom: data.isCustom,
+      id: data.id,
     }));
-  }, [documents]);
+  }, [documents, customFolders]);
 
   const filteredDocuments =
     documents != undefined
@@ -196,6 +226,8 @@ const DocumentExplorer = ({ user }: { user: User }) => {
                 kvp={value}
                 selectedFolder={selectedFolder}
                 onFolderClicked={(value) => setSelectedFolder(value)}
+                onDeleteFolder={onDeleteFolder}
+                onRenameFolder={onRenameFolder}
               />
             ))}
           </div>

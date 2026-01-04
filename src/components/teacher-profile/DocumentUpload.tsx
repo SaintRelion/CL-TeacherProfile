@@ -4,15 +4,46 @@ import {
   RenderFormButton,
   RenderFormField,
 } from "@saintrelion/forms";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
-import type { TeacherDocument } from "@/models/teacher-document";
+import type { TeacherDocument } from "@/models/TeacherDocument";
+import type { MyNotification } from "@/models/MyNotification";
 
-export default function DocumentForm({ userId }: { userId: string }) {
+interface DocumentFolder {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+}
+
+export default function DocumentForm({
+  userId,
+  fullName,
+}: {
+  userId: string;
+  fullName: string;
+}) {
   const { useInsert: documentInsert } =
     useDBOperationsLocked<TeacherDocument>("TeacherDocument");
+
+  const { useInsert: notificationInsert } =
+    useDBOperationsLocked<MyNotification>("MyNotification");
+
+  // Fetch custom folders
+  const { useSelect: selectFolders } =
+    useDBOperationsLocked<DocumentFolder>("DocumentFolder");
+
+  const { data: customFolders } = selectFolders({
+    firebaseOptions: { filterField: "userId", value: userId },
+  });
+
+  // Combine default document types with custom folders
+  const allDocumentTypes = useMemo(() => {
+    const customFolderNames = customFolders?.map((f) => f.name) || [];
+    return [...DOCUMENT_TYPES, ...customFolderNames];
+  }, [customFolders]);
 
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
@@ -51,7 +82,13 @@ export default function DocumentForm({ userId }: { userId: string }) {
     data.fileBase64 = base64;
     data.userId = userId;
 
-    documentInsert.run(data);
+    await documentInsert.run(data);
+    await notificationInsert.run({
+      userId: userId,
+      type: "upload",
+      title: "Document uploaded",
+      description: `${selectedDocumentType} - ${fullName}`,
+    });
   };
 
   return (
@@ -74,7 +111,7 @@ export default function DocumentForm({ userId }: { userId: string }) {
           label: "Document Type",
           type: "select",
           name: "documentType",
-          options: DOCUMENT_TYPES,
+          options: allDocumentTypes,
           onValueChange: (value) => {
             if (typeof value === "string") setSelectedDocumentType(value);
           },
@@ -178,7 +215,7 @@ export default function DocumentForm({ userId }: { userId: string }) {
       <RenderFormButton
         buttonLabel="Submit Document"
         onSubmit={handleSubmit}
-        isDisabled={documentInsert.isLocked}
+        isDisabled={documentInsert.isLocked || notificationInsert.isLocked}
         buttonClassName="w-full rounded-md bg-blue-600 px-4 py-2.5 text-base font-medium text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
       />
     </RenderForm>

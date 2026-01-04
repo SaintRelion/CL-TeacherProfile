@@ -1,22 +1,41 @@
 import BasicInformationCard from "@/components/teacher-profile/BasicInformationCard";
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
+import PDSPrintView from "@/components/teacher-profile/PDSPrintView";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerBody,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import { NO_FACE_IMAGE } from "@/constants";
-import { type PersonalInformation } from "@/models/personal-information";
+import { resolveImageSource, getYearsOfService } from "@/lib/utils";
+import type { MyNotification } from "@/models/MyNotification";
+import { type PersonalInformation } from "@/models/PersonalInformation";
 import { useAuth, useUpdateUser } from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const TeacherProfilePage = () => {
   const { user } = useAuth();
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
     "personal",
   );
 
   const updateUser = useUpdateUser();
+
   const {
     useSelect: informationSelect,
     useInsert: informationInsert,
@@ -34,8 +53,6 @@ const TeacherProfilePage = () => {
     },
   });
 
-  const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
-
   const myInformation = informations != null ? informations[0] : undefined;
   if (myInformation != null) {
     if (selectedProfilePic != "")
@@ -44,7 +61,10 @@ const TeacherProfilePage = () => {
       myInformation.photoBase64 = NO_FACE_IMAGE;
   }
 
-  const handleInformationSaveChanges = (data: Record<string, string>) => {
+  const { useInsert: notificationInsert } =
+    useDBOperationsLocked<MyNotification>("MyNotification");
+
+  const handleInformationSaveChanges = async (data: Record<string, string>) => {
     data.userId = user.id;
     if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
     console.log(data);
@@ -52,91 +72,340 @@ const TeacherProfilePage = () => {
     if (myInformation == undefined) {
       if (selectedProfilePic == "") data.photoBase64 = "";
       informationInsert.run(data);
+
+      await notificationInsert.run({
+        userId: user.id,
+        type: "profileNew",
+        title: "New teacher profile created",
+        description: `${data.firstName} ${data.middleName} ${data.lastName} - ${data.department} Department`,
+      });
     } else {
       informationUpdate.run({
         field: "userId",
         value: user.id,
         updates: data,
       });
+
+      await notificationInsert.run({
+        userId: user.id,
+        type: "profileUpdate",
+        title: "Profile updated",
+        description: `${data.firstName} ${data.middleName} ${data.lastName}`,
+      });
     }
 
     if (data.emailAddress) {
-      updateUser.run({ userId: user.id, info: { email: data.emailAddress } });
+      await updateUser.run({
+        userId: user.id,
+        info: { email: data.emailAddress },
+      });
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <RenderForm>
-      <div className="font-inter bg-slate-50">
-        <div className="flex-1 p-6">
-          <div className="mb-6">
-            <div className="flex items-center justify-between">
+      <div className="font-inter min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
+          {/* Header Section */}
+          <div className="mb-8 print:hidden">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-secondary-900 text-2xl font-bold">
-                  Teacher Profile Management
-                </h2>
-                <p className="text-secondary-600 mt-1">
-                  Manage comprehensive teacher profiles and documentation
-                </p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+                    <i className="fas fa-user-tie text-lg text-white"></i>
+                  </div>
+                  <div>
+                    <h2 className="text-secondary-900 text-2xl font-bold tracking-tight md:text-3xl">
+                      Teacher Profile Management
+                    </h2>
+                    <p className="text-secondary-500 mt-0.5 text-sm md:text-base">
+                      Manage comprehensive teacher profiles and documentation
+                    </p>
+                  </div>
+                </div>
               </div>
-              <RenderFormButton
-                onSubmit={handleInformationSaveChanges}
-                isDisabled={
-                  informationInsert.isLocked || informationUpdate.isLocked
-                }
-                buttonLabel="Save Changes"
-                buttonClassName="bg-accent-500 hover:bg-accent-600 rounded-lg px-4 py-2 text-white transition-colors"
-              />
+              <div className="flex items-center gap-3">
+                {/* Profile Quick View Drawer Button */}
+                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                  <DrawerTrigger asChild>
+                    <button
+                      className="group relative flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md"
+                      title="Quick View Profile"
+                    >
+                      <i className="fas fa-id-card text-slate-500 transition-colors group-hover:text-blue-500"></i>
+                      <span className="hidden sm:inline">Quick View</span>
+                    </button>
+                  </DrawerTrigger>
+                  <DrawerContent side="right">
+                    <DrawerHeader>
+                      <div>
+                        <DrawerTitle>Profile Summary</DrawerTitle>
+                        <DrawerDescription>Quick overview of your profile</DrawerDescription>
+                      </div>
+                      <DrawerClose />
+                    </DrawerHeader>
+                    <DrawerBody>
+                      {/* Profile Summary in Drawer */}
+                      <div className="space-y-6">
+                        {/* Profile Photo & Name */}
+                        <div className="flex flex-col items-center text-center">
+                          <div className="relative mb-4">
+                            <img
+                              src={resolveImageSource(myInformation?.photoBase64 || NO_FACE_IMAGE)}
+                              alt="Profile"
+                              className="h-24 w-24 rounded-2xl border-4 border-slate-100 object-cover shadow-lg"
+                            />
+                            <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-green-500">
+                              <i className="fas fa-check text-xs text-white"></i>
+                            </div>
+                          </div>
+                          <h3 className="text-xl font-bold text-slate-900">
+                            {myInformation
+                              ? `${myInformation.firstName} ${myInformation.lastName}`
+                              : "No Name"}
+                          </h3>
+                          <p className="text-slate-500">{myInformation?.position || "No position"}</p>
+                          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                            Active
+                          </span>
+                        </div>
+
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="rounded-xl bg-blue-50 p-4 text-center">
+                            <i className="fas fa-id-badge mb-2 text-2xl text-blue-500"></i>
+                            <p className="text-xs font-medium uppercase text-blue-600">Employee ID</p>
+                            <p className="font-bold text-slate-900">{myInformation?.employeeId || "—"}</p>
+                          </div>
+                          <div className="rounded-xl bg-purple-50 p-4 text-center">
+                            <i className="fas fa-building mb-2 text-2xl text-purple-500"></i>
+                            <p className="text-xs font-medium uppercase text-purple-600">Department</p>
+                            <p className="font-bold text-slate-900">{myInformation?.department || "—"}</p>
+                          </div>
+                          <div className="rounded-xl bg-amber-50 p-4 text-center">
+                            <i className="fas fa-award mb-2 text-2xl text-amber-500"></i>
+                            <p className="text-xs font-medium uppercase text-amber-600">Years of Service</p>
+                            <p className="font-bold text-slate-900">{getYearsOfService(myInformation?.dateHired ?? "")}</p>
+                          </div>
+                          <div className="rounded-xl bg-emerald-50 p-4 text-center">
+                            <i className="fas fa-briefcase mb-2 text-2xl text-emerald-500"></i>
+                            <p className="text-xs font-medium uppercase text-emerald-600">Status</p>
+                            <p className="font-bold text-slate-900">{myInformation?.employmentStatus || "—"}</p>
+                          </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="rounded-xl border border-slate-200 p-4">
+                          <h4 className="mb-3 flex items-center gap-2 font-semibold text-slate-900">
+                            <i className="fas fa-address-book text-slate-400"></i>
+                            Contact Information
+                          </h4>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100">
+                                <i className="fas fa-envelope text-sm text-slate-500"></i>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-400">Email</p>
+                                <p className="text-sm font-medium text-slate-700">{myInformation?.emailAddress || "—"}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100">
+                                <i className="fas fa-phone text-sm text-slate-500"></i>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-400">Mobile</p>
+                                <p className="text-sm font-medium text-slate-700">{myInformation?.mobileNumber || "—"}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100">
+                                <i className="fas fa-map-marker-alt text-sm text-slate-500"></i>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-400">Address</p>
+                                <p className="text-sm font-medium text-slate-700 line-clamp-2">{myInformation?.homeAddress || "—"}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="space-y-2">
+                          <h4 className="flex items-center gap-2 font-semibold text-slate-900">
+                            <i className="fas fa-bolt text-amber-500"></i>
+                            Quick Actions
+                          </h4>
+                          <button
+                            onClick={() => {
+                              setTabSelected("personal");
+                              setDrawerOpen(false);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-slate-50"
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                              <i className="fas fa-user-edit"></i>
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-800">Edit Personal Info</p>
+                              <p className="text-xs text-slate-500">Update your details</p>
+                            </div>
+                            <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setTabSelected("documents");
+                              setDrawerOpen(false);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-slate-50"
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                              <i className="fas fa-folder-open"></i>
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-800">View Documents</p>
+                              <p className="text-xs text-slate-500">Manage your files</p>
+                            </div>
+                            <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </DrawerBody>
+                    <DrawerFooter>
+                      <button
+                        onClick={() => setDrawerOpen(false)}
+                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        Close
+                      </button>
+                      <button
+                        onClick={() => {
+                          handlePrint();
+                          setDrawerOpen(false);
+                        }}
+                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-blue-600 hover:to-blue-700"
+                      >
+                        <i className="fas fa-print"></i>
+                        Print Profile
+                      </button>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
+
+                {/* Print Button */}
+                <button
+                  onClick={handlePrint}
+                  className="group relative flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md"
+                  title="Print Teacher Profile"
+                >
+                  <i className="fas fa-print text-slate-500 transition-colors group-hover:text-blue-500"></i>
+                  <span className="hidden sm:inline">Print Profile</span>
+                  {/* Tooltip */}
+                  <span className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                    Print teacher profile (A4)
+                  </span>
+                </button>
+
+                {/* Save Changes Button */}
+                <RenderFormButton
+                  onSubmit={handleInformationSaveChanges}
+                  isDisabled={
+                    informationInsert.isLocked ||
+                    informationUpdate.isLocked ||
+                    updateUser.isLocked ||
+                    notificationInsert.isLocked
+                  }
+                  buttonLabel={
+                    <>
+                      <i className="fas fa-save mr-2"></i>
+                      Save Changes
+                    </>
+                  }
+                  buttonClassName="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 
-          <BasicInformationCard
-            myInformation={myInformation}
-            onProfilePicChanged={(value) => setSelectedProfilePic(value)}
-          />
+          {/* Main Content */}
+          <div ref={printRef} className="print:hidden">
+            <BasicInformationCard
+              myInformation={myInformation}
+              onProfilePicChanged={(value) => setSelectedProfilePic(value)}
+            />
 
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200">
-              <nav className="flex space-x-8 px-6" aria-label="Tabs">
-                
-                {/* Personal */}
-                <button
-                  onClick={() => setTabSelected("personal")}
-                  className={`tab-button flex items-center border-b-2 px-1 py-4 text-sm font-medium ${
-                    tabSelected === "personal"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  }`}
-                >
-                  <i className="fas fa-user mr-2"></i>
-                  Personal Information
-                </button>
+            {/* Tabs Container */}
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm print:border-0 print:shadow-none">
+              {/* Tab Navigation */}
+              <div className="border-b border-slate-200 bg-slate-50/50 print:hidden">
+                <nav className="flex gap-1 px-4 pt-2" aria-label="Tabs">
+                  {/* Personal Tab */}
+                  <button
+                    onClick={() => setTabSelected("personal")}
+                    className={`group relative flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-medium transition-all duration-200 ${
+                      tabSelected === "personal"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
+                    }`}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                      tabSelected === "personal" 
+                        ? "bg-blue-100 text-blue-600" 
+                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
+                    }`}>
+                      <i className="fas fa-user text-sm"></i>
+                    </div>
+                    <span>Personal Information</span>
+                    {tabSelected === "personal" && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                    )}
+                  </button>
 
-                {/* Documents */}
-                <button
-                  onClick={() => setTabSelected("documents")}
-                  className={`tab-button flex items-center border-b-2 px-1 py-4 text-sm font-medium ${
-                    tabSelected === "documents"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  }`}
-                >
-                  <i className="fas fa-folder mr-2"></i>
-                  Documents
-                </button>
-              </nav>
-            </div>
+                  {/* Documents Tab */}
+                  <button
+                    onClick={() => setTabSelected("documents")}
+                    className={`group relative flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-medium transition-all duration-200 ${
+                      tabSelected === "documents"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
+                    }`}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                      tabSelected === "documents" 
+                        ? "bg-blue-100 text-blue-600" 
+                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
+                    }`}>
+                      <i className="fas fa-folder-open text-sm"></i>
+                    </div>
+                    <span>Documents</span>
+                    {tabSelected === "documents" && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                    )}
+                  </button>
+                </nav>
+              </div>
 
-            <div className="p-6">
-              {/* PERSONAL INFORMATION */}
-              {tabSelected == "personal" && (
-                <PersonalInformationForm myInformation={myInformation} />
-              )}
+              {/* Tab Content */}
+              <div className="p-6 md:p-8">
+                {/* PERSONAL INFORMATION */}
+                {tabSelected == "personal" && (
+                  <PersonalInformationForm myInformation={myInformation} />
+                )}
 
-              {/* DOCUMENTS */}
-              {tabSelected == "documents" && <DocumentsTab userId={user.id} />}
+                {/* DOCUMENTS */}
+                {tabSelected == "documents" && <DocumentsTab userId={user.id} />}
+              </div>
             </div>
           </div>
+
+          {/* PDS Print View - Only visible when printing */}
+          <PDSPrintView myInformation={myInformation} />
         </div>
       </div>
     </RenderForm>
