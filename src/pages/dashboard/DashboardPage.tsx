@@ -8,10 +8,39 @@ import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { User } from "@/models/User";
 import { useAuth } from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  
+  // Welcome message state - shows on login, fades after 3 seconds
+  const [showWelcome, setShowWelcome] = useState(() => {
+    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    return !hasSeenWelcome;
+  });
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    if (showWelcome) {
+      // Mark as seen in session storage
+      sessionStorage.setItem('hasSeenWelcome', 'true');
+      
+      // Start fade out after 2.5 seconds
+      const fadeTimer = setTimeout(() => {
+        setFadeOut(true);
+      }, 2500);
+      
+      // Remove element after fade completes (3 seconds total)
+      const hideTimer = setTimeout(() => {
+        setShowWelcome(false);
+      }, 3000);
+      
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(hideTimer);
+      };
+    }
+  }, [showWelcome]);
 
   const { useSelect: selectUsers } = useDBOperationsLocked<User>("User");
   const { data: teachers } = selectUsers();
@@ -126,71 +155,75 @@ const DashboardPage = () => {
       value: teachers == undefined ? "0" : teachers.length.toString(),
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
+      path: "/teacher-directory",
     },
     {
       title: "Documents Processed",
       value: documents == undefined ? "0" : documents.length.toString(),
       kpiIcon:
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
+      path: "/document-repository",
     },
-
     {
       title: "Compliance Rate",
       value: globalComplianceRate,
       kpiIcon:
         "fas fa-shield-alt text-success-600 text-xl bg-success-100 p-3 rounded-lg",
+      path: "/document-repository",
     },
-
     {
       title: "Pending Actions",
       value: globalPendingActions,
       kpiIcon:
         "fas fa-tasks text-error-600 text-xl bg-error-100 p-3 rounded-lg",
+      path: "/document-repository",
     },
   ];
 
   return (
-    <main className="flex-1 p-6">
+    <main className="min-h-screen flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 md:p-6 lg:p-8">
+      {/* Welcome Banner */}
+      
+
+      {/* KPI Cards */}
       <div className="mb-8">
-        <div className="from-primary-800 to-primary-600 rounded-xl bg-gradient-to-r p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="mb-2 text-2xl font-bold">
-                Welcome back, {user.username}!
-              </h2>
-              <p className="text-primary-100">
-                Here's what's happening at your school today
-              </p>
-            </div>
-            <div className="hidden md:block">
-              <img
-                src={resolveImageSource(NO_FACE_IMAGE)}
-                alt="School Administration"
-                className="border-primary-400 h-24 w-24 rounded-full border-4 object-cover"
-              />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+          {kpi.map((value, index) => (
+            <KPICard key={index} kvp={value} index={index} />
+          ))}
         </div>
       </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {kpi.map((value, index) => (
-          <KPICard key={index} kvp={value} />
-        ))}
-      </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 p-6">
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Compliance Status - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {/* Card Header */}
+            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-secondary-900 text-lg font-semibold">
-                  Compliance Status
-                </h3>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+                    <i className="fas fa-clipboard-check text-white"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-secondary-900 text-lg font-semibold">
+                      Compliance Status
+                    </h3>
+                    <p className="text-sm text-slate-500">Document compliance by category</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600">
+                  {complianceStatus.length} Categories
+                </span>
               </div>
             </div>
+            
+            {/* Card Content */}
             <div className="p-6">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {complianceStatus.map((card) => (
                   <ComplianceStatusCard
                     key={card.title}
@@ -203,13 +236,16 @@ const DashboardPage = () => {
                   />
                 ))}
               </div>
+              
+              {/* View Report Button */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="bg-primary-600 hover:bg-primary-700 mt-4 w-full rounded-lg px-4 py-2 font-medium text-white transition-colors">
+                  <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl hover:shadow-blue-500/30">
+                    <i className="fas fa-chart-bar"></i>
                     View Detailed Compliance Report
                   </button>
                 </DialogTrigger>
-                <DialogContent className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl sm:max-w-4xl">
                   {documents && teachers && (
                     <ViewComplianceReport
                       documents={documents}
@@ -218,6 +254,87 @@ const DashboardPage = () => {
                   )}
                 </DialogContent>
               </Dialog>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25">
+                  <i className="fas fa-bolt text-white"></i>
+                </div>
+                <div>
+                  <h3 className="text-secondary-900 text-lg font-semibold">Quick Actions</h3>
+                  <p className="text-sm text-slate-500">Common tasks</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="space-y-2">
+                <a href="/teacher-directory" className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-blue-50">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                    <i className="fas fa-user-plus"></i>
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-800">Add New Teacher</p>
+                    <p className="text-xs text-slate-500">Register a new faculty member</p>
+                  </div>
+                  <i className="fas fa-chevron-right ml-auto text-slate-300 group-hover:text-blue-500"></i>
+                </a>
+                
+                <a href="/document-repository" className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-amber-50">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
+                    <i className="fas fa-folder-plus"></i>
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-800">Upload Documents</p>
+                    <p className="text-xs text-slate-500">Add new teacher documents</p>
+                  </div>
+                  <i className="fas fa-chevron-right ml-auto text-slate-300 group-hover:text-amber-500"></i>
+                </a>
+                
+                <a href="/teacher-profile" className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-emerald-50">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                    <i className="fas fa-user-edit"></i>
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-800">Update Profile</p>
+                    <p className="text-xs text-slate-500">Edit your teacher profile</p>
+                  </div>
+                  <i className="fas fa-chevron-right ml-auto text-slate-300 group-hover:text-emerald-500"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* System Status Card */}
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-500">
+                  <i className="fas fa-server text-white"></i>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800">System Status</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+                    <span className="text-sm text-emerald-600">All systems operational</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-center">
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-2xl font-bold text-slate-800">{teachers?.length || 0}</p>
+                  <p className="text-xs text-slate-500">Active Users</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-2xl font-bold text-slate-800">{documents?.length || 0}</p>
+                  <p className="text-xs text-slate-500">Total Docs</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

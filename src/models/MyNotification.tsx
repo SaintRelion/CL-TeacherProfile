@@ -5,4 +5,5 @@ export interface MyNotification {
   title: string;
   description: string;
   createdAt: string;
+  isRead?: boolean;
 }
