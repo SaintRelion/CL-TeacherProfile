@@ -48,7 +48,7 @@ const LoginPage = () => {
           </div>
 
           {/* Form */}
-          <RenderForm wrapperClass="w-full max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-5">
+          <RenderForm wrapperClassName="w-full max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-5">
             <RenderFormField
               field={{
                 label: "Username",

@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          <RenderForm wrapperClass="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg">
+          <RenderForm wrapperClassName="mx-auto w-full max-w-sm space-y-5 rounded-xl bg-gray-900 p-6 shadow-lg">
             {/* Email Field */}
             <RenderFormField
               field={{

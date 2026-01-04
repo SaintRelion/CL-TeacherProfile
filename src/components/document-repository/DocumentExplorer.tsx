@@ -1,13 +1,29 @@
 import FileCard from "@/components/document-repository/FileCard";
 import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
-import { DOCUMENT_TYPES } from "@/constants";
+import type { DocumentTypes } from "@/models/DocumentTypes";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { User } from "@/models/User";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
 import React from "react";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { FolderPlus } from "lucide-react";
+import {
+  RenderForm,
+  RenderFormButton,
+  RenderFormField,
+} from "@saintrelion/forms";
+import { toast } from "@saintrelion/notifications";
 
 const DocumentExplorer = ({ user }: { user: User }) => {
   const [selectedFolder, setSelectedFolder] = useState("");
@@ -19,23 +35,34 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     quickTag: "",
   });
 
-  const { useSelect: documentSelect } =
+  const { useSelect: documentFolderSelect, useInsert: documentFolderInsert } =
+    useDBOperationsLocked<DocumentTypes>("DocumentTypes");
+
+  const { useSelect: documentSelect, useArchive: documentArchive } =
     useDBOperationsLocked<TeacherDocument>("TeacherDocument");
   const { data: documents } = documentSelect(
     user.role != "admin"
       ? {
           firebaseOptions: {
-            filterField: "userId",
-            value: user.id,
+            filterField: ["userId", "archived"],
+            value: [user.id, "false"],
           },
         }
-      : {},
+      : {
+          firebaseOptions: {
+            filterField: ["archived"],
+            value: ["false"],
+          },
+        },
   );
 
-  const folders = React.useMemo(() => {
+  const { data: documentFolders } = documentFolderSelect();
+  const structuredFolders = React.useMemo(() => {
+    if (documentFolders == undefined) return [];
+
     const map = new Map<string, number>();
 
-    DOCUMENT_TYPES.forEach((type) => map.set(type, 0));
+    documentFolders.forEach((v) => map.set(v.documentType, 0));
 
     if (documents && documents.length > 0) {
       documents.forEach((doc) => {
@@ -54,7 +81,7 @@ const DocumentExplorer = ({ user }: { user: User }) => {
       title,
       value: String(count),
     }));
-  }, [documents]);
+  }, [documentFolders, documents]);
 
   const filteredDocuments =
     documents != undefined
@@ -149,6 +176,21 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     }
   });
 
+  async function handleNewFolder(data: Record<string, string>) {
+    const documentType = data.documentType.toLowerCase().trim();
+
+    const alreadyExist = documentFolders?.filter(
+      (value) => value.documentType == documentType.toLowerCase().trim(),
+    );
+
+    if (alreadyExist) {
+      toast.error(`${documentType} already exist`);
+      return;
+    }
+
+    await documentFolderInsert.run(data);
+  }
+
   return (
     <>
       <Filters
@@ -186,11 +228,56 @@ const DocumentExplorer = ({ user }: { user: User }) => {
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-6">
-          <h3 className="text-secondary-900 mb-4 text-lg font-semibold">
-            Folders
-          </h3>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-secondary-900 text-lg font-semibold">
+              Folders
+            </h3>
+
+            <RenderForm>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <FolderPlus className="h-4 w-4" />
+                    New Folder
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className="bg-white sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Create Folder</DialogTitle>
+                  </DialogHeader>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Folder name
+                    </label>
+                    <RenderFormField
+                      field={{
+                        name: "documentType",
+                        type: "text",
+                        placeholder: "e.g. Project Files",
+                      }}
+                    />
+                  </div>
+
+                  <DialogFooter>
+                    <RenderFormButton
+                      buttonLabel="Create"
+                      onSubmit={handleNewFolder}
+                      isDisabled={documentFolderInsert.isLocked}
+                    />
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </RenderForm>
+          </div>
+
           <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
-            {folders.map((value, index) => (
+            {structuredFolders.map((value, index) => (
               <FolderCard
                 key={index}
                 kvp={value}
@@ -212,7 +299,14 @@ const DocumentExplorer = ({ user }: { user: User }) => {
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sortedDocuments.map((doc, index) => (
-              <FileCard key={index} doc={doc} />
+              <FileCard
+                key={index}
+                doc={doc}
+                onArchive={() => {
+                  if (documentArchive && !documentArchive.isLocked)
+                    documentArchive.run(doc.id);
+                }}
+              />
             ))}
           </div>
         </div>

@@ -42,11 +42,11 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       '@saintrelion/data-access-layer':
-        specifier: ^5.0.7
-        version: 5.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: ^5.0.9
+        version: 5.0.9(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@saintrelion/forms':
-        specifier: ^1.1.11
-        version: 1.1.11(vite@7.1.3(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))
+        specifier: ^1.1.12
+        version: 1.1.12(vite@7.1.3(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))
       '@saintrelion/notifications':
         specifier: ^1.0.2
         version: 1.0.2
@@ -1901,11 +1901,11 @@ packages:
   '@saintrelion/cache@1.0.1':
     resolution: {integrity: sha512-4GXJGbvoS+DK4jCNsH/l6EUdmjbyBL76wghtGJS/ryZiwiGG05v60LWto+EYIXWKROhf9NxDn93/wPbcE3IBLQ==, tarball: https://npm.pkg.github.com/download/@saintrelion/cache/1.0.1/1aa40a67a8396a40cff61200155fecb9e7297ce8}
 
-  '@saintrelion/data-access-layer@5.0.7':
-    resolution: {integrity: sha512-WLYUpk1Hl0BwxlLNNfEKKx44pDE2mrDU8O3MtJjxDSDcpdPVGCAoSRJ04+/JJFrMzgcnGFM50Zcq6B6Sp1mcbA==, tarball: https://npm.pkg.github.com/download/@saintrelion/data-access-layer/5.0.7/f231248594b2c26cf09e04180436224224f219ff}
+  '@saintrelion/data-access-layer@5.0.9':
+    resolution: {integrity: sha512-6IEOSl/8QNFb55L3yLfGxhNB/H18ZRvUhd/Scwf/hW1GJlEhHyMvzRIXKcc+7TLEsfV4Iz2D4MAcYL6XvCJqYw==, tarball: https://npm.pkg.github.com/download/@saintrelion/data-access-layer/5.0.9/ac1eeb221c45eb844b008ccb26b86dd1167588e2}
 
-  '@saintrelion/forms@1.1.11':
-    resolution: {integrity: sha512-Fj6M4TrHJL1RJn4dsWZDvvB5/m5fuI05dGiUxp0hiZiUjeydiaU9XSNYOUhBJVmSS01aiGYUP3TBGB7wVu1E9Q==, tarball: https://npm.pkg.github.com/download/@saintrelion/forms/1.1.11/0d60287b90b3b4307ccaaa5436c2df703c16e5a7}
+  '@saintrelion/forms@1.1.12':
+    resolution: {integrity: sha512-JSdfePPdVEqhRSoFpFmJoLIWSTSrTEoO/aIRc6sf8ft+olcwVhSBDKB++OtQhUHvAPiXOlB3qYu6ZistJW+NJg==, tarball: https://npm.pkg.github.com/download/@saintrelion/forms/1.1.12/5d9eb04d83419289b25400345c7f891d1974f783}
 
   '@saintrelion/notifications@1.0.2':
     resolution: {integrity: sha512-3cM3EO1c2brCpTeaYf42txX3e3IoYIU5dHm59juXA23T3OmjEyWMSRVqnaMVVeGlfi2q0K3Y4kznCu5wxWUfMA==, tarball: https://npm.pkg.github.com/download/@saintrelion/notifications/1.0.2/84787b46fa243c7155ca79f3df978cfd57fa5fb5}
@@ -2334,8 +2334,8 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  baseline-browser-mapping@2.9.7:
-    resolution: {integrity: sha512-k9xFKplee6KIio3IDbwj+uaCLpqzOwakOgmqzPezM0sFJlFKcg30vk2wOiAJtkTSfx0SSQDSe8q+mWA/fSH5Zg==}
+  baseline-browser-mapping@2.9.11:
+    resolution: {integrity: sha512-Sg0xJUNDU1sJNGdfGWhVHX0kkZ+HWcvmVymJbj6NSgZZmW/8S9Y2HQ5euytnIgakgxN6papOAWiwDo1ctFDcoQ==}
     hasBin: true
 
   bl@5.1.0:
@@ -2394,8 +2394,8 @@ packages:
   caniuse-lite@1.0.30001737:
     resolution: {integrity: sha512-BiloLiXtQNrY5UyF0+1nSJLXUENuhka2pzy2Fx5pGxqavdrxSCW4U6Pn/PoG3Efspi2frRbHpBV2XsrPE6EDlw==}
 
-  caniuse-lite@1.0.30001760:
-    resolution: {integrity: sha512-7AAMPcueWELt1p3mi13HR/LHH0TJLT11cnwDJEs3xA4+CK/PLKeO9Kl1oru24htkyUKtkGCvAx4ohB0Ttry8Dw==}
+  caniuse-lite@1.0.30001761:
+    resolution: {integrity: sha512-JF9ptu1vP2coz98+5051jZ4PwQgd2ni8A+gYSN7EA7dPKIMf0pDlSUxhdmVOaV3/fYK5uWBkgSXJaRLr4+3A6g==}
 
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -4353,8 +4353,8 @@ packages:
     peerDependencies:
       browserslist: '>= 4.21.0'
 
-  update-browserslist-db@1.2.2:
-    resolution: {integrity: sha512-E85pfNzMQ9jpKkA7+TJAi4TJN+tBCuWh5rUcS/sv6cFi+1q9LYDwDI5dpUL0u/73EElyQ8d3TEaeW4sPedBqYA==}
+  update-browserslist-db@1.2.3:
+    resolution: {integrity: sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==}
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
@@ -6525,7 +6525,7 @@ snapshots:
     dependencies:
       idb: 8.0.3
 
-  '@saintrelion/data-access-layer@5.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@saintrelion/data-access-layer@5.0.9(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@saintrelion/cache': 1.0.1
       '@saintrelion/notifications': 1.0.2
@@ -6538,7 +6538,7 @@ snapshots:
       - react
       - react-dom
 
-  '@saintrelion/forms@1.1.11(vite@7.1.3(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))':
+  '@saintrelion/forms@1.1.12(vite@7.1.3(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))':
     dependencies:
       '@fortawesome/fontawesome-free': 7.1.0
       '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.1.8(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -7014,7 +7014,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  baseline-browser-mapping@2.9.7: {}
+  baseline-browser-mapping@2.9.11: {}
 
   bl@5.1.0:
     dependencies:
@@ -7058,11 +7058,11 @@ snapshots:
 
   browserslist@4.28.1:
     dependencies:
-      baseline-browser-mapping: 2.9.7
-      caniuse-lite: 1.0.30001760
+      baseline-browser-mapping: 2.9.11
+      caniuse-lite: 1.0.30001761
       electron-to-chromium: 1.5.267
       node-releases: 2.0.27
-      update-browserslist-db: 1.2.2(browserslist@4.28.1)
+      update-browserslist-db: 1.2.3(browserslist@4.28.1)
 
   buffer-from@1.1.2: {}
 
@@ -7094,7 +7094,7 @@ snapshots:
 
   caniuse-lite@1.0.30001737: {}
 
-  caniuse-lite@1.0.30001760: {}
+  caniuse-lite@1.0.30001761: {}
 
   chalk@4.1.2:
     dependencies:
@@ -9102,7 +9102,7 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  update-browserslist-db@1.2.2(browserslist@4.28.1):
+  update-browserslist-db@1.2.3(browserslist@4.28.1):
     dependencies:
       browserslist: 4.28.1
       escalade: 3.2.0

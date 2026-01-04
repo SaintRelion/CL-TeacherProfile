@@ -12,6 +12,7 @@ import "@/lib/firebase-client";
 
 import "@/data-access-config";
 import "@/repositories/UserRepo";
+import "@/repositories/DocumentTypesRepo";
 import "@/repositories/MyNotificationRepo";
 import "@/repositories/PersonalInformationRepo";
 import "@/repositories/TeacherPerformanceRepo";

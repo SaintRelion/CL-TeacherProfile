@@ -75,7 +75,13 @@ const getDocumentStatusClassName = (expiry: string) => {
   return { label: "Valid", className: "bg-green-200 text-success-700" };
 };
 
-const FileCard = ({ doc }: { doc: TeacherDocument }) => {
+const FileCard = ({
+  doc,
+  onArchive,
+}: {
+  doc: TeacherDocument;
+  onArchive: () => void;
+}) => {
   const { iconClass, bg } = getDocumentIcon(doc.extension);
   const statusClassName = getDocumentStatusClassName(doc.expiryDate);
 
@@ -88,10 +94,10 @@ const FileCard = ({ doc }: { doc: TeacherDocument }) => {
 
   const handleRemove = () => {
     if (
-      window.confirm(`Are you sure you want to remove "${doc.documentTitle}"?`)
+      window.confirm(`Are you sure you want to archive "${doc.documentTitle}"?`)
     ) {
-      alert("File removed successfully");
       setIsContextOpen(false);
+      onArchive();
     }
   };
 
@@ -157,7 +163,7 @@ const FileCard = ({ doc }: { doc: TeacherDocument }) => {
                   className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
                 >
                   <Trash2 size={16} />
-                  <span className="text-sm">Remove</span>
+                  <span className="text-sm">Archive</span>
                 </a>
               </div>
             )}
