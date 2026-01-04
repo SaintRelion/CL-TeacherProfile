@@ -1,4 +1,4 @@
-import { type TeacherDocument } from "@/models/teacher-document";
+import { type TeacherDocument } from "@/models/TeacherDocument";
 import { firebaseRegister, mockRegister } from "@saintrelion/data-access-layer";
 
 firebaseRegister("TeacherDocument");

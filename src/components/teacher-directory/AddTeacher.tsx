@@ -1,4 +1,4 @@
-import { type TeacherPerformance } from "@/models/performance";
+import { type TeacherPerformance } from "@/models/Performance";
 import { useRegisterUser } from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import {

@@ -1,6 +1,6 @@
 import { RenderFormField } from "@saintrelion/forms";
 
-import { type PersonalInformation } from "@/models/personal-information";
+import { type PersonalInformation } from "@/models/PersonalInformation";
 
 const PersonalInformationForm = ({
   myInformation,

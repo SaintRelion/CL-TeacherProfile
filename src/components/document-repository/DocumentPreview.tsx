@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { TeacherDocument } from "@/models/teacher-document";
+import type { TeacherDocument } from "@/models/TeacherDocument";
 
 export function DocumentPreview({
   open,

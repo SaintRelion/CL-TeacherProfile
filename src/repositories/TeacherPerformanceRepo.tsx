@@ -1,4 +1,4 @@
-import type { TeacherPerformance } from "@/models/performance";
+import type { TeacherPerformance } from "@/models/Performance";
 import {
   apiRegister,
   firebaseRegister,

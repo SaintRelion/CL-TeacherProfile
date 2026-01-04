@@ -1,5 +1,6 @@
 import { getYearsOfService } from "@/lib/utils";
 import { createImpersonationToken, useAuth } from "@saintrelion/auth-lib";
+import { useState } from "react";
 
 const TeacherCard = ({
   info,
@@ -11,11 +12,14 @@ const TeacherCard = ({
   onTeacherSelect: (employeeID: string, checked: boolean) => void;
 }) => {
   const { user } = useAuth();
+  const [isTokenGenerating, setIsTokenGenerating] = useState(false);
 
   if (info == null) return <p>This shouldn't happen, null</p>;
 
   const handleViewProfile = async () => {
+    setIsTokenGenerating(true);
     const token = await createImpersonationToken(user.id, info.userId);
+    setIsTokenGenerating(false);
 
     window.open(
       `/teacherprofileinspect?token=${token}`,
@@ -79,9 +83,12 @@ const TeacherCard = ({
           </div>
         </div>
         {complete && (
-          <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+          <div
+            className={`${isTokenGenerating && "opacity-30"} mt-4 flex items-center justify-between border-t border-slate-200 pt-3`}
+          >
             <button
               onClick={() => handleViewProfile()}
+              disabled={isTokenGenerating}
               className="text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
               View Profile
