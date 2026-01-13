@@ -15,13 +15,9 @@ import type { MyNotification } from "@/models/MyNotification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useEffect, useMemo, useState } from "react";
 import { toDate } from "@saintrelion/time-functions";
-import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const { useSelect: informationSelect } =
     useDBOperationsLocked<PersonalInformation>("PersonalInformation");
@@ -117,12 +113,13 @@ const Navbar = () => {
     return notifications.filter((n) => !n.isRead);
   }, [notifications]);
 
-  // Mark all notifications as read when dropdown opens
-  const handleNotificationOpen = async (isOpen: boolean) => {
-    if (isOpen && unreadNotifications.length > 0) {
-      for (const notification of unreadNotifications) {
-        await notificationUpdate.run({ ...notification, isRead: true });
-      }
+  const handleMarkAsRead = async (notification: MyNotification) => {
+    if (!notification.isRead) {
+      await notificationUpdate.run({
+        field: "id" as keyof MyNotification,
+        value: notification.id,
+        updates: { isRead: true },
+      });
     }
   };
 
@@ -156,7 +153,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <DropdownMenu onOpenChange={handleNotificationOpen}>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="text-primary-200 relative p-2 transition-colors hover:text-white">
                   <i className="fas fa-bell text-lg"></i>
@@ -183,7 +180,13 @@ const Navbar = () => {
                   ) : (
                     <div className="space-y-4">
                       {sortedNotifications.map((value, index) => (
-                        <NotificationCard key={index} notification={value} />
+                        <div
+                          key={index}
+                          onClick={() => handleMarkAsRead(value)}
+                          className="cursor-pointer transition-colors hover:bg-slate-50 rounded-lg p-2"
+                        >
+                          <NotificationCard notification={value} isRead={value.isRead} />
+                        </div>
                       ))}
                     </div>
                   )}

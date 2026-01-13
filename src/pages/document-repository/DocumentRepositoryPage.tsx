@@ -89,10 +89,8 @@ const DocumentRepositoryPage = () => {
       await insertFolder.run({
         name: newFolderName.trim(),
         userId: user.id,
-        createdAt: new Date().toISOString(),
       });
       setNewFolderName("");
-      setShowNewFolderDialog(false);
     } catch (error) {
       console.error("Failed to create folder:", error);
     } finally {
@@ -122,13 +120,13 @@ const DocumentRepositoryPage = () => {
 
     setIsRenamingFolder(true);
     try {
-      const folder = customFolders?.find((f) => f.id === renameFolderId);
-      if (folder) {
-        await updateFolder.run({
-          ...folder,
+      await updateFolder.run({
+        field: "id",
+        value: renameFolderId,
+        updates: {
           name: renameFolderName.trim(),
-        });
-      }
+        },
+      });
       setRenameFolderName("");
       setRenameFolderId("");
       setShowRenameFolderDialog(false);
@@ -143,18 +141,9 @@ const DocumentRepositoryPage = () => {
     <main className="flex-1 p-6">
       <div className="mb-8">
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Document Repository</h2>
-            <p className="text-sm text-slate-500">Manage and organize your documents</p>
-          </div>
+        
           <div className="mt-4 flex items-center space-x-3 md:mt-0">
-            <button
-              onClick={() => setShowNewFolderDialog(true)}
-              className="bg-primary-600 hover:bg-primary-700 flex items-center space-x-2 rounded-lg px-4 py-2.5 font-medium text-white shadow-sm transition-all hover:shadow-md"
-            >
-              <i className="fas fa-folder-plus"></i>
-              <span>New Folder</span>
-            </button>
+           
           </div>
         </div>
 
@@ -230,6 +219,71 @@ const DocumentRepositoryPage = () => {
                   <>
                     <i className="fas fa-check"></i>
                     Rename
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Folder Dialog */}
+      <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-blue-600">
+                <i className="fas fa-folder-plus text-white"></i>
+              </div>
+              Create New Folder
+            </DialogTitle>
+            <DialogDescription>
+              Enter a name for your new folder.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Folder Name
+              </label>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreateFolder();
+                }}
+                placeholder="Enter folder name..."
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setShowNewFolderDialog(false);
+                  setNewFolderName("");
+                }}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                disabled={!newFolderName.trim() || isCreatingFolder}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-blue-600 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isCreatingFolder ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-plus"></i>
+                    Create
                   </>
                 )}
               </button>

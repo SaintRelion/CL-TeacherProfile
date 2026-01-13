@@ -2,10 +2,10 @@ import ComplianceStatusCard from "@/components/dashboard/ComplianceStatusCard";
 import KPICard from "@/components/dashboard/KPICard";
 import ViewComplianceReport from "@/components/dashboard/ViewComplianceReport";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { DOCUMENT_TYPES, NO_FACE_IMAGE } from "@/constants";
-import { getExpiryState, resolveImageSource } from "@/lib/utils";
+import { DOCUMENT_TYPES } from "@/constants";
+import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import { useAuth } from "@saintrelion/auth-lib";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import React, { useState, useEffect } from "react";
@@ -18,25 +18,18 @@ const DashboardPage = () => {
     const hasSeenWelcome = sessionStorage.getItem("hasSeenWelcome");
     return !hasSeenWelcome;
   });
-  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
     if (showWelcome) {
       // Mark as seen in session storage
       sessionStorage.setItem("hasSeenWelcome", "true");
 
-      // Start fade out after 2.5 seconds
-      const fadeTimer = setTimeout(() => {
-        setFadeOut(true);
-      }, 2500);
-
-      // Remove element after fade completes (3 seconds total)
+      // Remove element after 3 seconds
       const hideTimer = setTimeout(() => {
         setShowWelcome(false);
       }, 3000);
 
       return () => {
-        clearTimeout(fadeTimer);
         clearTimeout(hideTimer);
       };
     }
