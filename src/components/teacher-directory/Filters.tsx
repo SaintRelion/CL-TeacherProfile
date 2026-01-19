@@ -5,13 +5,16 @@ const Filters = ({
   filters,
   onSearchChange,
   onFilterChange,
+  onViewChange,
 }: {
   dataCount: string;
   filters: Record<string, string>;
   onSearchChange: (search: string) => void;
   onFilterChange: (filterType: string, value: string) => void;
+  onViewChange?: (view: "grid" | "list") => void;
 }) => {
   const [showFilter, setShowFilter] = useState(false);
+  const [gridView, setGridView] = useState<"grid" | "list">("grid"); // "grid" or "list"
 
   return (
     <div className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -31,15 +34,43 @@ const Filters = ({
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setShowFilter(!showFilter)}
-            className="flex items-center space-x-2 rounded-lg border border-slate-300 px-4 py-3 transition-colors hover:bg-slate-50"
+            className={`flex items-center space-x-2 rounded-lg border px-4 py-3 transition-all ${
+              showFilter
+                ? "border-primary-500 bg-primary-50 text-primary-600"
+                : "border-slate-300 text-secondary-600 hover:bg-slate-50"
+            }`}
           >
-            <i className="fas fa-filter text-secondary-600"></i>
+            <i className={`fas fa-filter transition-transform ${showFilter ? "rotate-180" : ""}`}></i>
             <span className="text-secondary-700">Filters</span>
           </button>
-          <div className="flex items-center rounded-lg bg-slate-100 p-1">
-            <button className="text-primary-600 flex items-center space-x-1 rounded-md bg-white px-3 py-2 shadow-sm">
+          <div className="flex items-center rounded-lg border border-slate-300 p-1">
+            <button
+              onClick={() => {
+                setGridView("grid");
+                onViewChange?.("grid");
+              }}
+              className={`flex items-center space-x-1 rounded-md px-3 py-2 transition-all ${
+                gridView === "grid"
+                  ? "bg-primary-600 text-white shadow-sm"
+                  : "bg-white text-secondary-600 hover:bg-slate-50"
+              }`}
+            >
               <i className="fas fa-th-large"></i>
               <span className="text-sm">Grid</span>
+            </button>
+            <button
+              onClick={() => {
+                setGridView("list");
+                onViewChange?.("list");
+              }}
+              className={`flex items-center space-x-1 rounded-md px-3 py-2 transition-all ${
+                gridView === "list"
+                  ? "bg-primary-600 text-white shadow-sm"
+                  : "bg-white text-secondary-600 hover:bg-slate-50"
+              }`}
+            >
+              <i className="fas fa-list"></i>
+              <span className="text-sm">List</span>
             </button>
           </div>
         </div>
@@ -58,15 +89,13 @@ const Filters = ({
                 className="focus:ring-primary-500 w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
               >
                 <option value="">All Departments</option>
-                <option value="mathematics-department">Mathematics</option>
-                <option value="science-department">Science</option>
-                <option value="english-department">English</option>
-                <option value="social-studies-department">
-                  Social Studies
-                </option>
-                <option value="physical-education-department">
-                  Physical Education
-                </option>
+                <option value="mathematics">Mathematics</option>
+                <option value="science">Science</option>
+                <option value="english">English</option>
+                <option value="social-studies">Social Studies</option>
+                <option value="physical-education">Physical Education</option>
+                <option value="arts">Arts</option>
+                <option value="technology">Technology</option>
               </select>
             </div>
             <div>
@@ -98,10 +127,10 @@ const Filters = ({
                 className="focus:ring-primary-500 w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
               >
                 <option value="">All Experience</option>
-                <option value="0-2-years">0-2 years</option>
-                <option value="3-5-years">3-5 years</option>
-                <option value="6-10-years">6-10 years</option>
-                <option value="10+-years">10+ years</option>
+                <option value="0 2 years">0-2 years</option>
+                <option value="3 5 years">3-5 years</option>
+                <option value="6 10 years">6-10 years</option>
+                <option value="10+ years">10+ years</option>
               </select>
             </div>
             <div>

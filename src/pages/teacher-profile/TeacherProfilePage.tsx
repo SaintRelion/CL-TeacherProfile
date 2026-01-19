@@ -321,12 +321,7 @@ const TeacherProfilePage = () => {
                     updateUser.isLocked ||
                     notificationInsert.isLocked
                   }
-                  buttonLabel={
-                    <>
-                      <i className="fas fa-save mr-2"></i>
-                      Save Changes
-                    </>
-                  }
+                  buttonLabel="Save Changes"
                   buttonClassName="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>

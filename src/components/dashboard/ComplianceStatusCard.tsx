@@ -24,28 +24,31 @@ const ComplianceStatusCard = ({
         : "bg-rose-500";
 
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm">
-      {/* Icon */}
-      <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${wrapperColor}`}
-      >
-        <i className={`${iconClassName} text-sm`}></i>
-      </div>
-
-      {/* Content */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-sm font-medium text-slate-700">{title}</p>
-          <span className={`shrink-0 text-sm font-bold ${valueClassName}`}>
-            {value}
-          </span>
+    <div className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300">
+      <div className="flex items-start gap-3">
+        {/* Icon */}
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105 ${wrapperColor}`}
+        >
+          <i className={`text-lg ${iconClassName}`}></i>
         </div>
-        {/* Progress bar */}
-        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            className={`h-full ${progressColor} transition-all duration-500`}
-            style={{ width: value }}
-          ></div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate font-semibold text-slate-800">{title}</p>
+            <span className={`inline-flex shrink-0 rounded-lg px-2.5 py-1 text-sm font-bold ${valueClassName}`}>
+              {value}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500 line-clamp-1">Status overview</p>
+          {/* Progress bar - Enhanced */}
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full ${progressColor} rounded-full transition-all duration-700 ease-out`}
+              style={{ width: value }}
+            ></div>
+          </div>
         </div>
       </div>
     </div>

@@ -62,17 +62,17 @@ const getDocumentStatusClassName = (expiry: string) => {
   const status = getExpiryState(expiry);
 
   if (status == "expired") {
-    return { label: "Expired", className: "bg-red-300 text-error-700" };
+    return { label: "Expired", className: "bg-error-100 text-error-700" };
   }
 
   if (status == "expiring") {
     return {
       label: "Expires Soon",
-      className: "bg-orange-200 text-warning-700",
+      className: "bg-warning-100 text-warning-700",
     };
   }
 
-  return { label: "Valid", className: "bg-green-200 text-success-700" };
+  return { label: "Valid", className: "bg-success-100 text-success-700" };
 };
 
 const FileCard = ({
@@ -88,7 +88,29 @@ const FileCard = ({
   const [isContextOpen, setIsContextOpen] = useState(false);
 
   const handleDownload = () => {
-    alert(`Downloading ${doc.documentTitle}.pdf...`);
+    try {
+      // Convert base64 to blob
+      const byteCharacters = atob(doc.fileBase64.split(',')[1] || doc.fileBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: `application/${doc.extension}` });
+
+      // Create download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${doc.documentTitle}.${doc.extension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download the file');
+    }
     setIsContextOpen(false);
   };
 

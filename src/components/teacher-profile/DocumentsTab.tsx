@@ -10,7 +10,7 @@ import {
 import DocumentUpload from "@/components/teacher-profile/DocumentUpload";
 import DocumentExplorer from "../document-repository/DocumentExplorer";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 
 const DocumentsTab = ({ userId }: { userId: string }) => {

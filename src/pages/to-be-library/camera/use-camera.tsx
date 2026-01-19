@@ -60,6 +60,7 @@ export function useCameraService(
     if (!streamRef.current) return;
 
     const track = streamRef.current.getVideoTracks()[0];
+    const ImageCapture = (window as any).ImageCapture;
     const imageCapture = new ImageCapture(track);
     setIsCapturing(true);
     try {
