@@ -5,7 +5,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./ui/dialog";
 import { logout } from "@saintrelion/auth-lib/dist/FirebaseAuth";
+import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { getExpiryState, resolveImageSource } from "@/lib/utils";
@@ -15,11 +24,22 @@ import type { MyNotification } from "@/models/MyNotification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useEffect, useMemo, useState } from "react";
 import { toDate } from "@saintrelion/time-functions";
+import { toast } from "@saintrelion/notifications";
 
 const Navbar = () => {
   const { user } = useAuth();
 
-  const { useSelect: informationSelect } =
+  // State for dialogs
+  const [showUpdatePhoto, setShowUpdatePhoto] = useState(false);
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  const { useSelect: informationSelect, useUpdate: informationUpdate } =
     useDBOperationsLocked<PersonalInformation>("PersonalInformation");
 
   const { data: informations } = informationSelect({
@@ -123,6 +143,101 @@ const Navbar = () => {
     }
   };
 
+  // Handle photo file selection
+  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle photo update
+  const handleUpdatePhoto = async () => {
+    if (!photoPreview || !myInformation) {
+      toast.error("Please select a photo");
+      return;
+    }
+
+    setIsUpdatingPhoto(true);
+    try {
+      await informationUpdate.run({
+        field: "id" as keyof PersonalInformation,
+        value: myInformation.id,
+        updates: {
+          photoBase64: photoPreview,
+        } as Partial<PersonalInformation>,
+      });
+      toast.success("Profile photo updated successfully");
+      setShowUpdatePhoto(false);
+      setPhotoPreview("");
+    } catch (error) {
+      console.error("Failed to update photo:", error);
+      toast.error("Failed to update photo");
+    } finally {
+      setIsUpdatingPhoto(false);
+    }
+  };
+
+  // Handle password update
+  const handleUpdatePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser || !currentUser.email) {
+        toast.error("User not authenticated");
+        return;
+      }
+
+      // Reauthenticate user with current password
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(currentUser, credential);
+
+      // Update password
+      await updatePassword(currentUser, newPassword);
+
+      toast.success("Password updated successfully");
+      setShowUpdatePassword(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      console.error("Failed to update password:", error);
+      if (error.code === "auth/wrong-password") {
+        toast.error("Current password is incorrect");
+      } else if (error.code === "auth/weak-password") {
+        toast.error("New password is too weak");
+      } else {
+        toast.error(error.message || "Failed to update password");
+      }
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   return (
     <header className="bg-primary-800 sticky top-0 z-50 text-white shadow-lg">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -217,9 +332,7 @@ const Navbar = () => {
                 className="mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
               >
                 <DropdownMenuItem
-                  onClick={() => {
-                    // Handle update photo
-                  }}
+                  onClick={() => setShowUpdatePhoto(true)}
                   className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
                 >
                   <i className="fas fa-camera"></i>
@@ -227,9 +340,7 @@ const Navbar = () => {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => {
-                    // Handle update password
-                  }}
+                  onClick={() => setShowUpdatePassword(true)}
                   className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
                 >
                   <i className="fas fa-key"></i>
@@ -252,6 +363,147 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      {/* Update Photo Dialog */}
+      <Dialog open={showUpdatePhoto} onOpenChange={setShowUpdatePhoto}>
+        <DialogContent className="bg-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <i className="fas fa-camera text-primary-600"></i>
+              Update Profile Photo
+            </DialogTitle>
+            <DialogDescription>
+              Upload a new profile photo. Supported formats: JPG, PNG, GIF
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Photo Preview */}
+            <div className="flex justify-center">
+              <div className="flex h-32 w-32 items-center justify-center rounded-full bg-slate-100 overflow-hidden">
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <i className="fas fa-user text-4xl text-slate-400"></i>
+                )}
+              </div>
+            </div>
+
+            {/* File Input */}
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-600"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setShowUpdatePhoto(false);
+                setPhotoPreview("");
+              }}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUpdatePhoto}
+              disabled={!photoPreview || isUpdatingPhoto}
+              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdatingPhoto ? "Updating..." : "Update Photo"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Password Dialog */}
+      <Dialog open={showUpdatePassword} onOpenChange={setShowUpdatePassword}>
+        <DialogContent className="bg-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <i className="fas fa-key text-primary-600"></i>
+              Update Password
+            </DialogTitle>
+            <DialogDescription>
+              Change your account password. Must be at least 6 characters.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Current Password */}
+            <div>
+              <label className="text-sm font-medium text-slate-700">
+                Current Password
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            {/* New Password */}
+            <div>
+              <label className="text-sm font-medium text-slate-700">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="text-sm font-medium text-slate-700">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setShowUpdatePassword(false);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUpdatePassword}
+              disabled={isUpdatingPassword}
+              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdatingPassword ? "Updating..." : "Update Password"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

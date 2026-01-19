@@ -11,10 +11,11 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { NO_FACE_IMAGE } from "@/constants";
-import { getYearsOfService } from "@/lib/utils";
-import type { TeacherPerformance } from "@/models/Performance";
+import { getYearsOfService, getExpiryState } from "@/lib/utils";
+import type { TeacherPerformance } from "@/models/performance";
 import { type PersonalInformation } from "@/models/PersonalInformation";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
+import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { useState } from "react";
 
@@ -48,10 +49,13 @@ const TeacherDirectoryPage = () => {
     useDBOperationsLocked<PersonalInformation>("PersonalInformation");
   const { useSelect: selectTeacherPerformance } =
     useDBOperationsLocked<TeacherPerformance>("TeacherPerformance");
+  const { useSelect: selectDocuments } =
+    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
 
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
 
   const [search, setSearch] = useState<string>("");
+  const [gridView, setGridView] = useState<"grid" | "list">("grid");
   const [filters, setFilters] = useState<Record<string, string>>({
     department: "",
     certificationStatus: "",
@@ -62,6 +66,7 @@ const TeacherDirectoryPage = () => {
   const { data: users } = selectUsers();
   const { data: teachersInformation } = selectTeachersInformation();
   const { data: teacherPerformances } = selectTeacherPerformance();
+  const { data: documents } = selectDocuments();
 
   const filteredTeachers = users
     ?.map((user) => {
@@ -97,31 +102,46 @@ const TeacherDirectoryPage = () => {
       }
 
       // ---------- FILTERS ----------
-      if (
-        filters.department &&
-        department !== filters.department.toLowerCase().replaceAll("-", " ")
-      )
-        return null;
+      // Department filter
+      if (filters.department) {
+        const filterDept = filters.department.toLowerCase().replaceAll("-", " ");
+        if (!department.includes(filterDept)) {
+          return null;
+        }
+      }
 
+      // Certification Status filter (checks document expiry status)
+      if (filters.certificationStatus && filters.certificationStatus !== "") {
+        const teacherDocs = documents?.filter((doc) => doc.userId === user.id) || [];
+        let hasStatus = false;
+        
+        if (filters.certificationStatus === "current") {
+          hasStatus = teacherDocs.some((doc) => getExpiryState(doc.expiryDate) === "valid");
+        } else if (filters.certificationStatus === "expiring") {
+          hasStatus = teacherDocs.some((doc) => getExpiryState(doc.expiryDate) === "expiring");
+        } else if (filters.certificationStatus === "expired") {
+          hasStatus = teacherDocs.some((doc) => getExpiryState(doc.expiryDate) === "expired");
+        }
+        
+        if (!hasStatus) {
+          return null;
+        }
+      }
+
+      // Years of Service filter
+      if (filters.yearsOfService && filters.yearsOfService !== "") {
+        if (yearOfService !== filters.yearsOfService) {
+          return null;
+        }
+      }
+
+      // Performance Rating filter
       if (
         filters.performanceRating &&
         teacherPerformance.rating.toLowerCase() !==
           filters.performanceRating.toLowerCase()
       )
         return null;
-
-      if (
-        filters.yearsOfService &&
-        yearOfService !==
-          filters.yearsOfService.toLowerCase().replaceAll("-", " ")
-      )
-        return null;
-
-      // if (
-      //   filters.certificationStatus &&
-      //   status !== filters.certificationStatus.toLowerCase().replaceAll("-", " ")
-      // )
-      //   return false;
 
       return {
         ...teacherInformation,
@@ -134,6 +154,13 @@ const TeacherDirectoryPage = () => {
     <main className="min-h-screen flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 md:p-6 lg:p-8">
       {/* Page Header */}
       <div className="mb-8">
+        <button
+          onClick={() => window.history.back()}
+          className="mb-4 flex items-center gap-2 text-slate-600 transition-colors hover:text-slate-900"
+        >
+          <i className="fas fa-arrow-left text-lg"></i>
+          <span className="font-medium">Back</span>
+        </button>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-2xl font-bold text-transparent md:text-3xl">
@@ -174,6 +201,7 @@ const TeacherDirectoryPage = () => {
         }
         filters={filters}
         onSearchChange={(search) => setSearch(search)}
+        onViewChange={(view) => setGridView(view)}
         onFilterChange={(filterType, value) => {
           if (filterType === "reset") {
             setFilters({
@@ -197,7 +225,7 @@ const TeacherDirectoryPage = () => {
       )}
 
       {/* Teachers Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className={gridView === "grid" ? "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "space-y-3"}>
         {filteredTeachers != null && filteredTeachers.length > 0 ? (
           filteredTeachers.map((value, index) => (
             <TeacherCard

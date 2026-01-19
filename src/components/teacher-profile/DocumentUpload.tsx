@@ -10,6 +10,7 @@ import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { MyNotification } from "@/models/MyNotification";
+import type { DocumentTypes } from "@/models/DocumentTypes";
 
 interface DocumentFolder {
   id: string;
@@ -31,19 +32,17 @@ export default function DocumentForm({
   const { useInsert: notificationInsert } =
     useDBOperationsLocked<MyNotification>("MyNotification");
 
-  // Fetch custom folders
-  const { useSelect: selectFolders } =
-    useDBOperationsLocked<DocumentFolder>("DocumentFolder");
+  // Fetch admin-created folders (from DocumentTypes collection)
+  const { useSelect: selectDocumentTypes } =
+    useDBOperationsLocked<DocumentTypes>("DocumentTypes");
 
-  const { data: customFolders } = selectFolders({
-    firebaseOptions: { filterField: "userId", value: userId },
-  });
+  const { data: documentTypes } = selectDocumentTypes();
 
-  // Combine default document types with custom folders
+  // Combine default document types with admin-created folders
   const allDocumentTypes = useMemo(() => {
-    const customFolderNames = customFolders?.map((f) => f.name) || [];
-    return [...DOCUMENT_TYPES, ...customFolderNames];
-  }, [customFolders]);
+    const adminFolders = documentTypes?.map((f) => f.documentType) || [];
+    return [...DOCUMENT_TYPES, ...adminFolders];
+  }, [documentTypes]);
 
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();

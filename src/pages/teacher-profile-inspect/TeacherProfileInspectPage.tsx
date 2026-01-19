@@ -78,15 +78,19 @@ const TeacherProfileInspectPage = () => {
     const fetchUser = async () => {
       const params = new URLSearchParams(window.location.search);
       const token = params.get("token");
+      const teacherId = params.get("teacherId");
 
       if (token) {
         try {
           const targetUserId = await validateImpersonationToken(token);
-
           setInspectUserId(targetUserId);
         } catch {
           setTokenStatus("expired");
         }
+      } else if (teacherId) {
+        // Direct teacher ID from dashboard
+        setInspectUserId(teacherId);
+        setTokenStatus("direct");
       } else {
         setTokenStatus("none");
       }
