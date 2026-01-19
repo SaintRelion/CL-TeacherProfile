@@ -4,12 +4,20 @@ import {
   RenderFormButton,
   RenderFormField,
 } from "@saintrelion/forms";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { MyNotification } from "@/models/MyNotification";
+import type { DocumentTypes } from "@/models/DocumentTypes";
+
+interface DocumentFolder {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+}
 
 export default function DocumentForm({
   userId,
@@ -23,6 +31,18 @@ export default function DocumentForm({
 
   const { useInsert: notificationInsert } =
     useDBOperationsLocked<MyNotification>("MyNotification");
+
+  // Fetch admin-created folders (from DocumentTypes collection)
+  const { useSelect: selectDocumentTypes } =
+    useDBOperationsLocked<DocumentTypes>("DocumentTypes");
+
+  const { data: documentTypes } = selectDocumentTypes();
+
+  // Combine default document types with admin-created folders
+  const allDocumentTypes = useMemo(() => {
+    const adminFolders = documentTypes?.map((f) => f.documentType) || [];
+    return [...DOCUMENT_TYPES, ...adminFolders];
+  }, [documentTypes]);
 
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
@@ -71,7 +91,7 @@ export default function DocumentForm({
   };
 
   return (
-    <RenderForm wrapperClass="space-y-3">
+    <RenderForm wrapperClassName="space-y-3">
       {/* Document Title */}
       <RenderFormField
         field={{
@@ -90,7 +110,7 @@ export default function DocumentForm({
           label: "Document Type",
           type: "select",
           name: "documentType",
-          options: DOCUMENT_TYPES,
+          options: allDocumentTypes,
           onValueChange: (value) => {
             if (typeof value === "string") setSelectedDocumentType(value);
           },

@@ -23,13 +23,18 @@ export function LiveClock({
     return () => cancelAnimationFrame(frame);
   }, [currentTime, onTimeChanged]);
 
+  const formatTime = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
   return (
     <div className="text-center">
       <div className="flex items-center justify-center gap-2">
         <Clock className="text-muted-foreground h-4 w-4" />
         <p className="text-muted-foreground text-sm">Current Time</p>
       </div>
-      <p className="text-3xl font-bold">{parseYYYYMMDD(currentTime)}</p>
+      <p className="text-3xl font-bold">{formatTime(currentTime)}</p>
     </div>
   );
 }
