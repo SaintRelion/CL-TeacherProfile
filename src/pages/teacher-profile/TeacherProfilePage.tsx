@@ -15,16 +15,21 @@ import {
 } from "@/components/ui/drawer";
 import { NO_FACE_IMAGE } from "@/constants";
 import { resolveImageSource, getYearsOfService } from "@/lib/utils";
-import type { MyNotification } from "@/models/MyNotification";
-import { type PersonalInformation } from "@/models/PersonalInformation";
-import { useAuth, useUpdateUser } from "@saintrelion/auth-lib";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import type { CreateMyNotification } from "@/models/MyNotification";
+import {
+  type CreatePersonalInformation,
+  type PersonalInformation,
+} from "@/models/PersonalInformation";
+import { useAuth, useCurrentUser } from "@saintrelion/auth-lib";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
 import { useState, useRef } from "react";
+import type { User, UpdateUser } from "@/models/User";
 
 const TeacherProfilePage = () => {
-  const { user } = useAuth();
+  const user = useCurrentUser<User>();
+  const auth = useAuth();
   const printRef = useRef<HTMLDivElement>(null);
 
   const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
@@ -34,26 +39,25 @@ const TeacherProfilePage = () => {
     "personal",
   );
 
-  const updateUser = useUpdateUser();
-
-  const {
-    useSelect: informationSelect,
-    useInsert: informationInsert,
-    useUpdate: informationUpdate,
-  } = useDBOperationsLocked<PersonalInformation>(
-    "PersonalInformation",
-    false,
-    false,
+  const { useUpdate: updateUser } = useResourceLocked<never, never, UpdateUser>(
+    "user",
   );
 
-  const { data: informations } = informationSelect({
-    firebaseOptions: {
-      filterField: "userId",
-      value: user.id,
-    },
-  });
+  const {
+    useList: getInformation,
+    useInsert: insertInformation,
+    useUpdate: updateInformation,
+  } = useResourceLocked<
+    PersonalInformation,
+    CreatePersonalInformation,
+    CreatePersonalInformation
+  >("personalinformation");
 
-  const myInformation = informations != null ? informations[0] : undefined;
+  const informations = getInformation({
+    filters: { userId: user.id },
+  }).data;
+
+  const myInformation = informations.length > 0 ? informations[0] : null;
   if (myInformation != null) {
     if (selectedProfilePic != "")
       myInformation.photoBase64 = selectedProfilePic;
@@ -61,8 +65,10 @@ const TeacherProfilePage = () => {
       myInformation.photoBase64 = NO_FACE_IMAGE;
   }
 
-  const { useInsert: notificationInsert } =
-    useDBOperationsLocked<MyNotification>("MyNotification");
+  const { useInsert: insertNotification } = useResourceLocked<
+    never,
+    CreateMyNotification
+  >("mynotification");
 
   const handleInformationSaveChanges = async (data: Record<string, string>) => {
     data.userId = user.id;
@@ -71,22 +77,40 @@ const TeacherProfilePage = () => {
 
     if (myInformation == undefined) {
       if (selectedProfilePic == "") data.photoBase64 = "";
-      informationInsert.run(data);
+      insertInformation.run({
+        userId: user.id,
+        employeeId: data.employeeId,
+        photoBase64: data.photoBase64,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+        civilStatus: data.civilStatus,
+        email: data.email,
+        mobileNumber: data.mobileNumber,
+        homeAddress: data.homeAddress,
+        position: data.position,
+        department: data.department,
+        employmentStatus: data.employementStatus,
+        dateHired: data.dateHired,
+        salaryGrade: data.salaryGrade,
+        tin: data.tin,
+      });
 
-      await notificationInsert.run({
+      await insertNotification.run({
         userId: user.id,
         type: "profileNew",
         title: "New teacher profile created",
         description: `${data.firstName} ${data.middleName} ${data.lastName} - ${data.department} Department`,
       });
     } else {
-      informationUpdate.run({
-        field: "userId",
-        value: user.id,
-        updates: data,
+      updateInformation.run({
+        id: myInformation.id,
+        payload: data,
       });
 
-      await notificationInsert.run({
+      await insertNotification.run({
         userId: user.id,
         type: "profileUpdate",
         title: "Profile updated",
@@ -94,11 +118,13 @@ const TeacherProfilePage = () => {
       });
     }
 
-    if (data.emailAddress) {
+    if (data.email) {
       await updateUser.run({
-        userId: user.id,
-        info: { email: data.emailAddress },
+        id: user.id,
+        payload: { email: data.email },
       });
+
+      await auth.refreshUser();
     }
   };
 
@@ -144,7 +170,9 @@ const TeacherProfilePage = () => {
                     <DrawerHeader>
                       <div>
                         <DrawerTitle>Profile Summary</DrawerTitle>
-                        <DrawerDescription>Quick overview of your profile</DrawerDescription>
+                        <DrawerDescription>
+                          Quick overview of your profile
+                        </DrawerDescription>
                       </div>
                       <DrawerClose />
                     </DrawerHeader>
@@ -155,11 +183,13 @@ const TeacherProfilePage = () => {
                         <div className="flex flex-col items-center text-center">
                           <div className="relative mb-4">
                             <img
-                              src={resolveImageSource(myInformation?.photoBase64 || NO_FACE_IMAGE)}
+                              src={resolveImageSource(
+                                myInformation?.photoBase64 || NO_FACE_IMAGE,
+                              )}
                               alt="Profile"
                               className="h-24 w-24 rounded-2xl border-4 border-slate-100 object-cover shadow-lg"
                             />
-                            <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-green-500">
+                            <div className="absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-green-500">
                               <i className="fas fa-check text-xs text-white"></i>
                             </div>
                           </div>
@@ -168,7 +198,9 @@ const TeacherProfilePage = () => {
                               ? `${myInformation.firstName} ${myInformation.lastName}`
                               : "No Name"}
                           </h3>
-                          <p className="text-slate-500">{myInformation?.position || "No position"}</p>
+                          <p className="text-slate-500">
+                            {myInformation?.position || "No position"}
+                          </p>
                           <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700">
                             <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
                             Active
@@ -179,23 +211,41 @@ const TeacherProfilePage = () => {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="rounded-xl bg-blue-50 p-4 text-center">
                             <i className="fas fa-id-badge mb-2 text-2xl text-blue-500"></i>
-                            <p className="text-xs font-medium uppercase text-blue-600">Employee ID</p>
-                            <p className="font-bold text-slate-900">{myInformation?.employeeId || "—"}</p>
+                            <p className="text-xs font-medium text-blue-600 uppercase">
+                              Employee ID
+                            </p>
+                            <p className="font-bold text-slate-900">
+                              {myInformation?.employeeId || "—"}
+                            </p>
                           </div>
                           <div className="rounded-xl bg-purple-50 p-4 text-center">
                             <i className="fas fa-building mb-2 text-2xl text-purple-500"></i>
-                            <p className="text-xs font-medium uppercase text-purple-600">Department</p>
-                            <p className="font-bold text-slate-900">{myInformation?.department || "—"}</p>
+                            <p className="text-xs font-medium text-purple-600 uppercase">
+                              Department
+                            </p>
+                            <p className="font-bold text-slate-900">
+                              {myInformation?.department || "—"}
+                            </p>
                           </div>
                           <div className="rounded-xl bg-amber-50 p-4 text-center">
                             <i className="fas fa-award mb-2 text-2xl text-amber-500"></i>
-                            <p className="text-xs font-medium uppercase text-amber-600">Years of Service</p>
-                            <p className="font-bold text-slate-900">{getYearsOfService(myInformation?.dateHired ?? "")}</p>
+                            <p className="text-xs font-medium text-amber-600 uppercase">
+                              Years of Service
+                            </p>
+                            <p className="font-bold text-slate-900">
+                              {getYearsOfService(
+                                myInformation?.dateHired ?? "",
+                              )}
+                            </p>
                           </div>
                           <div className="rounded-xl bg-emerald-50 p-4 text-center">
                             <i className="fas fa-briefcase mb-2 text-2xl text-emerald-500"></i>
-                            <p className="text-xs font-medium uppercase text-emerald-600">Status</p>
-                            <p className="font-bold text-slate-900">{myInformation?.employmentStatus || "—"}</p>
+                            <p className="text-xs font-medium text-emerald-600 uppercase">
+                              Status
+                            </p>
+                            <p className="font-bold text-slate-900">
+                              {myInformation?.employmentStatus || "—"}
+                            </p>
                           </div>
                         </div>
 
@@ -212,7 +262,9 @@ const TeacherProfilePage = () => {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-400">Email</p>
-                                <p className="text-sm font-medium text-slate-700">{myInformation?.emailAddress || "—"}</p>
+                                <p className="text-sm font-medium text-slate-700">
+                                  {myInformation?.email || "—"}
+                                </p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -221,7 +273,9 @@ const TeacherProfilePage = () => {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-400">Mobile</p>
-                                <p className="text-sm font-medium text-slate-700">{myInformation?.mobileNumber || "—"}</p>
+                                <p className="text-sm font-medium text-slate-700">
+                                  {myInformation?.mobileNumber || "—"}
+                                </p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -229,8 +283,12 @@ const TeacherProfilePage = () => {
                                 <i className="fas fa-map-marker-alt text-sm text-slate-500"></i>
                               </div>
                               <div>
-                                <p className="text-xs text-slate-400">Address</p>
-                                <p className="text-sm font-medium text-slate-700 line-clamp-2">{myInformation?.homeAddress || "—"}</p>
+                                <p className="text-xs text-slate-400">
+                                  Address
+                                </p>
+                                <p className="line-clamp-2 text-sm font-medium text-slate-700">
+                                  {myInformation?.homeAddress || "—"}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -253,8 +311,12 @@ const TeacherProfilePage = () => {
                               <i className="fas fa-user-edit"></i>
                             </div>
                             <div>
-                              <p className="font-medium text-slate-800">Edit Personal Info</p>
-                              <p className="text-xs text-slate-500">Update your details</p>
+                              <p className="font-medium text-slate-800">
+                                Edit Personal Info
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Update your details
+                              </p>
                             </div>
                             <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
                           </button>
@@ -269,8 +331,12 @@ const TeacherProfilePage = () => {
                               <i className="fas fa-folder-open"></i>
                             </div>
                             <div>
-                              <p className="font-medium text-slate-800">View Documents</p>
-                              <p className="text-xs text-slate-500">Manage your files</p>
+                              <p className="font-medium text-slate-800">
+                                View Documents
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Manage your files
+                              </p>
                             </div>
                             <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
                           </button>
@@ -307,7 +373,7 @@ const TeacherProfilePage = () => {
                   <i className="fas fa-print text-slate-500 transition-colors group-hover:text-blue-500"></i>
                   <span className="hidden sm:inline">Print Profile</span>
                   {/* Tooltip */}
-                  <span className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  <span className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                     Print teacher profile (A4)
                   </span>
                 </button>
@@ -316,10 +382,10 @@ const TeacherProfilePage = () => {
                 <RenderFormButton
                   onSubmit={handleInformationSaveChanges}
                   isDisabled={
-                    informationInsert.isLocked ||
-                    informationUpdate.isLocked ||
+                    insertInformation.isLocked ||
+                    updateInformation.isLocked ||
                     updateUser.isLocked ||
-                    notificationInsert.isLocked
+                    insertNotification.isLocked
                   }
                   buttonLabel="Save Changes"
                   buttonClassName="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -349,16 +415,18 @@ const TeacherProfilePage = () => {
                         : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
                     }`}
                   >
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                      tabSelected === "personal" 
-                        ? "bg-blue-100 text-blue-600" 
-                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
-                    }`}>
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                        tabSelected === "personal"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
+                      }`}
+                    >
                       <i className="fas fa-user text-sm"></i>
                     </div>
                     <span>Personal Information</span>
                     {tabSelected === "personal" && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                      <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-blue-500"></div>
                     )}
                   </button>
 
@@ -371,16 +439,18 @@ const TeacherProfilePage = () => {
                         : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
                     }`}
                   >
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                      tabSelected === "documents" 
-                        ? "bg-blue-100 text-blue-600" 
-                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
-                    }`}>
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                        tabSelected === "documents"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
+                      }`}
+                    >
                       <i className="fas fa-folder-open text-sm"></i>
                     </div>
                     <span>Documents</span>
                     {tabSelected === "documents" && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                      <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-blue-500"></div>
                     )}
                   </button>
                 </nav>
@@ -394,7 +464,9 @@ const TeacherProfilePage = () => {
                 )}
 
                 {/* DOCUMENTS */}
-                {tabSelected == "documents" && <DocumentsTab userId={user.id} />}
+                {tabSelected == "documents" && (
+                  <DocumentsTab userId={user.id} />
+                )}
               </div>
             </div>
           </div>

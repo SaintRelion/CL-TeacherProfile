@@ -9,11 +9,11 @@ const BasicInformationCard = ({
   myInformation,
   onProfilePicChanged,
 }: {
-  myInformation: PersonalInformation | undefined;
+  myInformation: PersonalInformation | null;
   onProfilePicChanged: (profilePic: string) => void;
 }) => {
   const yearsOfService = getYearsOfService(myInformation?.dateHired ?? "");
-  const fullName = myInformation 
+  const fullName = myInformation
     ? `${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`.trim()
     : "No Name";
 
@@ -21,7 +21,7 @@ const BasicInformationCard = ({
     <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm print:mb-4 print:border print:border-slate-300">
       {/* Gradient Header Bar */}
       <div className="h-2 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 print:hidden"></div>
-      
+
       <div className="p-6 md:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
           {/* Profile Photo Section */}
@@ -48,7 +48,7 @@ const BasicInformationCard = ({
                   className="relative h-36 w-36 rounded-2xl border-4 border-white object-cover shadow-lg transition-transform duration-300 group-hover:scale-[1.02] md:h-44 md:w-44 print:h-32 print:w-32 print:border-2 print:border-slate-300 print:shadow-none"
                 />
                 {/* Status Badge */}
-                <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-green-500 shadow-md print:hidden">
+                <div className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-green-500 shadow-md print:hidden">
                   <i className="fas fa-check text-xs text-white"></i>
                 </div>
               </div>
@@ -71,7 +71,9 @@ const BasicInformationCard = ({
               title="Click to upload a new profile photo"
             >
               <i className="fas fa-camera text-xs"></i>
-              <span className="border-b border-transparent group-hover/link:border-blue-600">Change Photo</span>
+              <span className="border-b border-transparent group-hover/link:border-blue-600">
+                Change Photo
+              </span>
             </label>
           </div>
 
@@ -83,7 +85,7 @@ const BasicInformationCard = ({
                 <h3 className="text-secondary-900 text-2xl font-bold tracking-tight md:text-3xl print:text-xl">
                   {fullName}
                 </h3>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 ring-1 ring-inset ring-green-600/20 print:bg-transparent print:text-green-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 ring-1 ring-green-600/20 ring-inset print:bg-transparent print:text-green-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 print:hidden"></span>
                   Active
                 </span>
@@ -96,13 +98,13 @@ const BasicInformationCard = ({
             {/* Quick Info Cards */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
               {/* Employee ID */}
-              <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-blue-50 hover:to-blue-100/50 print:bg-transparent print:p-2 print:border print:border-slate-200">
+              <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-blue-50 hover:to-blue-100/50 print:border print:border-slate-200 print:bg-transparent print:p-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm transition-colors group-hover:bg-blue-100 print:hidden">
                     <i className="fas fa-id-badge text-slate-400 group-hover:text-blue-500"></i>
                   </div>
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-slate-400 print:text-slate-600">
+                    <p className="text-xs font-medium tracking-wider text-slate-400 uppercase print:text-slate-600">
                       Employee ID
                     </p>
                     <p className="text-secondary-900 text-base font-semibold print:text-sm">
@@ -113,13 +115,13 @@ const BasicInformationCard = ({
               </div>
 
               {/* Department */}
-              <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-purple-50 hover:to-purple-100/50 print:bg-transparent print:p-2 print:border print:border-slate-200">
+              <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-purple-50 hover:to-purple-100/50 print:border print:border-slate-200 print:bg-transparent print:p-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm transition-colors group-hover:bg-purple-100 print:hidden">
                     <i className="fas fa-building text-slate-400 group-hover:text-purple-500"></i>
                   </div>
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-slate-400 print:text-slate-600">
+                    <p className="text-xs font-medium tracking-wider text-slate-400 uppercase print:text-slate-600">
                       Department
                     </p>
                     <p className="text-secondary-900 text-base font-semibold print:text-sm">
@@ -130,13 +132,13 @@ const BasicInformationCard = ({
               </div>
 
               {/* Years of Service */}
-              <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-amber-50 hover:to-amber-100/50 print:bg-transparent print:p-2 print:border print:border-slate-200">
+              <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-amber-50 hover:to-amber-100/50 print:border print:border-slate-200 print:bg-transparent print:p-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm transition-colors group-hover:bg-amber-100 print:hidden">
                     <i className="fas fa-award text-slate-400 group-hover:text-amber-500"></i>
                   </div>
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-slate-400 print:text-slate-600">
+                    <p className="text-xs font-medium tracking-wider text-slate-400 uppercase print:text-slate-600">
                       Years of Service
                     </p>
                     <p className="text-secondary-900 text-base font-semibold print:text-sm">
@@ -149,13 +151,17 @@ const BasicInformationCard = ({
 
             {/* Additional Quick Stats - Print Only */}
             <div className="hidden print:mt-4 print:grid print:grid-cols-2 print:gap-2">
-              <div className="border border-slate-200 p-2 rounded">
+              <div className="rounded border border-slate-200 p-2">
                 <p className="text-xs text-slate-600">Date Hired</p>
-                <p className="text-sm font-medium">{myInformation?.dateHired || "—"}</p>
+                <p className="text-sm font-medium">
+                  {myInformation?.dateHired || "—"}
+                </p>
               </div>
-              <div className="border border-slate-200 p-2 rounded">
+              <div className="rounded border border-slate-200 p-2">
                 <p className="text-xs text-slate-600">Employment Status</p>
-                <p className="text-sm font-medium">{myInformation?.employmentStatus || "—"}</p>
+                <p className="text-sm font-medium">
+                  {myInformation?.employmentStatus || "—"}
+                </p>
               </div>
             </div>
           </div>

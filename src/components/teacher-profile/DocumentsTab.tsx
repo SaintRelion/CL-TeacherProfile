@@ -9,29 +9,25 @@ import {
 
 import DocumentUpload from "@/components/teacher-profile/DocumentUpload";
 import DocumentExplorer from "../document-repository/DocumentExplorer";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
-import type { User } from "@/models/user";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
+import type { User } from "@/models/User";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 
 const DocumentsTab = ({ userId }: { userId: string }) => {
-  const { useSelect: userSelect } = useDBOperationsLocked<User>("User");
-  const { data: users } = userSelect({
-    firebaseOptions: { filterField: "id", value: userId },
-  });
+  const { useList: getUsers } = useResourceLocked<User>("user");
+  const users = getUsers({
+    filters: { id: userId },
+  }).data;
   const user = users != undefined ? users[0] : null;
 
-  const { useSelect: informationSelect } =
-    useDBOperationsLocked<PersonalInformation>(
-      "PersonalInformation",
-      false,
-      false,
-    );
-  const { data: informations } = informationSelect({
-    firebaseOptions: {
-      filterField: "userId",
-      value: userId,
+  const { useList: getInformation } = useResourceLocked<PersonalInformation>(
+    "personalinformation",
+  );
+  const informations = getInformation({
+    filters: {
+      userId: userId,
     },
-  });
+  }).data;
 
   const myInformation = informations != null ? informations[0] : undefined;
 

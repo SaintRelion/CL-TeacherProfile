@@ -1,6 +1,6 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/user";
+import type { User } from "@/models/User";
 import React, { useState } from "react";
 import {
   Dialog,
@@ -60,7 +60,7 @@ const ViewComplianceReport = ({
     <Dialog>
       <DialogTrigger asChild>
         <button className="flex-1 text-left">
-          <i className="fas fa-eye text-slate-400 hover:text-slate-600 transition-colors"></i>
+          <i className="fas fa-eye text-slate-400 transition-colors hover:text-slate-600"></i>
         </button>
       </DialogTrigger>
       <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
@@ -68,7 +68,8 @@ const ViewComplianceReport = ({
         <DialogHeader className="text-md truncate border-b border-slate-200 px-4 py-3 font-medium">
           <DialogTitle>{doc.documentTitle}</DialogTitle>
           <DialogDescription className="mt-1 text-xs text-slate-500">
-            {doc.documentType} • {doc.extension.toUpperCase()} • {doc.fileSizeInMB} MB
+            {doc.documentType} • {doc.extension.toUpperCase()} •{" "}
+            {doc.fileSizeInMB} MB
           </DialogDescription>
         </DialogHeader>
 
@@ -91,7 +92,7 @@ const ViewComplianceReport = ({
           {!["pdf", "png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
             <div className="text-muted-foreground flex items-center justify-center p-8">
               <div className="text-center">
-                <i className="fas fa-file-alt text-4xl text-slate-300 mb-3 block"></i>
+                <i className="fas fa-file-alt mb-3 block text-4xl text-slate-300"></i>
                 <p className="text-sm text-slate-600">
                   Preview not supported for {doc.extension.toUpperCase()} files
                 </p>
@@ -129,7 +130,7 @@ const ViewComplianceReport = ({
                   {teacher.username}
                 </h3>
               </div>
-              <span className="rounded-full bg-error-50 px-3 py-1 text-xs font-medium text-error-700">
+              <span className="bg-error-50 text-error-700 rounded-full px-3 py-1 text-xs font-medium">
                 {totalIssues} issue{totalIssues !== 1 ? "s" : ""}
               </span>
             </div>
@@ -138,7 +139,7 @@ const ViewComplianceReport = ({
             <div className="space-y-3">
               {bucket.expired.length > 0 && (
                 <div>
-                  <h4 className="text-error-600 mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+                  <h4 className="text-error-600 mb-2 flex items-center gap-2 text-xs font-bold tracking-wide uppercase">
                     <i className="fas fa-exclamation-circle"></i>
                     Expired ({bucket.expired.length})
                   </h4>
@@ -146,12 +147,12 @@ const ViewComplianceReport = ({
                     {bucket.expired.map((doc) => (
                       <li
                         key={doc.id}
-                        className="flex items-start gap-3 rounded bg-error-50 p-2 text-sm text-slate-700"
+                        className="bg-error-50 flex items-start gap-3 rounded p-2 text-sm text-slate-700"
                       >
                         <span className="mt-1 flex-shrink-0">
                           <i className="fas fa-file-alt text-error-600"></i>
                         </span>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium">{doc.documentTitle}</p>
                           <p className="text-xs text-slate-600">
                             {doc.documentType} • Expired on {doc.expiryDate}
@@ -168,7 +169,7 @@ const ViewComplianceReport = ({
 
               {bucket.expiring.length > 0 && (
                 <div>
-                  <h4 className="text-warning-600 mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+                  <h4 className="text-warning-600 mb-2 flex items-center gap-2 text-xs font-bold tracking-wide uppercase">
                     <i className="fas fa-clock"></i>
                     Expiring Soon ({bucket.expiring.length})
                   </h4>
@@ -176,12 +177,12 @@ const ViewComplianceReport = ({
                     {bucket.expiring.map((doc) => (
                       <li
                         key={doc.id}
-                        className="flex items-start gap-3 rounded bg-warning-50 p-2 text-sm text-slate-700"
+                        className="bg-warning-50 flex items-start gap-3 rounded p-2 text-sm text-slate-700"
                       >
                         <span className="mt-1 flex-shrink-0">
                           <i className="fas fa-file-alt text-warning-600"></i>
                         </span>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium">{doc.documentTitle}</p>
                           <p className="text-xs text-slate-600">
                             {doc.documentType} • Expires {doc.expiryDate}

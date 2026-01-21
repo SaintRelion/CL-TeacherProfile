@@ -10,9 +10,9 @@ import { router } from "./navigations";
 
 import "@/lib/firebase-client";
 
-import "@/data-access-config";
+import "@/sr-config";
 import "@/repositories/UserRepo";
-import "@/repositories/DocumentTypesRepo";
+import "@/repositories/DocumentFolderRepo";
 import "@/repositories/MyNotificationRepo";
 import "@/repositories/PersonalInformationRepo";
 import "@/repositories/TeacherPerformanceRepo";

@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { NO_FACE_IMAGE } from "@/constants";
 import { getYearsOfService, getExpiryState } from "@/lib/utils";
-import type { TeacherPerformance } from "@/models/performance";
+import type { TeacherPerformance } from "@/models/Performance";
 import { type PersonalInformation } from "@/models/PersonalInformation";
-import type { User } from "@/models/user";
+import type { User } from "@/models/User";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useState } from "react";
 
 function createFallbackTeacher(user: User): PersonalInformation {
@@ -31,7 +31,7 @@ function createFallbackTeacher(user: User): PersonalInformation {
     dateOfBirth: "",
     gender: "",
     civilStatus: "",
-    emailAddress: "",
+    email: "",
     mobileNumber: "",
     homeAddress: "",
     position: "",
@@ -44,15 +44,15 @@ function createFallbackTeacher(user: User): PersonalInformation {
 }
 
 const TeacherDirectoryPage = () => {
-  const { useSelect: selectUsers } = useDBOperationsLocked<User>("User");
-  const { useSelect: selectTeachersInformation } =
-    useDBOperationsLocked<PersonalInformation>("PersonalInformation");
-  const { useSelect: selectTeacherPerformance } =
-    useDBOperationsLocked<TeacherPerformance>("TeacherPerformance");
-  const { useSelect: selectDocuments } =
-    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
+  const { useList: getUsers } = useResourceLocked<User>("user");
+  const { useList: getTeacherInformation } =
+    useResourceLocked<PersonalInformation>("personalinformation");
+  const { useList: getTeacherPerformance } =
+    useResourceLocked<TeacherPerformance>("teacherperformance");
+  const { useList: getDocuments } =
+    useResourceLocked<TeacherDocument>("teacherdocument");
 
-  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+  const [selectedTeachersId, setSelectedTeachers] = useState<string[]>([]);
 
   const [search, setSearch] = useState<string>("");
   const [gridView, setGridView] = useState<"grid" | "list">("grid");
@@ -63,13 +63,13 @@ const TeacherDirectoryPage = () => {
     performanceRating: "",
   });
 
-  const { data: users } = selectUsers();
-  const { data: teachersInformation } = selectTeachersInformation();
-  const { data: teacherPerformances } = selectTeacherPerformance();
-  const { data: documents } = selectDocuments();
+  const users = getUsers().data;
+  const teachersInformation = getTeacherInformation().data;
+  const teacherPerformances = getTeacherPerformance().data;
+  const documents = getDocuments().data;
 
   const filteredTeachers = users
-    ?.map((user) => {
+    .map((user) => {
       const teacherInformation =
         teachersInformation?.find((ti) => ti.userId == user.id) ??
         createFallbackTeacher(user);
@@ -77,7 +77,7 @@ const TeacherDirectoryPage = () => {
       if (teacherInformation.photoBase64 == "")
         teacherInformation.photoBase64 = NO_FACE_IMAGE;
 
-      const teacherPerformance = teacherPerformances?.find(
+      const teacherPerformance = teacherPerformances.find(
         (p) => p.userId == user.id,
       );
 
@@ -104,7 +104,9 @@ const TeacherDirectoryPage = () => {
       // ---------- FILTERS ----------
       // Department filter
       if (filters.department) {
-        const filterDept = filters.department.toLowerCase().replaceAll("-", " ");
+        const filterDept = filters.department
+          .toLowerCase()
+          .replaceAll("-", " ");
         if (!department.includes(filterDept)) {
           return null;
         }
@@ -112,17 +114,24 @@ const TeacherDirectoryPage = () => {
 
       // Certification Status filter (checks document expiry status)
       if (filters.certificationStatus && filters.certificationStatus !== "") {
-        const teacherDocs = documents?.filter((doc) => doc.userId === user.id) || [];
+        const teacherDocs =
+          documents?.filter((doc) => doc.userId === user.id) || [];
         let hasStatus = false;
-        
+
         if (filters.certificationStatus === "current") {
-          hasStatus = teacherDocs.some((doc) => getExpiryState(doc.expiryDate) === "valid");
+          hasStatus = teacherDocs.some(
+            (doc) => getExpiryState(doc.expiryDate) === "valid",
+          );
         } else if (filters.certificationStatus === "expiring") {
-          hasStatus = teacherDocs.some((doc) => getExpiryState(doc.expiryDate) === "expiring");
+          hasStatus = teacherDocs.some(
+            (doc) => getExpiryState(doc.expiryDate) === "expiring",
+          );
         } else if (filters.certificationStatus === "expired") {
-          hasStatus = teacherDocs.some((doc) => getExpiryState(doc.expiryDate) === "expired");
+          hasStatus = teacherDocs.some(
+            (doc) => getExpiryState(doc.expiryDate) === "expired",
+          );
         }
-        
+
         if (!hasStatus) {
           return null;
         }
@@ -196,9 +205,7 @@ const TeacherDirectoryPage = () => {
       </div>
 
       <Filters
-        dataCount={
-          filteredTeachers != null ? filteredTeachers.length.toString() : "0"
-        }
+        dataCount={filteredTeachers.length.toString()}
         filters={filters}
         onSearchChange={(search) => setSearch(search)}
         onViewChange={(view) => setGridView(view)}
@@ -217,40 +224,51 @@ const TeacherDirectoryPage = () => {
         }}
       />
 
-      {selectedTeachers.length > 0 && (
+      {selectedTeachersId.length > 0 && (
         <BulkActions
-          teacherIds={selectedTeachers}
+          teacherIds={selectedTeachersId}
           onClear={() => setSelectedTeachers([])}
         />
       )}
 
       {/* Teachers Grid */}
-      <div className={gridView === "grid" ? "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "space-y-3"}>
-        {filteredTeachers != null && filteredTeachers.length > 0 ? (
-          filteredTeachers.map((value, index) => (
-            <TeacherCard
-              key={index}
-              info={value}
-              isSelected={
-                selectedTeachers.indexOf(value?.employeeId ?? "") != -1
-              }
-              onTeacherSelect={(employeeID, checked) => {
-                setSelectedTeachers(
-                  (prev) =>
-                    checked
-                      ? [...prev, employeeID]
-                      : prev.filter((id) => id !== employeeID),
-                );
-              }}
-            />
-          ))
+      <div
+        className={
+          gridView === "grid"
+            ? "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            : "space-y-3"
+        }
+      >
+        {filteredTeachers.length > 0 ? (
+          filteredTeachers.map(
+            (value, index) =>
+              value && (
+                <TeacherCard
+                  key={index}
+                  info={value}
+                  isSelected={selectedTeachersId.indexOf(value.userId) != -1}
+                  onTeacherSelect={(userId, checked) => {
+                    if (userId != "")
+                      setSelectedTeachers((prev) =>
+                        checked
+                          ? [...prev, userId]
+                          : prev.filter((id) => id !== userId),
+                      );
+                  }}
+                />
+              ),
+          )
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
               <i className="fas fa-users text-2xl text-slate-400"></i>
             </div>
-            <p className="text-lg font-medium text-slate-600">No teachers found</p>
-            <p className="mt-1 text-sm text-slate-400">Try adjusting your search or filters</p>
+            <p className="text-lg font-medium text-slate-600">
+              No teachers found
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              Try adjusting your search or filters
+            </p>
           </div>
         )}
       </div>

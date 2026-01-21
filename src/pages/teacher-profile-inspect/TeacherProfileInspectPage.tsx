@@ -2,12 +2,13 @@ import BasicInformationCard from "@/components/teacher-profile/BasicInformationC
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
 import { NO_FACE_IMAGE } from "@/constants";
-import { type PersonalInformation } from "@/models/PersonalInformation";
 import {
-  useUpdateUser,
-  validateImpersonationToken,
-} from "@saintrelion/auth-lib";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+  type CreatePersonalInformation,
+  type PersonalInformation,
+} from "@/models/PersonalInformation";
+import type { UpdateUser } from "@/models/User";
+import { validateImpersonationToken } from "@saintrelion/auth-lib";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
 import { useEffect, useState } from "react";
@@ -20,27 +21,29 @@ const TeacherProfileInspectPage = () => {
     "personal",
   );
 
-  const updateUser = useUpdateUser();
-  const {
-    useSelect: informationSelect,
-    useInsert: informationInsert,
-    useUpdate: informationUpdate,
-  } = useDBOperationsLocked<PersonalInformation>(
-    "PersonalInformation",
-    false,
-    false,
+  const { useUpdate: updateUser } = useResourceLocked<never, never, UpdateUser>(
+    "user",
   );
 
-  const { data: informations } = informationSelect({
-    firebaseOptions: {
-      filterField: "userId",
-      value: inspectUserId == null ? "-1" : inspectUserId,
+  const {
+    useList: getInformation,
+    useInsert: insertInformation,
+    useUpdate: updateInformation,
+  } = useResourceLocked<
+    PersonalInformation,
+    CreatePersonalInformation,
+    CreatePersonalInformation
+  >("personalinformation");
+
+  const informations = getInformation({
+    filters: {
+      userId: inspectUserId == null ? "-1" : inspectUserId,
     },
-  });
+  }).data;
 
   const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
 
-  const myInformation = informations != null ? informations[0] : undefined;
+  const myInformation = informations.length > 0 ? informations[0] : null;
   if (myInformation != null) {
     if (selectedProfilePic != "")
       myInformation.photoBase64 = selectedProfilePic;
@@ -57,19 +60,38 @@ const TeacherProfileInspectPage = () => {
 
     if (myInformation == undefined) {
       if (selectedProfilePic == "") data.photoBase64 = "";
-      informationInsert.run(data);
+
+      insertInformation.run({
+        userId: inspectUserId,
+        employeeId: data.employeeId,
+        photoBase64: data.photoBase64,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+        civilStatus: data.civilStatus,
+        email: data.email,
+        mobileNumber: data.mobileNumber,
+        homeAddress: data.homeAddress,
+        position: data.position,
+        department: data.department,
+        employmentStatus: data.employementStatus,
+        dateHired: data.dateHired,
+        salaryGrade: data.salaryGrade,
+        tin: data.tin,
+      });
     } else {
-      informationUpdate.run({
-        field: "userId",
-        value: inspectUserId,
-        updates: data,
+      updateInformation.run({
+        id: myInformation.id,
+        payload: data,
       });
     }
 
     if (data.emailAddress) {
       updateUser.run({
-        userId: inspectUserId,
-        info: { email: data.emailAddress },
+        id: inspectUserId,
+        payload: { email: data.email },
       });
     }
   };
@@ -84,7 +106,8 @@ const TeacherProfileInspectPage = () => {
         try {
           const targetUserId = await validateImpersonationToken(token);
           setInspectUserId(targetUserId);
-        } catch {
+        } catch (err: unknown) {
+          console.log(err);
           setTokenStatus("expired");
         }
       } else if (teacherId) {
@@ -107,29 +130,40 @@ const TeacherProfileInspectPage = () => {
             <i className="fas fa-clock text-3xl text-red-500"></i>
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Session Expired</h2>
-          <p className="mt-2 text-slate-500">Your inspection token has expired. Please request a new one.</p>
-          <a href="/teacher-directory" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700">
+          <p className="mt-2 text-slate-500">
+            Your inspection token has expired. Please request a new one.
+          </p>
+          <a
+            href="/teacher-directory"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
+          >
             <i className="fas fa-arrow-left"></i>
             Back to Directory
           </a>
         </div>
       </div>
     );
-  else if (tokenStatus == "none") return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className="text-center">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
-          <i className="fas fa-key text-3xl text-amber-500"></i>
+  else if (tokenStatus == "none")
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
+        <div className="text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
+            <i className="fas fa-key text-3xl text-amber-500"></i>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900">No Access Token</h2>
+          <p className="mt-2 text-slate-500">
+            Please access this page from the Teacher Directory.
+          </p>
+          <a
+            href="/teacher-directory"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            <i className="fas fa-arrow-left"></i>
+            Go to Directory
+          </a>
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">No Access Token</h2>
-        <p className="mt-2 text-slate-500">Please access this page from the Teacher Directory.</p>
-        <a href="/teacher-directory" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700">
-          <i className="fas fa-arrow-left"></i>
-          Go to Directory
-        </a>
       </div>
-    </div>
-  );
+    );
 
   return (
     <RenderForm>
@@ -140,7 +174,10 @@ const TeacherProfileInspectPage = () => {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="mb-2 flex items-center gap-3">
-                  <a href="/teacher-directory" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50">
+                  <a
+                    href="/admin/teacherdirectory"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50"
+                  >
                     <i className="fas fa-arrow-left text-sm"></i>
                   </a>
                   <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
@@ -157,7 +194,7 @@ const TeacherProfileInspectPage = () => {
               <RenderFormButton
                 onSubmit={handleInformationSaveChanges}
                 isDisabled={
-                  informationInsert.isLocked || informationUpdate.isLocked
+                  insertInformation.isLocked || updateInformation.isLocked
                 }
                 buttonLabel="Save Changes"
                 buttonClassName="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-medium text-white shadow-lg shadow-emerald-500/25 transition-all hover:from-emerald-600 hover:to-emerald-700 hover:shadow-xl"
@@ -183,7 +220,9 @@ const TeacherProfileInspectPage = () => {
                       : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
-                  <i className={`fas fa-user ${tabSelected === "personal" ? "text-blue-500" : "text-slate-400"}`}></i>
+                  <i
+                    className={`fas fa-user ${tabSelected === "personal" ? "text-blue-500" : "text-slate-400"}`}
+                  ></i>
                   Personal Information
                 </button>
 
@@ -196,7 +235,9 @@ const TeacherProfileInspectPage = () => {
                       : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
-                  <i className={`fas fa-folder ${tabSelected === "documents" ? "text-blue-500" : "text-slate-400"}`}></i>
+                  <i
+                    className={`fas fa-folder ${tabSelected === "documents" ? "text-blue-500" : "text-slate-400"}`}
+                  ></i>
                   Documents
                 </button>
               </nav>

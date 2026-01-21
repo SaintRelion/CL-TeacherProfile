@@ -1,13 +1,11 @@
 import FileCard from "@/components/document-repository/FileCard";
 import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
-import type { DocumentTypes } from "@/models/DocumentTypes";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/user";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
 import React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +22,17 @@ import {
   RenderFormField,
 } from "@saintrelion/forms";
 import { toast } from "@saintrelion/notifications";
+import type {
+  CreateDocumentFolder,
+  DocumentFolder,
+  UpdateDocumentFolder,
+} from "@/models/DocumentFolder";
+import type { User } from "@/models/User";
 
 const DocumentExplorer = ({ user }: { user: User }) => {
-  const [selectedFolder, setSelectedFolder] = useState("");
-  const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
-  const [renamingFolderName, setRenamingFolderName] = useState("");
-  const renameInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<string>("");
+  const [folderIdToRename, setFolderIdToRename] = useState<string>("");
+
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({
     category: "",
@@ -37,129 +40,139 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     quickTag: "",
   });
 
-  // Auto-focus input when rename dialog opens
-  useEffect(() => {
-    if (renamingFolderId && renameInputRef.current) {
-      setTimeout(() => {
-        renameInputRef.current?.focus();
-        renameInputRef.current?.select();
-      }, 0);
-    }
-  }, [renamingFolderId]);
+  const {
+    useList: getFolders,
+    useInsert: insertFolder,
+    useDelete: deleteFolder,
+    useUpdate: updateFolder,
+  } = useResourceLocked<
+    DocumentFolder,
+    CreateDocumentFolder,
+    UpdateDocumentFolder
+  >("documentfolder");
 
-  const { useSelect: documentFolderSelect, useInsert: documentFolderInsert, useUpdate: documentFolderUpdate, useDelete: documentFolderDelete } =
-    useDBOperationsLocked<DocumentTypes>("DocumentTypes");
+  const { useList: getDocuments, useDelete: deleteDocument } =
+    useResourceLocked<TeacherDocument>("teacherdocument");
 
-  const { useSelect: documentSelect, useArchive: documentArchive } =
-    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
-  const { data: documents } = documentSelect(
-    user.role != "admin"
-      ? {
-          firebaseOptions: {
-            filterField: ["userId", "archived"],
-            value: [user.id, "false"],
+  const role = user.roles ? user.roles[0] : "";
+
+  const documentFolders = getFolders({
+    filters:
+      role === "admin"
+        ? {}
+        : {
+            userId: user.id,
           },
-        }
-      : {
-          firebaseOptions: {
-            filterField: ["archived"],
-            value: ["false"],
-          },
-        },
-  );
+  }).data;
 
-  const { data: documentFolders } = documentFolderSelect();
-  const structuredFolders = React.useMemo(() => {
+  const documents = getDocuments({
+    filters:
+      role === "admin"
+        ? {
+            // archived: "false",
+          }
+        : {
+            userId: user.id,
+            // archived: "false",
+          },
+  }).data;
+
+  console.log(user);
+  console.log(documents);
+
+  const foldersWithDocs = React.useMemo(() => {
     if (documentFolders == undefined) return [];
 
-    const map = new Map<string, number>();
+    const map = new Map<
+      string,
+      { folderId: string; folderName: string; count: number }
+    >();
 
-    documentFolders.forEach((v) => map.set(v.documentType, 0));
-
-    if (documents && documents.length > 0) {
-      documents.forEach((doc) => {
-        const type = doc.documentType || "Uncategorized";
-
-        // Ensure type exists in map (just in case)
-        if (!map.has(type)) {
-          map.set(type, 0);
-        }
-
-        map.set(type, (map.get(type) ?? 0) + 1);
+    documentFolders.forEach((folder) => {
+      map.set(folder.id, {
+        folderId: folder.id,
+        folderName: folder.name,
+        count: 0,
       });
-    }
+    });
 
-    return Array.from(map.entries()).map(([title, count]) => ({
-      title,
-      value: String(count),
+    documents?.forEach((doc) => {
+      if (!doc.folderId) return;
+
+      const entry = map.get(doc.folderId);
+      if (entry) {
+        entry.count += 1;
+      }
+    });
+
+    return Array.from(map.values()).map((f) => ({
+      folderName: f.folderName,
+      filesCount: String(f.count),
+      folderId: f.folderId,
     }));
   }, [documentFolders, documents]);
 
-  const filteredDocuments =
-    documents != undefined
-      ? documents.filter((document) => {
-          const searchTerm = search.toLowerCase();
+  const folderName =
+    foldersWithDocs.find((f) => f.folderId == selectedFolderId)?.folderName ??
+    "";
 
-          // Search by fileName, fileType
+  const filteredDocuments = documents.filter((document) => {
+    const searchTerm = search.toLowerCase();
+
+    // Search by fileName, fileType
+    if (
+      searchTerm &&
+      !(
+        document.documentTitle.toLowerCase().includes(searchTerm) ||
+        document.documentType.toLowerCase().includes(searchTerm)
+      )
+    ) {
+      return false;
+    }
+
+    // Folder filter
+    if (selectedFolderId != "" && document.folderId != selectedFolderId) {
+      return false;
+    }
+
+    // Quick tag filters
+    if (filters.quickTag) {
+      switch (filters.quickTag) {
+        case "none":
+          // e.g., last 3 files
           if (
-            searchTerm &&
-            !(
-              document.documentTitle.toLowerCase().includes(searchTerm) ||
-              document.documentType.toLowerCase().includes(searchTerm)
+            new Date(document.createdAt) <
+            new Date(
+              Math.max(
+                ...documents.map((f) => new Date(f.createdAt).getTime()),
+              ),
             )
-          ) {
+          )
+            return true;
+          break;
+        case "recent":
+          // e.g., last 3 files
+          if (
+            new Date(document.createdAt) <
+            new Date(
+              Math.max(
+                ...documents.map((f) => new Date(f.createdAt).getTime()),
+              ),
+            )
+          )
             return false;
-          }
+          break;
+        //   case "expiring":
+        //     if (!document.status.toLowerCase().includes("expires")) return false;
+        //     break;
+        case "large":
+          if (parseFloat(document.fileSizeInMB) < 2) return false;
+          break;
+      }
+    }
 
-          // Folder filter
-          if (selectedFolder != "") {
-            if (
-              !selectedFolder
-                .toLowerCase()
-                .includes(document.documentType.toLowerCase())
-            )
-              return false;
-          }
-
-          // Quick tag filters
-          if (filters.quickTag) {
-            switch (filters.quickTag) {
-              case "none":
-                // e.g., last 3 files
-                if (
-                  new Date(document.createdAt) <
-                  new Date(
-                    Math.max(
-                      ...documents.map((f) => new Date(f.createdAt).getTime()),
-                    ),
-                  )
-                )
-                  return true;
-                break;
-              case "recent":
-                // e.g., last 3 files
-                if (
-                  new Date(document.createdAt) <
-                  new Date(
-                    Math.max(
-                      ...documents.map((f) => new Date(f.createdAt).getTime()),
-                    ),
-                  )
-                )
-                  return false;
-                break;
-              //   case "expiring":
-              //     if (!document.status.toLowerCase().includes("expires")) return false;
-              //     break;
-              case "large":
-                if (parseFloat(document.fileSizeInMB) < 2) return false;
-                break;
-            }
-          }
-
-          return true;
-        })
-      : [];
+    return true;
+  });
 
   const sortedDocuments = [...filteredDocuments].sort((a, b) => {
     switch (filters.sort) {
@@ -189,42 +202,40 @@ const DocumentExplorer = ({ user }: { user: User }) => {
   });
 
   async function handleNewFolder(data: Record<string, string>) {
-    const documentType = data.documentType.toLowerCase().trim();
+    const folderName = data.folderName.toLowerCase().trim();
 
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
-          (value) => value.documentType.toLowerCase().trim() == documentType,
+          (value) => value.name.toLowerCase().trim() == folderName,
         ).length > 0;
 
       if (alreadyExist) {
-        toast.error(`${documentType} already exist`);
+        toast.error(`${folderName} already exist`);
         return;
       }
     }
 
-    await documentFolderInsert.run(data);
+    await insertFolder.run({
+      name: folderName,
+      userId: user.id,
+    });
   }
 
-  const handleRenameFolder = (folderId: string, currentName: string) => {
-    setRenamingFolderId(folderId);
-    setRenamingFolderName(currentName);
-  };
-
-  const handleConfirmRename = async () => {
-    if (!renamingFolderId || !renamingFolderName.trim()) {
+  const handleFolderRename = async (data: Record<string, string>) => {
+    if (!data.folderRename.trim()) {
       toast.error("Folder name cannot be empty");
       return;
     }
 
-    const newName = renamingFolderName.toLowerCase().trim();
+    const newName = data.folderRename.toLowerCase().trim();
 
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
-          (value) =>
-            value.documentType.toLowerCase().trim() === newName &&
-            value.id !== renamingFolderId,
+          (value) => value.name.toLowerCase().trim() === newName,
+          // value.id !== folderOwnerId,
+          // TODO: what to really do here? folder unique for all, or different, but then admin?
         ).length > 0;
 
       if (alreadyExist) {
@@ -234,18 +245,13 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     }
 
     try {
-      console.log("Updating folder with ID:", renamingFolderId, "New name:", newName);
-      
-      await documentFolderUpdate.run({
-        field: "id",
-        value: renamingFolderId,
-        updates: {
-          documentType: newName,
+      await updateFolder.run({
+        id: selectedFolderId,
+        payload: {
+          name: data.folderRename,
         },
-      } as any);
+      });
 
-      setRenamingFolderId(null);
-      setRenamingFolderName("");
       toast.success("Folder renamed successfully");
     } catch (error) {
       console.error("Failed to rename folder:", error);
@@ -259,7 +265,7 @@ const DocumentExplorer = ({ user }: { user: User }) => {
         "Are you sure you want to delete this folder? Documents in this folder will not be deleted.",
       )
     ) {
-      await documentFolderDelete.run(folderId);
+      await deleteFolder.run(folderId);
       toast.success("Folder deleted successfully");
     }
   };
@@ -287,14 +293,16 @@ const DocumentExplorer = ({ user }: { user: User }) => {
         <i className="fas fa-home"></i>
         <span
           className="cursor-pointer hover:opacity-60"
-          onClick={() => setSelectedFolder("")}
+          onClick={() => {
+            setSelectedFolderId("");
+          }}
         >
           Repository
         </span>
-        {selectedFolder != "" && (
+        {selectedFolderId != "" && (
           <>
             <i className="fas fa-chevron-right text-xs"></i>
-            <span>{selectedFolder}</span>
+            <span>{folderName}</span>
           </>
         )}
       </div>
@@ -330,7 +338,7 @@ const DocumentExplorer = ({ user }: { user: User }) => {
                     </label>
                     <RenderFormField
                       field={{
-                        name: "documentType",
+                        name: "folderName",
                         type: "text",
                         placeholder: "e.g. Project Files",
                       }}
@@ -341,7 +349,7 @@ const DocumentExplorer = ({ user }: { user: User }) => {
                     <RenderFormButton
                       buttonLabel="Create"
                       onSubmit={handleNewFolder}
-                      isDisabled={documentFolderInsert.isLocked}
+                      isDisabled={insertFolder.isLocked}
                     />
                   </DialogFooter>
                 </DialogContent>
@@ -350,87 +358,67 @@ const DocumentExplorer = ({ user }: { user: User }) => {
           </div>
 
           <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
-            {structuredFolders.map((value, index) => {
-              // Find the original folder data to get the ID
-              const folderData = documentFolders?.find(
-                (f) => f.documentType.toLowerCase() === value.title.toLowerCase(),
-              );
-
+            {foldersWithDocs.map((value) => {
               return (
                 <FolderCard
-                  key={index}
-                  kvp={{ ...value, id: folderData?.id, isCustom: true }}
-                  selectedFolder={selectedFolder}
-                  onFolderClicked={(value) => setSelectedFolder(value)}
+                  key={value.folderId}
+                  folderInfo={value}
+                  selectedFolderId={selectedFolderId}
+                  onFolderClicked={(value) => setSelectedFolderId(value)}
+                  onRenameFolder={(folderId) => {
+                    setFolderIdToRename(folderId);
+                  }}
                   onDeleteFolder={handleDeleteFolder}
-                  onRenameFolder={handleRenameFolder}
                 />
               );
             })}
           </div>
 
           {/* Rename Folder Dialog */}
-          <Dialog open={!!renamingFolderId} onOpenChange={(open) => {
-            if (!open) {
-              setRenamingFolderId(null);
-              setRenamingFolderName("");
-            }
-          }}>
-            <DialogContent className="bg-white sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Rename Folder</DialogTitle>
-              </DialogHeader>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  New folder name
-                </label>
-                <input
-                  ref={renameInputRef}
-                  type="text"
-                  value={renamingFolderName}
-                  onChange={(e) => setRenamingFolderName(e.target.value)}
-                  placeholder="Enter new folder name"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !documentFolderUpdate.isLocked) {
-                      e.preventDefault();
-                      handleConfirmRename();
-                    }
-                    if (e.key === "Escape") {
-                      setRenamingFolderId(null);
-                      setRenamingFolderName("");
-                    }
-                  }}
-                />
-              </div>
+          <RenderForm>
+            <Dialog
+              open={folderIdToRename != ""}
+              onOpenChange={(state) => {
+                if (!state) setFolderIdToRename("");
+              }}
+            >
+              <DialogContent className="bg-white sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Rename Folder</DialogTitle>
+                </DialogHeader>
 
-              <DialogFooter>
-                <button
-                  onClick={() => {
-                    setRenamingFolderId(null);
-                    setRenamingFolderName("");
-                  }}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmRename}
-                  disabled={documentFolderUpdate.isLocked || !renamingFolderName.trim()}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                >
-                  Rename
-                </button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    New folder name
+                  </label>
+                  <RenderFormField
+                    field={{
+                      name: "folderRename",
+                      type: "text",
+                      placeholder: "Enter new folder name",
+                    }}
+                    inputClassName="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <DialogFooter>
+                  <RenderFormButton
+                    buttonLabel="Rename"
+                    onSubmit={handleFolderRename}
+                    isDisabled={updateFolder.isLocked}
+                    buttonClassName="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  />
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </RenderForm>
         </div>
 
         <div className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-secondary-900 text-lg font-semibold">
-              {selectedFolder == "" ? "Recent Documents" : selectedFolder}
+              {selectedFolderId == "" ? "Recent Documents" : folderName}
             </h3>
             {/* <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
               View all
@@ -442,8 +430,8 @@ const DocumentExplorer = ({ user }: { user: User }) => {
                 key={index}
                 doc={doc}
                 onArchive={() => {
-                  if (documentArchive && !documentArchive.isLocked)
-                    documentArchive.run(doc.id);
+                  if (deleteDocument && !deleteDocument.isLocked)
+                    deleteDocument.run(doc.id);
                 }}
               />
             ))}

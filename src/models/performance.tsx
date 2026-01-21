@@ -3,3 +3,8 @@ export interface TeacherPerformance {
   userId: string;
   rating: string;
 }
+
+export interface CreateTeacherPerformance {
+  userId: string;
+  rating: string;
+}

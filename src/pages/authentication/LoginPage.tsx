@@ -5,19 +5,15 @@ import {
   RenderFormField,
   RenderFormButton,
 } from "@saintrelion/forms";
-import { useLoginWithCredentials } from "@saintrelion/auth-lib/dist/FirebaseAuth";
 
 const LoginPage = () => {
-  const { setUser } = useAuth();
-  const loginWithCredentials = useLoginWithCredentials();
+  const auth = useAuth();
 
   const handleLogin = async (data: Record<string, string>) => {
-    await loginWithCredentials.run(
-      "username",
-      data.username,
-      data.password,
-      setUser,
-    );
+    await auth.login({
+      username: data.username,
+      password: data.password,
+    });
   };
 
   return (
@@ -94,7 +90,7 @@ const LoginPage = () => {
             <RenderFormButton
               buttonLabel="Login"
               onSubmit={handleLogin}
-              isDisabled={loginWithCredentials.isLocked}
+              isDisabled={auth.isLocked}
               buttonClassName="w-full bg-blue-600 hover:bg-blue-700 transition-colors rounded-lg py-2 font-semibold shadow-lg"
             />
           </RenderForm>

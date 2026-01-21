@@ -4,20 +4,12 @@ import {
   RenderFormButton,
   RenderFormField,
 } from "@saintrelion/forms";
-import { useState, useMemo } from "react";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import { useState } from "react";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
-import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { MyNotification } from "@/models/MyNotification";
-import type { DocumentTypes } from "@/models/DocumentTypes";
-
-interface DocumentFolder {
-  id: string;
-  name: string;
-  userId: string;
-  createdAt: string;
-}
+import type { CreateTeacherDocument } from "@/models/TeacherDocument";
+import type { CreateMyNotification } from "@/models/MyNotification";
 
 export default function DocumentForm({
   userId,
@@ -26,23 +18,15 @@ export default function DocumentForm({
   userId: string;
   fullName: string;
 }) {
-  const { useInsert: documentInsert } =
-    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
+  const { useInsert: insertDocument } = useResourceLocked<
+    never,
+    CreateTeacherDocument
+  >("teacherdocument");
 
-  const { useInsert: notificationInsert } =
-    useDBOperationsLocked<MyNotification>("MyNotification");
-
-  // Fetch admin-created folders (from DocumentTypes collection)
-  const { useSelect: selectDocumentTypes } =
-    useDBOperationsLocked<DocumentTypes>("DocumentTypes");
-
-  const { data: documentTypes } = selectDocumentTypes();
-
-  // Combine default document types with admin-created folders
-  const allDocumentTypes = useMemo(() => {
-    const adminFolders = documentTypes?.map((f) => f.documentType) || [];
-    return [...DOCUMENT_TYPES, ...adminFolders];
-  }, [documentTypes]);
+  const { useInsert: insertNotification } = useResourceLocked<
+    never,
+    CreateMyNotification
+  >("mynotification");
 
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
@@ -81,8 +65,19 @@ export default function DocumentForm({
     data.fileBase64 = base64;
     data.userId = userId;
 
-    await documentInsert.run(data);
-    await notificationInsert.run({
+    await insertDocument.run({
+      userId: userId,
+      folderId: "",
+      documentTitle: data.documentTitle,
+      documentType: data.documentType,
+      documentNumber: data.documentNumber,
+      issueDate: data.issueDate,
+      expiryDate: data.expiryDate,
+      extension: data.extension,
+      fileSizeInMB: data.fileSizeInMB,
+      fileBase64: data.fileBase64,
+    });
+    await insertNotification.run({
       userId: userId,
       type: "upload",
       title: "Document uploaded",
@@ -110,7 +105,7 @@ export default function DocumentForm({
           label: "Document Type",
           type: "select",
           name: "documentType",
-          options: allDocumentTypes,
+          options: DOCUMENT_TYPES,
           onValueChange: (value) => {
             if (typeof value === "string") setSelectedDocumentType(value);
           },
@@ -214,7 +209,7 @@ export default function DocumentForm({
       <RenderFormButton
         buttonLabel="Submit Document"
         onSubmit={handleSubmit}
-        isDisabled={documentInsert.isLocked || notificationInsert.isLocked}
+        isDisabled={insertDocument.isLocked || insertNotification.isLocked}
         buttonClassName="w-full rounded-md bg-blue-600 px-4 py-2.5 text-base font-medium text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
       />
     </RenderForm>
