@@ -18,7 +18,7 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
   const users = getUsers({
     filters: { id: userId },
   }).data;
-  const user = users != undefined ? users[0] : null;
+  const user = users.length > 0 ? users[0] : null;
 
   const { useList: getInformation } = useResourceLocked<PersonalInformation>(
     "personalinformation",
@@ -29,7 +29,7 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
     },
   }).data;
 
-  const myInformation = informations != null ? informations[0] : undefined;
+  const myInformation = informations.length > 0 ? informations[0] : undefined;
 
   return (
     <div>
@@ -62,9 +62,10 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          {myInformation != undefined && (
+          {myInformation != undefined && user != undefined && (
             <DocumentUpload
               userId={userId}
+              role={user.roles?.[0] ?? ""}
               fullName={`${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`}
             />
           )}

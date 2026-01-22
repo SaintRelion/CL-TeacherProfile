@@ -1,7 +1,10 @@
 import FileCard from "@/components/document-repository/FileCard";
 import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
-import type { TeacherDocument } from "@/models/TeacherDocument";
+import type {
+  TeacherDocument,
+  UpdateTeacherDocument,
+} from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
 import React from "react";
@@ -16,11 +19,7 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { FolderPlus } from "lucide-react";
-import {
-  RenderForm,
-  RenderFormButton,
-  RenderFormField,
-} from "@saintrelion/forms";
+import { RenderFormButton, RenderFormField } from "@saintrelion/forms";
 import { toast } from "@saintrelion/notifications";
 import type {
   CreateDocumentFolder,
@@ -51,8 +50,10 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     UpdateDocumentFolder
   >("documentfolder");
 
-  const { useList: getDocuments, useDelete: deleteDocument } =
-    useResourceLocked<TeacherDocument>("teacherdocument");
+  const { useList: getDocuments, useUpdate: updateDocument } =
+    useResourceLocked<TeacherDocument, never, UpdateTeacherDocument>(
+      "teacherdocument",
+    );
 
   const role = user.roles ? user.roles[0] : "";
 
@@ -69,16 +70,13 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     filters:
       role === "admin"
         ? {
-            // archived: "false",
+            archived: false,
           }
         : {
             userId: user.id,
-            // archived: "false",
+            archived: false,
           },
   }).data;
-
-  console.log(user);
-  console.log(documents);
 
   const foldersWithDocs = React.useMemo(() => {
     if (documentFolders == undefined) return [];
@@ -314,47 +312,45 @@ const DocumentExplorer = ({ user }: { user: User }) => {
               Folders
             </h3>
 
-            <RenderForm>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <FolderPlus className="h-4 w-4" />
-                    New Folder
-                  </Button>
-                </DialogTrigger>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <FolderPlus className="h-4 w-4" />
+                  New Folder
+                </Button>
+              </DialogTrigger>
 
-                <DialogContent className="bg-white sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Create Folder</DialogTitle>
-                  </DialogHeader>
+              <DialogContent className="bg-white sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create Folder</DialogTitle>
+                </DialogHeader>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
-                      Folder name
-                    </label>
-                    <RenderFormField
-                      field={{
-                        name: "folderName",
-                        type: "text",
-                        placeholder: "e.g. Project Files",
-                      }}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    Folder name
+                  </label>
+                  <RenderFormField
+                    field={{
+                      name: "folderName",
+                      type: "text",
+                      placeholder: "e.g. Project Files",
+                    }}
+                  />
+                </div>
 
-                  <DialogFooter>
-                    <RenderFormButton
-                      buttonLabel="Create"
-                      onSubmit={handleNewFolder}
-                      isDisabled={insertFolder.isLocked}
-                    />
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </RenderForm>
+                <DialogFooter>
+                  <RenderFormButton
+                    buttonLabel="Create"
+                    onSubmit={handleNewFolder}
+                    isDisabled={insertFolder.isLocked}
+                  />
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
@@ -376,43 +372,41 @@ const DocumentExplorer = ({ user }: { user: User }) => {
 
           {/* Rename Folder Dialog */}
 
-          <RenderForm>
-            <Dialog
-              open={folderIdToRename != ""}
-              onOpenChange={(state) => {
-                if (!state) setFolderIdToRename("");
-              }}
-            >
-              <DialogContent className="bg-white sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Rename Folder</DialogTitle>
-                </DialogHeader>
+          <Dialog
+            open={folderIdToRename != ""}
+            onOpenChange={(state) => {
+              if (!state) setFolderIdToRename("");
+            }}
+          >
+            <DialogContent className="bg-white sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Rename Folder</DialogTitle>
+              </DialogHeader>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">
-                    New folder name
-                  </label>
-                  <RenderFormField
-                    field={{
-                      name: "folderRename",
-                      type: "text",
-                      placeholder: "Enter new folder name",
-                    }}
-                    inputClassName="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  New folder name
+                </label>
+                <RenderFormField
+                  field={{
+                    name: "folderRename",
+                    type: "text",
+                    placeholder: "Enter new folder name",
+                  }}
+                  inputClassName="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-                <DialogFooter>
-                  <RenderFormButton
-                    buttonLabel="Rename"
-                    onSubmit={handleFolderRename}
-                    isDisabled={updateFolder.isLocked}
-                    buttonClassName="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                  />
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </RenderForm>
+              <DialogFooter>
+                <RenderFormButton
+                  buttonLabel="Rename"
+                  onSubmit={handleFolderRename}
+                  isDisabled={updateFolder.isLocked}
+                  buttonClassName="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                />
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="p-6">
@@ -430,8 +424,11 @@ const DocumentExplorer = ({ user }: { user: User }) => {
                 key={index}
                 doc={doc}
                 onArchive={() => {
-                  if (deleteDocument && !deleteDocument.isLocked)
-                    deleteDocument.run(doc.id);
+                  if (!updateDocument.isLocked)
+                    updateDocument.run({
+                      id: doc.id,
+                      payload: { archived: true },
+                    });
                 }}
               />
             ))}

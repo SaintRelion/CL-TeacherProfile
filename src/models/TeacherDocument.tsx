@@ -12,6 +12,7 @@ export interface TeacherDocument {
   fileBase64: string;
   createdAt: string;
   updatedAt: string;
+  archived: boolean;
 }
 
 export interface CreateTeacherDocument {
@@ -25,4 +26,8 @@ export interface CreateTeacherDocument {
   extension: string;
   fileSizeInMB: string;
   fileBase64: string;
+}
+
+export interface UpdateTeacherDocument {
+  archived: boolean;
 }

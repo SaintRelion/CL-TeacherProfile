@@ -10,12 +10,16 @@ import { fileToBase64 } from "@/lib/utils";
 import { DOCUMENT_TYPES } from "@/constants";
 import type { CreateTeacherDocument } from "@/models/TeacherDocument";
 import type { CreateMyNotification } from "@/models/MyNotification";
+import { FolderSelect } from "../document-repository/FolderSelect";
+import type { DocumentFolder } from "@/models/DocumentFolder";
 
 export default function DocumentForm({
   userId,
+  role,
   fullName,
 }: {
   userId: string;
+  role: string;
   fullName: string;
 }) {
   const { useInsert: insertDocument } = useResourceLocked<
@@ -28,6 +32,18 @@ export default function DocumentForm({
     CreateMyNotification
   >("mynotification");
 
+  const { useList: getFolders } =
+    useResourceLocked<DocumentFolder>("documentfolder");
+  const documentFolders = getFolders({
+    filters:
+      role === "admin"
+        ? {}
+        : {
+            userId: userId,
+          },
+  }).data;
+
+  const [selectedFolderId, setSelectedFolderId] = useState("");
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
 
@@ -67,7 +83,7 @@ export default function DocumentForm({
 
     await insertDocument.run({
       userId: userId,
-      folderId: "",
+      folderId: selectedFolderId,
       documentTitle: data.documentTitle,
       documentType: data.documentType,
       documentNumber: data.documentNumber,
@@ -152,6 +168,12 @@ export default function DocumentForm({
           inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
         />
       </div>
+
+      <FolderSelect
+        name="folderSelect"
+        folders={documentFolders} // from getFolders().data
+        onFolderChange={setSelectedFolderId}
+      />
 
       {/* File Upload */}
       <div>

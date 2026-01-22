@@ -37,7 +37,7 @@ const TeacherProfileInspectPage = () => {
 
   const informations = getInformation({
     filters: {
-      userId: inspectUserId == null ? "-1" : inspectUserId,
+      userId: inspectUserId,
     },
   }).data;
 
