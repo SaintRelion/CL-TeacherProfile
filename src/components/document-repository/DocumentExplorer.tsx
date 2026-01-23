@@ -57,14 +57,7 @@ const DocumentExplorer = ({ user }: { user: User }) => {
 
   const role = user.roles ? user.roles[0] : "";
 
-  const documentFolders = getFolders({
-    filters:
-      role === "admin"
-        ? {}
-        : {
-            userId: user.id,
-          },
-  }).data;
+  const documentFolders = getFolders({}).data;
 
   const documents = getDocuments({
     filters:
