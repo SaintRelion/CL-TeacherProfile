@@ -5,6 +5,7 @@ import { type TeacherDocument } from "@/models/TeacherDocument";
 import React from "react";
 import { useCurrentUser } from "@saintrelion/auth-lib";
 import type { User } from "@/models/User";
+import { RenderForm } from "@saintrelion/forms";
 
 const DocumentRepositoryPage = () => {
   const user = useCurrentUser<User>();
@@ -45,7 +46,7 @@ const DocumentRepositoryPage = () => {
   ];
 
   return (
-    <main className="flex-1 p-6">
+    <RenderForm wrapperClassName="flex-1 p-6">
       <div className="mb-8">
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="mt-4 flex items-center space-x-3 md:mt-0"></div>
@@ -59,7 +60,7 @@ const DocumentRepositoryPage = () => {
       </div>
 
       <DocumentExplorer user={user} />
-    </main>
+    </RenderForm>
   );
 };
 export default DocumentRepositoryPage;

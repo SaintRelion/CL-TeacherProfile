@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface FolderCardProps {
+  userRole: string;
   folderInfo: {
     folderName: string;
     filesCount: string;
@@ -18,6 +19,7 @@ interface FolderCardProps {
 }
 
 const FolderCard = ({
+  userRole,
   folderInfo,
   selectedFolderId,
   onFolderClicked,
@@ -34,7 +36,7 @@ const FolderCard = ({
       }`}
     >
       {/* Context menu for custom folders */}
-      {(onDeleteFolder || onRenameFolder) && (
+      {userRole == "admin" && (onDeleteFolder || onRenameFolder) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button

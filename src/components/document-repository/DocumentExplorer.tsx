@@ -312,45 +312,47 @@ const DocumentExplorer = ({ user }: { user: User }) => {
               Folders
             </h3>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <FolderPlus className="h-4 w-4" />
-                  New Folder
-                </Button>
-              </DialogTrigger>
+            {role == "admin" && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <FolderPlus className="h-4 w-4" />
+                    New Folder
+                  </Button>
+                </DialogTrigger>
 
-              <DialogContent className="bg-white sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Create Folder</DialogTitle>
-                </DialogHeader>
+                <DialogContent className="bg-white sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Create Folder</DialogTitle>
+                  </DialogHeader>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">
-                    Folder name
-                  </label>
-                  <RenderFormField
-                    field={{
-                      name: "folderName",
-                      type: "text",
-                      placeholder: "e.g. Project Files",
-                    }}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Folder name
+                    </label>
+                    <RenderFormField
+                      field={{
+                        name: "folderName",
+                        type: "text",
+                        placeholder: "e.g. Project Files",
+                      }}
+                    />
+                  </div>
 
-                <DialogFooter>
-                  <RenderFormButton
-                    buttonLabel="Create"
-                    onSubmit={handleNewFolder}
-                    isDisabled={insertFolder.isLocked}
-                  />
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter>
+                    <RenderFormButton
+                      buttonLabel="Create"
+                      onSubmit={handleNewFolder}
+                      isDisabled={insertFolder.isLocked}
+                    />
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
@@ -358,6 +360,7 @@ const DocumentExplorer = ({ user }: { user: User }) => {
               return (
                 <FolderCard
                   key={value.folderId}
+                  userRole={role}
                   folderInfo={value}
                   selectedFolderId={selectedFolderId}
                   onFolderClicked={(value) => setSelectedFolderId(value)}
@@ -371,7 +374,6 @@ const DocumentExplorer = ({ user }: { user: User }) => {
           </div>
 
           {/* Rename Folder Dialog */}
-
           <Dialog
             open={folderIdToRename != ""}
             onOpenChange={(state) => {
