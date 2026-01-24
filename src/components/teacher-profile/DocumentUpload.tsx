@@ -15,11 +15,9 @@ import type { DocumentFolder } from "@/models/DocumentFolder";
 
 export default function DocumentForm({
   userId,
-  role,
   fullName,
 }: {
   userId: string;
-  role: string;
   fullName: string;
 }) {
   const { useInsert: insertDocument } = useResourceLocked<
@@ -34,14 +32,7 @@ export default function DocumentForm({
 
   const { useList: getFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
-  const documentFolders = getFolders({
-    filters:
-      role === "admin"
-        ? {}
-        : {
-            userId: userId,
-          },
-  }).data;
+  const documentFolders = getFolders().data;
 
   const [selectedFolderId, setSelectedFolderId] = useState("");
   const [selectedDocumentType, setSelectedDocumentType] = useState("");

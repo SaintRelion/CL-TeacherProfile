@@ -65,7 +65,6 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
           {myInformation != undefined && user != undefined && (
             <DocumentUpload
               userId={userId}
-              role={user.roles?.[0] ?? ""}
               fullName={`${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`}
             />
           )}
