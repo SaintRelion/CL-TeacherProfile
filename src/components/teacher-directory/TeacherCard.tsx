@@ -1,5 +1,9 @@
 import { getYearsOfService } from "@/lib/utils";
-import { createImpersonationToken, useAuth } from "@saintrelion/auth-lib";
+import type { User } from "@/models/User";
+import {
+  createImpersonationToken,
+  useCurrentUser,
+} from "@saintrelion/auth-lib";
 import { useState } from "react";
 
 const TeacherCard = ({
@@ -9,9 +13,9 @@ const TeacherCard = ({
 }: {
   info: Record<string, string> | null;
   isSelected: boolean;
-  onTeacherSelect: (employeeID: string, checked: boolean) => void;
+  onTeacherSelect: (userId: string, checked: boolean) => void;
 }) => {
-  const { user } = useAuth();
+  const user = useCurrentUser<User>();
   const [isTokenGenerating, setIsTokenGenerating] = useState(false);
 
   if (info == null) return <p>This shouldn't happen, null</p>;
@@ -42,7 +46,7 @@ const TeacherCard = ({
         />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-        
+
         {/* Checkbox */}
         <div className="absolute top-3 left-3">
           <label className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-lg bg-white/90 shadow-sm backdrop-blur-sm transition-colors hover:bg-white">
@@ -50,7 +54,7 @@ const TeacherCard = ({
               type="checkbox"
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               checked={isSelected}
-              onChange={(e) => onTeacherSelect(info.employeeId, e.target.checked)}
+              onChange={(e) => onTeacherSelect(info.userId, e.target.checked)}
             />
           </label>
         </div>
@@ -65,8 +69,12 @@ const TeacherCard = ({
 
         {/* Name on Image */}
         <div className="absolute inset-x-0 bottom-0 p-4">
-          <h3 className="text-lg font-bold text-white drop-shadow-lg">{fullName}</h3>
-          <p className="text-sm text-white/80">{info.department || "No Department"}</p>
+          <h3 className="text-lg font-bold text-white drop-shadow-lg">
+            {fullName}
+          </h3>
+          <p className="text-sm text-white/80">
+            {info.department || "No Department"}
+          </p>
         </div>
       </div>
 
@@ -79,7 +87,9 @@ const TeacherCard = ({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">Employee ID</p>
-              <p className="truncate font-medium text-slate-900">{info.employeeId || "—"}</p>
+              <p className="truncate font-medium text-slate-900">
+                {info.employeeId || "—"}
+              </p>
             </div>
           </div>
 
@@ -89,7 +99,9 @@ const TeacherCard = ({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">Years of Service</p>
-              <p className="truncate font-medium text-slate-900">{getYearsOfService(info.dateHired)}</p>
+              <p className="truncate font-medium text-slate-900">
+                {getYearsOfService(info.dateHired)}
+              </p>
             </div>
           </div>
         </div>

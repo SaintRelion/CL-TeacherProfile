@@ -1,4 +1,4 @@
-import { useAuth } from "@saintrelion/auth-lib";
+import { useAuth, useCurrentUser } from "@saintrelion/auth-lib";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,21 +13,34 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./ui/dialog";
-import { logout } from "@saintrelion/auth-lib/dist/FirebaseAuth";
-import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import type { PersonalInformation } from "@/models/PersonalInformation";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import {
+  getAuth,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+import type {
+  CreatePersonalInformation,
+  PersonalInformation,
+} from "@/models/PersonalInformation";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { getExpiryState, resolveImageSource } from "@/lib/utils";
 import { NO_FACE_IMAGE } from "@/constants";
 import NotificationCard from "./dashboard/NotificationCard";
-import type { MyNotification } from "@/models/MyNotification";
+import type {
+  CreateMyNotification,
+  MyNotification,
+  UpdateMyNotification,
+} from "@/models/MyNotification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useEffect, useMemo, useState } from "react";
 import { toDate } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
+import type { User } from "@/models/User";
 
 const Navbar = () => {
-  const { user } = useAuth();
+  const user = useCurrentUser<User>();
+  const auth = useAuth();
 
   // State for dialogs
   const [showUpdatePhoto, setShowUpdatePhoto] = useState(false);
@@ -39,31 +52,38 @@ const Navbar = () => {
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const { useSelect: informationSelect, useUpdate: informationUpdate } =
-    useDBOperationsLocked<PersonalInformation>("PersonalInformation");
+  const { useList: getInformation, useUpdate: updateInformation } =
+    useResourceLocked<
+      PersonalInformation,
+      CreatePersonalInformation,
+      CreatePersonalInformation
+    >("personalinformation");
 
-  const { data: informations } = informationSelect({
-    firebaseOptions:
-      user.role == "admin" ? {} : { filterField: "userId", value: user.id },
+  const role = user.roles ? user.roles[0] : "";
+  const { data: informations } = getInformation({
+    filters: role == "admin" ? {} : { userId: user.id },
   });
 
   const myInformation = informations != null ? informations[0] : undefined;
 
   const {
-    useSelect: notificationSelect,
-    useInsert: notificationInsert,
-    useUpdate: notificationUpdate,
-  } = useDBOperationsLocked<MyNotification>("MyNotification");
+    useList: getNotifications,
+    useInsert: insertNotifications,
+    useUpdate: updateNotifications,
+  } = useResourceLocked<
+    MyNotification,
+    CreateMyNotification,
+    UpdateMyNotification
+  >("mynotification");
 
-  const { data: notifications } = notificationSelect({
-    firebaseOptions:
-      user.role == "admin"
+  const notifications = getNotifications({
+    filters:
+      role == "admin"
         ? {}
         : {
-            filterField: "userId",
-            value: user.id,
+            userId: user.id,
           },
-  });
+  }).data;
   const sortedNotifications = useMemo(() => {
     if (!notifications) return [];
 
@@ -86,15 +106,14 @@ const Navbar = () => {
     sortedNotifications?.map((n) => n.description) ?? [],
   );
 
-  const { useSelect: documentSelect } =
-    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
+  const { useList: getDocuments } =
+    useResourceLocked<TeacherDocument>("teacherdocument");
 
-  const { data: documents } = documentSelect({
-    firebaseOptions: {
-      filterField: "userId",
-      value: user.id,
+  const documents = getDocuments({
+    filters: {
+      userId: user.id,
     },
-  });
+  }).data;
 
   // --- Placing Document Expiry Notifs here for now
   useEffect(() => {
@@ -112,7 +131,7 @@ const Navbar = () => {
         // 🔒 DUPLICATE CHECK
         if (existingDescriptions.has(description)) continue;
 
-        await notificationInsert.run({
+        await insertNotifications.run({
           userId: user.id,
           type: status,
           title: `${doc.documentType} ${status}`,
@@ -122,7 +141,15 @@ const Navbar = () => {
     };
 
     run();
-  }, [documents]);
+  }, [
+    documents,
+    existingDescriptions,
+    insertNotifications,
+    myInformation,
+    notifications,
+    user.id,
+    user.role,
+  ]);
 
   const profilePic =
     myInformation != undefined ? myInformation.photoBase64 : NO_FACE_IMAGE;
@@ -135,10 +162,9 @@ const Navbar = () => {
 
   const handleMarkAsRead = async (notification: MyNotification) => {
     if (!notification.isRead) {
-      await notificationUpdate.run({
-        field: "id" as keyof MyNotification,
-        value: notification.id,
-        updates: { isRead: true },
+      await updateNotifications.run({
+        id: notification.id,
+        payload: { isRead: true },
       });
     }
   };
@@ -164,10 +190,9 @@ const Navbar = () => {
 
     setIsUpdatingPhoto(true);
     try {
-      await informationUpdate.run({
-        field: "id" as keyof PersonalInformation,
-        value: myInformation.id,
-        updates: {
+      await updateInformation.run({
+        id: myInformation.id,
+        payload: {
           photoBase64: photoPreview,
         } as Partial<PersonalInformation>,
       });
@@ -212,7 +237,7 @@ const Navbar = () => {
       // Reauthenticate user with current password
       const credential = EmailAuthProvider.credential(
         currentUser.email,
-        currentPassword
+        currentPassword,
       );
       await reauthenticateWithCredential(currentUser, credential);
 
@@ -224,7 +249,9 @@ const Navbar = () => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Record<string, string>;
+
       console.error("Failed to update password:", error);
       if (error.code === "auth/wrong-password") {
         toast.error("Current password is incorrect");
@@ -274,7 +301,9 @@ const Navbar = () => {
                   <i className="fas fa-bell text-lg"></i>
                   {unreadNotifications.length > 0 && (
                     <span className="bg-accent-500 absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white">
-                      {unreadNotifications.length > 9 ? "9+" : unreadNotifications.length}
+                      {unreadNotifications.length > 9
+                        ? "9+"
+                        : unreadNotifications.length}
                     </span>
                   )}
                 </button>
@@ -298,9 +327,12 @@ const Navbar = () => {
                         <div
                           key={index}
                           onClick={() => handleMarkAsRead(value)}
-                          className="cursor-pointer transition-colors hover:bg-slate-50 rounded-lg p-2"
+                          className="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50"
                         >
-                          <NotificationCard notification={value} isRead={value.isRead} />
+                          <NotificationCard
+                            notification={value}
+                            isRead={value.isRead}
+                          />
                         </div>
                       ))}
                     </div>
@@ -348,11 +380,7 @@ const Navbar = () => {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() =>
-                    logout(() => {
-                      window.location.href = "/login";
-                    })
-                  }
+                  onClick={async () => await auth.logout()}
                   className="flex items-center space-x-2 px-4 py-2 font-medium text-red-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
                 >
                   <i className="fas fa-sign-out-alt"></i>
@@ -380,7 +408,7 @@ const Navbar = () => {
           <div className="space-y-4">
             {/* Photo Preview */}
             <div className="flex justify-center">
-              <div className="flex h-32 w-32 items-center justify-center rounded-full bg-slate-100 overflow-hidden">
+              <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-100">
                 {photoPreview ? (
                   <img
                     src={photoPreview}
@@ -399,7 +427,7 @@ const Navbar = () => {
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoSelect}
-                className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-600"
+                className="file:bg-primary-500 hover:file:bg-primary-600 block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
               />
             </div>
           </div>
@@ -417,7 +445,7 @@ const Navbar = () => {
             <button
               onClick={handleUpdatePhoto}
               disabled={!photoPreview || isUpdatingPhoto}
-              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isUpdatingPhoto ? "Updating..." : "Update Photo"}
             </button>
@@ -449,7 +477,7 @@ const Navbar = () => {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Enter current password"
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2"
               />
             </div>
 
@@ -463,7 +491,7 @@ const Navbar = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2"
               />
             </div>
 
@@ -477,7 +505,7 @@ const Navbar = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2"
               />
             </div>
           </div>
@@ -497,7 +525,7 @@ const Navbar = () => {
             <button
               onClick={handleUpdatePassword}
               disabled={isUpdatingPassword}
-              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isUpdatingPassword ? "Updating..." : "Update Password"}
             </button>

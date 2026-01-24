@@ -1,15 +1,7 @@
-import type { DocumentTypes } from "@/models/DocumentTypes";
-import {
-  apiRegister,
-  firebaseRegister,
-  mockRegister,
-} from "@saintrelion/data-access-layer";
+import { registerResource } from "@saintrelion/data-access-layer";
 
-// Firebase
-firebaseRegister("DocumentTypes");
-
-// API
-apiRegister("DocumentTypes", "documenttypes");
-
-// Mock
-mockRegister<DocumentTypes>("DocumentTypes", []);
+registerResource({
+  name: "documenttypes",
+  endpoint: "documenttypes/",
+  store: "DocumentTypes",
+});

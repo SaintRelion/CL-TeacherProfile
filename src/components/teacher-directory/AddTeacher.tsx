@@ -1,6 +1,6 @@
-import { type TeacherPerformance } from "@/models/performance";
-import { useRegisterUser } from "@saintrelion/auth-lib";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import { type CreateTeacherPerformance } from "@/models/Performance";
+import { useAuth } from "@saintrelion/auth-lib";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import {
   RenderForm,
   RenderFormButton,
@@ -8,20 +8,23 @@ import {
 } from "@saintrelion/forms";
 
 export default function AddTeacherForm() {
-  const registerUser = useRegisterUser();
-  const { useInsert: teacherPerformanceInsert } =
-    useDBOperationsLocked<TeacherPerformance>("TeacherPerformance");
+  const auth = useAuth();
+
+  const { useInsert: insertTeacherPerformance } = useResourceLocked<
+    never,
+    CreateTeacherPerformance
+  >("teacherperformance");
 
   const handleAddTeacher = async (data: Record<string, string>) => {
     console.log("Teacher added:", data);
 
-    const result = await registerUser.run({
-      info: { username: data.username, role: "instructor" },
-      password: "123456",
-    });
+    const userId = await auth.register(
+      { username: data.username, roles: ["instructor"] },
+      "123456",
+    );
 
-    if (result != null)
-      teacherPerformanceInsert.run({ userId: result.id, rating: "5" });
+    if (userId != null)
+      insertTeacherPerformance.run({ userId: userId, rating: "5" });
   };
 
   return (
@@ -39,7 +42,7 @@ export default function AddTeacherForm() {
       <RenderFormButton
         buttonLabel="Add Teacher"
         onSubmit={handleAddTeacher}
-        isDisabled={registerUser.isLocked}
+        isDisabled={auth.isLocked}
         buttonClassName="w-full rounded-md bg-green-600 px-4 py-2 font-medium text-white shadow-md transition-colors hover:bg-green-700 hover:shadow-lg"
       />
     </RenderForm>

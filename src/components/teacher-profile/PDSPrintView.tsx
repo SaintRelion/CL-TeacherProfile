@@ -2,7 +2,7 @@ import { getYearsOfService, resolveImageSource } from "@/lib/utils";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 
 interface PDSPrintViewProps {
-  myInformation: PersonalInformation | undefined;
+  myInformation: PersonalInformation | null;
 }
 
 const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
@@ -36,8 +36,8 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
         <div className="pds-instructions">
           <p>
             <em>
-              WARNING: Any misrepresentation made in the Personal Data Sheet
-              and the Work Experience Sheet shall cause the filing of
+              WARNING: Any misrepresentation made in the Personal Data Sheet and
+              the Work Experience Sheet shall cause the filing of
               administrative/criminal case/s against the person concerned.
             </em>
           </p>
@@ -123,7 +123,8 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
               <td className="pds-value-cell" colSpan={3}>
                 <div className="pds-checkbox-group">
                   <span className="pds-checkbox">
-                    {myInformation?.civilStatus === "Single" ? "☑" : "☐"} Single
+                    {myInformation?.civilStatus === "Single" ? "☑" : "☐"}{" "}
+                    Single
                   </span>
                   <span className="pds-checkbox">
                     {myInformation?.civilStatus === "Married" ? "☑" : "☐"}{" "}
@@ -178,7 +179,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
                 <span className="pds-field-number">9.</span> E-MAIL ADDRESS
               </td>
               <td className="pds-value-cell" colSpan={4}>
-                {myInformation?.emailAddress || ""}
+                {myInformation?.email || ""}
               </td>
             </tr>
           </tbody>
@@ -267,9 +268,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
       <div className="pds-signature-section">
         <div className="pds-signature-box">
           <div className="pds-signature-line"></div>
-          <p className="pds-signature-label">
-            Signature (Sign inside the box)
-          </p>
+          <p className="pds-signature-label">Signature (Sign inside the box)</p>
         </div>
         <div className="pds-signature-box">
           <div className="pds-signature-line"></div>

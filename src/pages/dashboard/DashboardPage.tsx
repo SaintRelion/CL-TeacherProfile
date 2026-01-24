@@ -1,16 +1,29 @@
 import KPICard from "@/components/dashboard/KPICard";
 import ComplianceStatusCard from "@/components/dashboard/ComplianceStatusCard";
 import ViewComplianceReport from "@/components/dashboard/ViewComplianceReport";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { DOCUMENT_TYPES } from "@/constants";
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/user";
-import { useDBOperationsLocked } from "@saintrelion/data-access-layer";
+import type { User } from "@/models/User";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  createImpersonationToken,
+  useCurrentUser,
+} from "@saintrelion/auth-lib";
 
 const DashboardPage = () => {
+  const user = useCurrentUser();
+
   const navigate = useNavigate();
 
   // Welcome message state - shows on login, fades after 3 seconds
@@ -22,7 +35,9 @@ const DashboardPage = () => {
   // Teacher selection state
   const [showTeacherSelection, setShowTeacherSelection] = useState(false);
   const [teacherSearch, setTeacherSearch] = useState("");
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
+    null,
+  );
   const [filteredTeachers, setFilteredTeachers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -41,22 +56,23 @@ const DashboardPage = () => {
     }
   }, [showWelcome]);
 
-  const { useSelect: selectUsers } = useDBOperationsLocked<User>("User");
-  const { data: teachers } = selectUsers();
+  const { useList: getUsers } = useResourceLocked<User>("user");
+  const teachers = getUsers().data;
 
   // Filter teachers based on search
   useEffect(() => {
-    const filtered = teachers?.filter((teacher) => {
-      if (!teacherSearch.trim()) return true;
-      const searchLower = teacherSearch.toLowerCase();
-      return teacher.username.toLowerCase().includes(searchLower);
-    }) || [];
+    const filtered =
+      teachers?.filter((teacher) => {
+        if (!teacherSearch.trim()) return true;
+        const searchLower = teacherSearch.toLowerCase();
+        return teacher.username.toLowerCase().includes(searchLower);
+      }) || [];
     setFilteredTeachers(filtered);
   }, [teachers, teacherSearch]);
 
-  const { useSelect: documentsSelect } =
-    useDBOperationsLocked<TeacherDocument>("TeacherDocument");
-  const { data: documents } = documentsSelect();
+  const { useList: getDocuments } =
+    useResourceLocked<TeacherDocument>("teacherdocument");
+  const documents = getDocuments().data;
 
   const complianceMapping = React.useMemo(() => {
     const map = new Map<
@@ -156,13 +172,15 @@ const DashboardPage = () => {
     };
   }, [complianceMapping]);
 
-  const handleNavigateToTeacherProfile = () => {
+  const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
       alert("Please select a teacher");
       return;
     }
+
+    const token = await createImpersonationToken(user.id, selectedTeacherId);
     // Navigate to teacher profile inspect page with the selected teacher ID
-    navigate(`/teacherprofileinspect?teacherId=${selectedTeacherId}`);
+    navigate(`/teacherprofileinspect?token=${token}`);
     setShowTeacherSelection(false);
     setSelectedTeacherId(null);
     setTeacherSearch("");
@@ -174,28 +192,28 @@ const DashboardPage = () => {
       value: teachers == undefined ? "0" : teachers.length.toString(),
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
-      path: "/teacherdirectory",
+      path: "/admin/teacherdirectory",
     },
     {
       title: "Documents Processed",
       value: documents == undefined ? "0" : documents.length.toString(),
       kpiIcon:
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
-      path: "/documentrepository",
+      path: "/admin/documentrepository",
     },
     {
       title: "Compliance Rate",
       value: globalComplianceRate,
       kpiIcon:
         "fas fa-shield-alt text-success-600 text-xl bg-success-100 p-3 rounded-lg",
-      path: "/documentrepository",
+      path: "/admin/documentrepository",
     },
     {
       title: "Pending Actions",
       value: globalPendingActions,
       kpiIcon:
         "fas fa-tasks text-error-600 text-xl bg-error-100 p-3 rounded-lg",
-      path: "/documentrepository",
+      path: "/admin/documentrepository",
     },
   ];
 
@@ -206,11 +224,20 @@ const DashboardPage = () => {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-4xl font-bold text-slate-900">Dashboard</h1>
-            <p className="mt-1 text-slate-600">Welcome back! Here's your compliance overview.</p>
+            <p className="mt-1 text-slate-600">
+              Welcome back! Here's your compliance overview.
+            </p>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <i className="fas fa-calendar-alt"></i>
-            <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            <span>
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </div>
         </div>
       </div>
@@ -273,7 +300,7 @@ const DashboardPage = () => {
               {/* View Report Button */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-2xl hover:shadow-blue-500/40 hover:-translate-y-0.5">
+                  <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-600 hover:to-blue-700 hover:shadow-2xl hover:shadow-blue-500/40">
                     <i className="fas fa-chart-bar"></i>
                     View Detailed Compliance Report
                   </button>
@@ -289,7 +316,8 @@ const DashboardPage = () => {
               </Dialog>
             </div>
           </div>
-        </div>        {/* Quick Actions Sidebar */}
+        </div>{" "}
+        {/* Quick Actions Sidebar */}
         <div className="lg:col-span-1">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
             <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-5">
@@ -307,61 +335,67 @@ const DashboardPage = () => {
             </div>
             <div className="space-y-2 p-4">
               <Link
-                to="/teacherdirectory"
+                to="/admin/teacherdirectory"
                 className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-blue-50 hover:shadow-sm"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
                   <i className="fas fa-user-plus"></i>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800">
                     Add New Teacher
                   </p>
-                  <p className="text-xs text-slate-500 truncate">
+                  <p className="truncate text-xs text-slate-500">
                     Register faculty
                   </p>
                 </div>
-                <i className="fas fa-arrow-right ml-auto text-slate-300 text-sm transition-all duration-300 group-hover:text-blue-500 group-hover:translate-x-1"></i>
+                <i className="fas fa-arrow-right ml-auto text-sm text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-500"></i>
               </Link>
 
               <Link
-                to="/documentrepository"
+                to="/admin/documentrepository"
                 className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-amber-50 hover:shadow-sm"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-all duration-300 group-hover:bg-amber-600 group-hover:text-white group-hover:scale-110">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white">
                   <i className="fas fa-folder-plus"></i>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800">
                     Upload Documents
                   </p>
-                  <p className="text-xs text-slate-500 truncate">
+                  <p className="truncate text-xs text-slate-500">
                     Add teacher docs
                   </p>
                 </div>
-                <i className="fas fa-arrow-right ml-auto text-slate-300 text-sm transition-all duration-300 group-hover:text-amber-500 group-hover:translate-x-1"></i>
+                <i className="fas fa-arrow-right ml-auto text-sm text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-500"></i>
               </Link>
 
-              <Dialog open={showTeacherSelection} onOpenChange={setShowTeacherSelection}>
+              <Dialog
+                open={showTeacherSelection}
+                onOpenChange={setShowTeacherSelection}
+              >
                 <DialogTrigger asChild>
                   <button className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-emerald-50 hover:shadow-sm">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white">
                       <i className="fas fa-user-edit"></i>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800 text-sm">Update Profile</p>
-                      <p className="text-xs text-slate-500 truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-800">
+                        Update Profile
+                      </p>
+                      <p className="truncate text-xs text-slate-500">
                         Edit teacher profile
                       </p>
                     </div>
-                    <i className="fas fa-arrow-right ml-auto text-slate-300 text-sm transition-all duration-300 group-hover:text-emerald-500 group-hover:translate-x-1"></i>
+                    <i className="fas fa-arrow-right ml-auto text-sm text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-500"></i>
                   </button>
                 </DialogTrigger>
                 <DialogContent className="bg-white sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Select Teacher to Update</DialogTitle>
                     <DialogDescription>
-                      Search and select a teacher whose profile you want to update.
+                      Search and select a teacher whose profile you want to
+                      update.
                     </DialogDescription>
                   </DialogHeader>
 
@@ -390,18 +424,24 @@ const DashboardPage = () => {
                                 : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
                             }`}
                           >
-                            <p className="font-semibold text-slate-800">{teacher.username}</p>
+                            <p className="font-semibold text-slate-800">
+                              {teacher.username}
+                            </p>
                             {selectedTeacherId === teacher.id && (
                               <div className="mt-2 flex items-center gap-1 text-emerald-600">
                                 <i className="fas fa-check text-sm"></i>
-                                <span className="text-xs font-medium">Selected</span>
+                                <span className="text-xs font-medium">
+                                  Selected
+                                </span>
                               </div>
                             )}
                           </button>
                         ))
                       ) : (
-                        <div className="text-center py-4">
-                          <p className="text-sm text-slate-500">No teachers found</p>
+                        <div className="py-4 text-center">
+                          <p className="text-sm text-slate-500">
+                            No teachers found
+                          </p>
                         </div>
                       )}
                     </div>
@@ -421,7 +461,7 @@ const DashboardPage = () => {
                       <button
                         onClick={handleNavigateToTeacherProfile}
                         disabled={!selectedTeacherId}
-                        className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Update Profile
                       </button>
