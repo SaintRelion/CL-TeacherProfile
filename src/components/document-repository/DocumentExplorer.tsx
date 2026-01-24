@@ -28,11 +28,11 @@ import type {
 } from "@/models/DocumentFolder";
 import type { User } from "@/models/User";
 
-const DocumentExplorer = ({ user }: { user: User }) => {
+const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?: string }) => {
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [folderIdToRename, setFolderIdToRename] = useState<string>("");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch ?? "");
   const [filters, setFilters] = useState<Record<string, string>>({
     category: "",
     sort: "",

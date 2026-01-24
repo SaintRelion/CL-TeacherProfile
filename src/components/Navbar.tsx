@@ -34,9 +34,10 @@ import type {
 } from "@/models/MyNotification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toDate } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 
 const Navbar = () => {
   const user = useCurrentUser<User>();
@@ -155,10 +156,22 @@ const Navbar = () => {
     myInformation != undefined ? myInformation.photoBase64 : NO_FACE_IMAGE;
 
   // Count only unread notifications
+
   const unreadNotifications = useMemo(() => {
     if (!notifications) return [];
     return notifications.filter((n) => !n.isRead);
   }, [notifications]);
+
+  // Track if notification menu has been opened
+  const [notifMenuOpened, setNotifMenuOpened] = useState(false);
+
+  // Local unread count to allow optimistic UI updates when marking as read
+  const [localUnreadCount, setLocalUnreadCount] = useState<number>(0);
+
+  // Keep local unread count in sync with fetched notifications
+  useEffect(() => {
+    setLocalUnreadCount(unreadNotifications.length);
+  }, [unreadNotifications]);
 
   const handleMarkAsRead = async (notification: MyNotification) => {
     if (!notification.isRead) {
@@ -166,7 +179,22 @@ const Navbar = () => {
         id: notification.id,
         payload: { isRead: true },
       });
+      // Optimistically update local unread count
+      setLocalUnreadCount((c) => Math.max(0, c - 1));
     }
+  };
+
+  // Open detailed compliance report dialog for a notification
+  const [showComplianceDialog, setShowComplianceDialog] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<MyNotification | null>(null);
+  const navigate = useNavigate();
+
+  const handleNotificationClick = async (notification: MyNotification) => {
+    // mark as read
+    await handleMarkAsRead(notification);
+    // open dialog
+    setSelectedNotification(notification);
+    setShowComplianceDialog(true);
   };
 
   // Handle photo file selection
@@ -283,7 +311,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="mx-8 hidden max-w-md flex-1 md:flex">
+          {/* <div className="mx-8 hidden max-w-md flex-1 md:flex">
             <div className="relative w-full">
               <input
                 type="text"
@@ -292,18 +320,16 @@ const Navbar = () => {
               />
               <i className="fas fa-search text-primary-300 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex items-center space-x-4">
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={(open) => { setNotifMenuOpened(open); if (open) setLocalUnreadCount(0); }}>
               <DropdownMenuTrigger asChild>
                 <button className="text-primary-200 relative p-2 transition-colors hover:text-white">
                   <i className="fas fa-bell text-lg"></i>
-                  {unreadNotifications.length > 0 && (
+                  {localUnreadCount > 0 && !notifMenuOpened && (
                     <span className="bg-accent-500 absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white">
-                      {unreadNotifications.length > 9
-                        ? "9+"
-                        : unreadNotifications.length}
+                      {localUnreadCount > 9 ? "9+" : localUnreadCount}
                     </span>
                   )}
                 </button>
@@ -326,7 +352,7 @@ const Navbar = () => {
                       {sortedNotifications.map((value, index) => (
                         <div
                           key={index}
-                          onClick={() => handleMarkAsRead(value)}
+                          onClick={() => handleNotificationClick(value)}
                           className="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50"
                         >
                           <NotificationCard
@@ -448,6 +474,46 @@ const Navbar = () => {
               className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isUpdatingPhoto ? "Updating..." : "Update Photo"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detailed Compliance Report Dialog */}
+      <Dialog open={showComplianceDialog} onOpenChange={setShowComplianceDialog}>
+        <DialogContent className="bg-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <i className="fas fa-file-alt text-primary-600"></i>
+              View Expirey Documents
+            </DialogTitle>
+            <DialogDescription>
+              {selectedNotification?.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">{selectedNotification?.description}</p>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setShowComplianceDialog(false)}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => {
+                setShowComplianceDialog(false);
+                let searchValue = selectedNotification?.description ?? "";
+                const lastIdx = searchValue.lastIndexOf(" - ");
+                if (lastIdx !== -1) searchValue = searchValue.substring(lastIdx + 3);
+                navigate("/admin/documentrepository?q=" + encodeURIComponent(searchValue));
+              }}
+              className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white"
+            >
+              View Detailed Compliance Report
             </button>
           </DialogFooter>
         </DialogContent>

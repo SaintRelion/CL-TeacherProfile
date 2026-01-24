@@ -3,6 +3,7 @@ import DocumentExplorer from "@/components/document-repository/DocumentExplorer"
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { type TeacherDocument } from "@/models/TeacherDocument";
 import React from "react";
+import { useLocation } from "react-router-dom";
 import { useCurrentUser } from "@saintrelion/auth-lib";
 import type { User } from "@/models/User";
 import { RenderForm } from "@saintrelion/forms";
@@ -45,6 +46,10 @@ const DocumentRepositoryPage = () => {
     },
   ];
 
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const q = params.get("q") ?? "";
+
   return (
     <RenderForm wrapperClassName="flex-1 p-6">
       <div className="mb-8">
@@ -59,7 +64,7 @@ const DocumentRepositoryPage = () => {
         </div>
       </div>
 
-      <DocumentExplorer user={user} />
+      <DocumentExplorer user={user} initialSearch={q} />
     </RenderForm>
   );
 };

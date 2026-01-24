@@ -189,7 +189,7 @@ const FileCard = ({
                   className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
                 >
                   <Trash2 size={16} />
-                  <span className="text-sm">Archive</span>
+                  <span className="text-sm">Trash</span>
                 </a>
               </div>
             )}
