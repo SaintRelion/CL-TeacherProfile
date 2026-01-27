@@ -10,6 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { DOCUMENT_TYPES } from "@/constants";
+import type { DocumentFolder } from "@/models/DocumentFolder";
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { User } from "@/models/User";
@@ -74,45 +75,87 @@ const DashboardPage = () => {
     useResourceLocked<TeacherDocument>("teacherdocument");
   const documents = getDocuments().data;
 
+  const { useList: getDocumentFolders } =
+    useResourceLocked<DocumentFolder>("documentfolder");
+  const documentFolders = getDocumentFolders().data;
+
   const complianceMapping = React.useMemo(() => {
     const map = new Map<
       string,
-      { total: number; expired: number; expiring: number; valid: number }
+      {
+        total: number;
+        expired: number;
+        expiring: number;
+        valid: number;
+        compliantTeachers: Set<string>;
+      }
     >();
 
-    DOCUMENT_TYPES.forEach((type) =>
-      map.set(type, { total: 0, expired: 0, expiring: 0, valid: 0 }),
-    );
+    // Initialize map with folders (use folder name); fallback to DOCUMENT_TYPES if no folders
+    if (documentFolders && documentFolders.length > 0) {
+      documentFolders.forEach((f) => {
+        map.set(f.name, {
+          total: 0,
+          expired: 0,
+          expiring: 0,
+          valid: 0,
+          compliantTeachers: new Set<string>(),
+        });
+      });
+    } else {
+      DOCUMENT_TYPES.forEach((type) =>
+        map.set(type, {
+          total: 0,
+          expired: 0,
+          expiring: 0,
+          valid: 0,
+          compliantTeachers: new Set<string>(),
+        }),
+      );
+    }
 
     if (documents && documents.length > 0) {
       documents.forEach((doc) => {
-        const type = doc.documentType || "Uncategorized";
-        if (!map.has(type)) {
-          map.set(type, { total: 0, expired: 0, expiring: 0, valid: 0 });
+        const folderName =
+          (documentFolders && documentFolders.find((f) => f.id === doc.folderId)
+            ?.name) || "Uncategorized";
+
+        if (!map.has(folderName)) {
+          map.set(folderName, {
+            total: 0,
+            expired: 0,
+            expiring: 0,
+            valid: 0,
+            compliantTeachers: new Set<string>(),
+          });
         }
 
         const state = getExpiryState(doc.expiryDate);
-        const bucket = map.get(type)!;
+        const bucket = map.get(folderName)!;
 
         bucket.total++;
-        bucket[
-          state === "expired"
-            ? "expired"
-            : state === "expiring"
-              ? "expiring"
-              : "valid"
-        ]++;
+        const key =
+          state === "expired" ? "expired" : state === "expiring" ? "expiring" : "valid";
+        (bucket as any)[key]++;
+
+        // Count teacher as compliant for this folder only when they have at least one VALID document
+        if (state === "valid") {
+          bucket.compliantTeachers.add(doc.userId);
+        }
       });
     }
 
     return map;
-  }, [documents]);
+  }, [documents, documentFolders]);
 
   const complianceStatus = React.useMemo(() => {
+    const totalTeachers = teachers?.length || 0;
     return Array.from(complianceMapping.entries()).map(([title, bucket]) => {
-      const { total, expired, expiring, valid } = bucket;
+      const { expired, expiring, compliantTeachers } = bucket as any;
+
+      const compliantCount = compliantTeachers ? compliantTeachers.size : 0;
       const compliancePercent =
-        total === 0 ? 100 : Math.round((valid / total) * 100);
+        totalTeachers === 0 ? 100 : Math.round((compliantCount / totalTeachers) * 100);
 
       let wrapperColor = "";
       let iconClassName = "";
@@ -133,7 +176,7 @@ const DashboardPage = () => {
         wrapperColor = "bg-success-50";
         iconClassName = "fas fa-check text-white";
         valueClassName = "text-success-600 font-semibold";
-        description = "All current and valid";
+        description = ` ${compliantCount} of ${totalTeachers} teachers compliant`;
       }
 
       return {
@@ -145,32 +188,36 @@ const DashboardPage = () => {
         valueClassName,
       };
     });
-  }, [complianceMapping]);
+  }, [complianceMapping, teachers]);
 
-  const { globalComplianceRate, globalPendingActions } = React.useMemo(() => {
+  const { globalPendingActions } = React.useMemo(() => {
     if (!complianceMapping || complianceMapping.size === 0) {
       return { globalComplianceRate: "100%", globalPendingActions: "0" };
     }
 
-    let totalDocs = 0;
-    let totalValid = 0;
     let totalPending = 0;
+    let sumFolderPercents = 0;
+    let folderCount = 0;
+
+    const totalTeachers = teachers?.length || 0;
 
     complianceMapping.forEach((bucket) => {
-      const { expired = 0, expiring = 0, valid = 0, total = 0 } = bucket;
-      totalDocs += total;
-      totalValid += valid;
+      const { expired = 0, expiring = 0, compliantTeachers = new Set() } = bucket as any;
       totalPending += expired + expiring;
+
+      if (totalTeachers > 0) {
+        sumFolderPercents += (compliantTeachers.size / totalTeachers) * 100;
+        folderCount++;
+      }
     });
 
+    const avgPercent = folderCount === 0 ? 100 : sumFolderPercents / folderCount;
+
     return {
-      globalComplianceRate:
-        totalDocs === 0
-          ? "100%"
-          : ((totalValid / totalDocs) * 100).toFixed(1) + "%",
+      globalComplianceRate: avgPercent.toFixed(1) + "%",
       globalPendingActions: totalPending.toString(),
     };
-  }, [complianceMapping]);
+  }, [complianceMapping, teachers]);
 
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
@@ -201,13 +248,7 @@ const DashboardPage = () => {
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
     },
-    {
-      title: "Compliance Rate",
-      value: globalComplianceRate,
-      kpiIcon:
-        "fas fa-shield-alt text-success-600 text-xl bg-success-100 p-3 rounded-lg",
-      path: "/admin/documentrepository",
-    },
+  
     {
       title: "Pending Actions",
       value: globalPendingActions,
@@ -268,7 +309,7 @@ const DashboardPage = () => {
                       Compliance Status
                     </h3>
                     <p className="text-sm text-slate-500">
-                      Document compliance by category
+                      Document compliance by folder
                     </p>
                   </div>
                 </div>
@@ -302,7 +343,7 @@ const DashboardPage = () => {
                 <DialogTrigger asChild>
                   <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-600 hover:to-blue-700 hover:shadow-2xl hover:shadow-blue-500/40">
                     <i className="fas fa-chart-bar"></i>
-                    View Detailed Compliance Report
+                    View Expiry Document Reports
                   </button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-4xl">
