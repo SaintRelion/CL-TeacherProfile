@@ -23,12 +23,12 @@ export default function DocumentForm({
   const { useInsert: insertDocument } = useResourceLocked<
     never,
     CreateTeacherDocument
-  >("teacherdocument");
+  >("teacherdocument", {showToast: false});
 
   const { useInsert: insertNotification } = useResourceLocked<
     never,
     CreateMyNotification
-  >("mynotification");
+  >("mynotification", {showToast: false});
 
   const { useList: getFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");

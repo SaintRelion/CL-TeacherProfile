@@ -77,7 +77,7 @@ const TeacherProfilePage = () => {
 
     if (myInformation == undefined) {
       if (selectedProfilePic == "") data.photoBase64 = "";
-      insertInformation.run({
+      await insertInformation.run({
         userId: user.id,
         employeeId: data.employeeId,
         photoBase64: data.photoBase64,
@@ -92,7 +92,7 @@ const TeacherProfilePage = () => {
         homeAddress: data.homeAddress,
         position: data.position,
         department: data.department,
-        employmentStatus: data.employementStatus,
+        employmentStatus: data.employmentStatus,
         dateHired: data.dateHired,
         salaryGrade: data.salaryGrade,
         tin: data.tin,

@@ -363,6 +363,7 @@ const PersonalInformationForm = ({
     }
   };
 
+  console.log(myInformation?.gender);
   return (
     <div className="space-y-8 print:space-y-4">
       {/* Action Buttons */}
