@@ -1,6 +1,6 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Printer } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -118,6 +118,46 @@ const FileCard = ({
     setIsContextOpen(false);
   };
 
+  const handlePrint = async () => {
+    try {
+      const byteCharacters = atob(doc.fileBase64.split(",")[1] || doc.fileBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], {
+        type: `application/${doc.extension}`,
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      if (doc.extension === "pdf") {
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) throw new Error("Popup blocked");
+        printWindow.document.write(`<!doctype html><html><head><title>${doc.documentTitle}</title></head><body style="margin:0"><iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe><script>const f = document.querySelector('iframe'); f.onload = function(){ setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); },300); };</script></body></html>`);
+        printWindow.document.close();
+      } else if (["png", "jpg", "jpeg", "webp"].includes(doc.extension)) {
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) throw new Error("Popup blocked");
+        printWindow.document.write(`<!doctype html><html><head><title>${doc.documentTitle}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="${url}" style="max-width:100%;max-height:100vh" onload="window.print();"/></body></html>`);
+        printWindow.document.close();
+      } else {
+        // For other types, open in a new tab; user can print from there
+        const w = window.open(url, "_blank");
+        if (!w) throw new Error("Popup blocked");
+      }
+
+      // revoke after some time
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error("Print failed:", error);
+      alert("Failed to print the file");
+    }
+
+    setIsContextOpen(false);
+  };
+
   const handleRemove = () => {
     if (
       window.confirm(`Are you sure you want to archive "${doc.documentTitle}"?`)
@@ -182,6 +222,14 @@ const FileCard = ({
                 >
                   <Download size={16} className="text-gray-600" />
                   <span className="text-sm">Download</span>
+                </a>
+
+                <a
+                  onClick={handlePrint}
+                  className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <Printer size={16} className="text-gray-600" />
+                  <span className="text-sm">Print</span>
                 </a>
 
                 <a

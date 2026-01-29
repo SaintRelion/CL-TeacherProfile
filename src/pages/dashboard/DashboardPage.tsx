@@ -60,6 +60,15 @@ const DashboardPage = () => {
   const { useList: getUsers } = useResourceLocked<User>("user");
   const teachers = getUsers().data;
 
+  const nonAdminTeachers = React.useMemo(() => {
+    if (!teachers) return [];
+    return teachers.filter((t: any) => {
+      // `roles` may be an array or undefined; exclude users with 'admin' role
+      if (!t.roles) return true;
+      return !t.roles.includes("admin");
+    });
+  }, [teachers]);
+
   // Filter teachers based on search
   useEffect(() => {
     const filtered =
@@ -74,6 +83,10 @@ const DashboardPage = () => {
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
   const documents = getDocuments().data;
+  const liveDocuments = React.useMemo(() => {
+    if (!documents) return [];
+    return documents.filter((d) => !d.archived);
+  }, [documents]);
 
   const { useList: getDocumentFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
@@ -114,8 +127,8 @@ const DashboardPage = () => {
       );
     }
 
-    if (documents && documents.length > 0) {
-      documents.forEach((doc) => {
+    if (liveDocuments && liveDocuments.length > 0) {
+      liveDocuments.forEach((doc) => {
         const folderName =
           (documentFolders && documentFolders.find((f) => f.id === doc.folderId)
             ?.name) || "Uncategorized";
@@ -146,10 +159,10 @@ const DashboardPage = () => {
     }
 
     return map;
-  }, [documents, documentFolders]);
+  }, [liveDocuments, documentFolders]);
 
   const complianceStatus = React.useMemo(() => {
-    const totalTeachers = teachers?.length || 0;
+    const totalTeachers = nonAdminTeachers?.length || 0;
     return Array.from(complianceMapping.entries()).map(([title, bucket]) => {
       const { expired, expiring, compliantTeachers } = bucket as any;
 
@@ -188,7 +201,7 @@ const DashboardPage = () => {
         valueClassName,
       };
     });
-  }, [complianceMapping, teachers]);
+  }, [complianceMapping, nonAdminTeachers]);
 
   const { globalPendingActions } = React.useMemo(() => {
     if (!complianceMapping || complianceMapping.size === 0) {
@@ -199,7 +212,7 @@ const DashboardPage = () => {
     let sumFolderPercents = 0;
     let folderCount = 0;
 
-    const totalTeachers = teachers?.length || 0;
+    const totalTeachers = nonAdminTeachers?.length || 0;
 
     complianceMapping.forEach((bucket) => {
       const { expired = 0, expiring = 0, compliantTeachers = new Set() } = bucket as any;
@@ -217,7 +230,7 @@ const DashboardPage = () => {
       globalComplianceRate: avgPercent.toFixed(1) + "%",
       globalPendingActions: totalPending.toString(),
     };
-  }, [complianceMapping, teachers]);
+  }, [complianceMapping, nonAdminTeachers]);
 
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
@@ -236,14 +249,14 @@ const DashboardPage = () => {
   const kpi = [
     {
       title: "Total Teachers",
-      value: teachers == undefined ? "0" : teachers.length.toString(),
+      value: nonAdminTeachers == undefined ? "0" : nonAdminTeachers.length.toString(),
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
       path: "/admin/teacherdirectory",
     },
     {
       title: "Documents Processed",
-      value: documents == undefined ? "0" : documents.length.toString(),
+      value: liveDocuments == undefined ? "0" : liveDocuments.length.toString(),
       kpiIcon:
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
@@ -347,9 +360,9 @@ const DashboardPage = () => {
                   </button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-4xl">
-                  {documents && teachers && (
+                  {liveDocuments && teachers && (
                     <ViewComplianceReport
-                      documents={documents}
+                      documents={liveDocuments}
                       teachers={teachers}
                     />
                   )}
@@ -535,13 +548,13 @@ const DashboardPage = () => {
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-2xl font-bold text-slate-800">
-                    {teachers?.length || 0}
+                    {nonAdminTeachers?.length || 0}
                   </p>
                   <p className="text-xs text-slate-500">Active Users</p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-2xl font-bold text-slate-800">
-                    {documents?.length || 0}
+                    {liveDocuments?.length || 0}
                   </p>
                   <p className="text-xs text-slate-500">Total Docs</p>
                 </div>

@@ -13,23 +13,30 @@ const DocumentRepositoryPage = () => {
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
   const documents = getDocuments().data;
+  const { useList: getFolders } = useResourceLocked("documentfolder");
+  const documentFolders = getFolders().data;
+
+  const liveDocuments = React.useMemo(() => {
+    if (!documents) return [];
+    return documents.filter((d) => !d.archived);
+  }, [documents]);
 
   const totalStorageGB = React.useMemo(() => {
-    if (!documents || documents.length === 0) return 0;
+    if (!liveDocuments || liveDocuments.length === 0) return 0;
 
-    const totalMB = documents.reduce((sum, doc) => {
+    const totalMB = liveDocuments.reduce((sum, doc) => {
       const size = parseFloat(doc.fileSizeInMB) || 0; // convert string MB to number
       return sum + size;
     }, 0);
 
     const totalGB = totalMB / 1024; // MB → GB
     return totalGB.toFixed(5);
-  }, [documents]);
+  }, [liveDocuments]);
 
   const kpi: Record<string, string>[] = [
     {
       title: "Total Documents",
-      value: documents == undefined ? "0" : documents.length.toString(),
+      value: liveDocuments == undefined ? "0" : liveDocuments.length.toString(),
       iconClassName:
         "fas fa-file-alt text-primary-600 bg-primary-100 rounded-lg p-2",
     },
@@ -40,7 +47,7 @@ const DocumentRepositoryPage = () => {
     },
     {
       title: "Recent Uploads",
-      value: documents == undefined ? "0" : documents.length.toString(),
+      value: liveDocuments == undefined ? "0" : liveDocuments.length.toString(),
       iconClassName:
         "fas fa-upload text-success-600 bg-success-100 rounded-lg p-2",
     },

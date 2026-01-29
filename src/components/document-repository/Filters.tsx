@@ -27,6 +27,21 @@ const Filters = ({
 
         <div className="flex items-center space-x-3">
           <select
+            value={filters.department}
+            onChange={(e) => onFilterChange("department", e.target.value)}
+            className="focus:ring-primary-500 rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
+          >
+            <option value="">All Departments</option>
+            <option value="mathematics">Mathematics</option>
+            <option value="science">Science</option>
+            <option value="english">English</option>
+            <option value="social-studies">Social Studies</option>
+            <option value="physical-education">Physical Education</option>
+            <option value="arts">Arts</option>
+            <option value="technology">Technology</option>
+          </select>
+
+          <select
             value={filters.sort}
             onChange={(e) => onFilterChange("sort", e.target.value)}
             className="focus:ring-primary-500 rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"

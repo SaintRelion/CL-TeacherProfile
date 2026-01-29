@@ -60,12 +60,12 @@ const TeacherCard = ({
         </div>
 
         {/* Rating Badge */}
-        <div className="absolute top-3 right-3">
+        {/* <div className="absolute top-3 right-3">
           <div className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold shadow-sm backdrop-blur-sm">
             <i className="fas fa-star text-amber-500"></i>
             <span className="text-slate-700">{info.rating || "0"}</span>
           </div>
-        </div>
+        </div> */}
 
         {/* Name on Image */}
         <div className="absolute inset-x-0 bottom-0 p-4">

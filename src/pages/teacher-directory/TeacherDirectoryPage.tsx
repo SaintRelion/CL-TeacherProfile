@@ -17,12 +17,13 @@ import { type PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/User";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
+import { toast } from "@saintrelion/notifications";
 import { useState } from "react";
 
 function createFallbackTeacher(user: User): PersonalInformation {
   return {
     id: "",
-    userId: "",
+    userId: user.id,
     employeeId: "",
     photoBase64: "",
     firstName: user.username ?? "",
@@ -45,6 +46,7 @@ function createFallbackTeacher(user: User): PersonalInformation {
 
 const TeacherDirectoryPage = () => {
   const { useList: getUsers } = useResourceLocked<User>("user");
+  const { useDelete: deleteUser } = useResourceLocked<User>("user");
   const { useList: getTeacherInformation } =
     useResourceLocked<PersonalInformation>("personalinformation");
   const { useList: getTeacherPerformance } =
@@ -227,7 +229,28 @@ const TeacherDirectoryPage = () => {
       {selectedTeachersId.length > 0 && (
         <BulkActions
           teacherIds={selectedTeachersId}
-          onClear={() => setSelectedTeachers([])}
+              onClear={() => setSelectedTeachers([])}
+              onDelete={async (ids: string[]) => {
+                if (ids.length === 0) return;
+                if (!window.confirm(`Delete ${ids.length} selected teacher(s)?`)) return;
+
+                let successCount = 0;
+                for (const id of ids) {
+                  try {
+                    await deleteUser.run(id);
+                    successCount++;
+                  } catch (err) {
+                    console.error("Failed to delete user", id, err);
+                  }
+                }
+
+                if (successCount > 0) {
+                  toast.success(`${successCount} teacher(s) deleted`);
+                  setSelectedTeachers((prev) => prev.filter((id) => !ids.includes(id)));
+                } else {
+                  toast.error("Failed to delete selected teacher(s)");
+                }
+              }}
         />
       )}
 
