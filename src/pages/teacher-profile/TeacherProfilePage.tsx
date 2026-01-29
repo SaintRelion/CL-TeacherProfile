@@ -26,6 +26,7 @@ import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
 import { useState, useRef } from "react";
 import type { User, UpdateUser } from "@/models/User";
+import { toast } from "@saintrelion/notifications";
 
 const TeacherProfilePage = () => {
   const user = useCurrentUser<User>();
@@ -41,6 +42,7 @@ const TeacherProfilePage = () => {
 
   const { useUpdate: updateUser } = useResourceLocked<never, never, UpdateUser>(
     "user",
+    { showToast: false },
   );
 
   const {
@@ -51,7 +53,7 @@ const TeacherProfilePage = () => {
     PersonalInformation,
     CreatePersonalInformation,
     CreatePersonalInformation
-  >("personalinformation");
+  >("personalinformation", { showToast: false });
 
   const informations = getInformation({
     filters: { userId: user.id },
@@ -68,63 +70,71 @@ const TeacherProfilePage = () => {
   const { useInsert: insertNotification } = useResourceLocked<
     never,
     CreateMyNotification
-  >("mynotification");
+  >("mynotification", { showToast: false });
 
   const handleInformationSaveChanges = async (data: Record<string, string>) => {
-    data.userId = user.id;
-    if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
-    console.log(data);
+    try {
+      data.userId = user.id;
+      if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
+      console.log(data);
 
-    if (myInformation == undefined) {
-      if (selectedProfilePic == "") data.photoBase64 = "";
-      await insertInformation.run({
-        userId: user.id,
-        employeeId: data.employeeId,
-        photoBase64: data.photoBase64,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        middleName: data.middleName,
-        dateOfBirth: data.dateOfBirth,
-        gender: data.gender,
-        civilStatus: data.civilStatus,
-        email: data.email,
-        mobileNumber: data.mobileNumber,
-        homeAddress: data.homeAddress,
-        position: data.position,
-        department: data.department,
-        employmentStatus: data.employmentStatus,
-        dateHired: data.dateHired,
-        salaryGrade: data.salaryGrade,
-        tin: data.tin,
-      });
+      if (myInformation == undefined) {
+        if (selectedProfilePic == "") data.photoBase64 = "";
+        await insertInformation.run({
+          userId: user.id,
+          employeeId: data.employeeId,
+          photoBase64: data.photoBase64,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          middleName: data.middleName,
+          dateOfBirth: data.dateOfBirth,
+          gender: data.gender,
+          civilStatus: data.civilStatus,
+          email: data.email,
+          mobileNumber: data.mobileNumber,
+          homeAddress: data.homeAddress,
+          position: data.position,
+          department: data.department,
+          employmentStatus: data.employmentStatus,
+          dateHired: data.dateHired,
+          salaryGrade: data.salaryGrade,
+          tin: data.tin,
+        });
 
-      await insertNotification.run({
-        userId: user.id,
-        type: "profileNew",
-        title: "New teacher profile created",
-        description: `${data.firstName} ${data.middleName} ${data.lastName} - ${data.department} Department`,
-      });
-    } else {
-      updateInformation.run({
-        id: myInformation.id,
-        payload: data,
-      });
+        await insertNotification.run({
+          userId: user.id,
+          type: "profileNew",
+          title: "New teacher profile created",
+          description: `${data.firstName} ${data.middleName} ${data.lastName} - ${data.department} Department`,
+        });
+      } else {
+        updateInformation.run({
+          id: myInformation.id,
+          payload: data,
+        });
 
-      await insertNotification.run({
-        userId: user.id,
-        type: "profileUpdate",
-        title: "Profile updated",
-        description: `${data.firstName} ${data.middleName} ${data.lastName}`,
-      });
-    }
+        await insertNotification.run({
+          userId: user.id,
+          type: "profileUpdate",
+          title: "Profile updated",
+          description: `${data.firstName} ${data.middleName} ${data.lastName}`,
+        });
+      }
 
-    if (data.email) {
-      await updateUser.run({
-        id: user.id,
-        payload: { email: data.email },
-      });
+      if (data.email) {
+        await updateUser.run({
+          id: user.id,
+          payload: { email: data.email },
+        });
 
-      await auth.refreshUser();
+        await auth.refreshUser();
+      }
+
+      toast.success("Profile Updated");
+    } catch (err) {
+      const error = err as Record<string, string>;
+      console.log(error);
+      toast.error("Something went wrong updating profile");
     }
   };
 

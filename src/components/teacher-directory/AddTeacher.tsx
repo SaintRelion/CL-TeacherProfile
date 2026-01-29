@@ -13,7 +13,7 @@ export default function AddTeacherForm() {
   const { useInsert: insertTeacherPerformance } = useResourceLocked<
     never,
     CreateTeacherPerformance
-  >("teacherperformance");
+  >("teacherperformance", { showToast: false });
 
   const handleAddTeacher = async (data: Record<string, string>) => {
     console.log("Teacher added:", data);

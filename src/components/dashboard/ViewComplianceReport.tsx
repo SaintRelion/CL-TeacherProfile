@@ -1,7 +1,7 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/user";
-import React, { useState } from "react";
+import type { User } from "@/models/User";
+import React from "react";
 import {
   Dialog,
   DialogContent,
