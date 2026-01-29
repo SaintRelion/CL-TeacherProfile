@@ -1,9 +1,11 @@
 const BulkActions = ({
   teacherIds,
   onClear,
+  onDelete,
 }: {
   teacherIds: string[];
   onClear: () => void;
+  onDelete?: (ids: string[]) => void;
 }) => {
   return (
     <div
@@ -16,7 +18,7 @@ const BulkActions = ({
             {teacherIds.length} teachers selected
           </span>
           <div className="bg-primary-300 h-4 w-px"></div>
-          <button className="text-primary-700 hover:text-primary-800 text-sm font-medium">
+          {/* <button className="text-primary-700 hover:text-primary-800 text-sm font-medium">
             <i className="fas fa-envelope mr-1"></i>
             Send Notification
           </button>
@@ -27,6 +29,16 @@ const BulkActions = ({
           <button className="text-primary-700 hover:text-primary-800 text-sm font-medium">
             <i className="fas fa-download mr-1"></i>
             Export Selected
+          </button> */}
+          <button
+            onClick={() => {
+              if (teacherIds.length === 0) return;
+              onDelete?.(teacherIds);
+            }}
+            className="text-red-600 hover:text-red-700 text-sm font-medium"
+          >
+            <i className="fas fa-trash mr-1"></i>
+            Delete Selected
           </button>
         </div>
         <button

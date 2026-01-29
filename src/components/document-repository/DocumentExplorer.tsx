@@ -27,16 +27,18 @@ import type {
   UpdateDocumentFolder,
 } from "@/models/DocumentFolder";
 import type { User } from "@/models/User";
+import type { PersonalInformation } from "@/models/PersonalInformation";
 
-const DocumentExplorer = ({ user }: { user: User }) => {
+const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?: string }) => {
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [folderIdToRename, setFolderIdToRename] = useState<string>("");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch ?? "");
   const [filters, setFilters] = useState<Record<string, string>>({
     category: "",
     sort: "",
     quickTag: "",
+    department: "",
   });
 
   const {
@@ -54,6 +56,9 @@ const DocumentExplorer = ({ user }: { user: User }) => {
     useResourceLocked<TeacherDocument, never, UpdateTeacherDocument>(
       "teacherdocument",
     );
+
+  const { useList: getPersonalInfo } =
+    useResourceLocked<PersonalInformation>("personalinformation");
 
   const role = user.roles ? user.roles[0] : "";
 
@@ -160,6 +165,16 @@ const DocumentExplorer = ({ user }: { user: User }) => {
           if (parseFloat(document.fileSizeInMB) < 2) return false;
           break;
       }
+    }
+
+    // Department filter: compare document owner department
+    if (filters.department) {
+      const personalInfos = getPersonalInfo().data;
+      const ownerInfo = personalInfos?.find((p) => p.userId === document.userId);
+      const dept = (ownerInfo?.department ?? "").toLowerCase();
+      const filterDept = filters.department.toLowerCase().replaceAll("-", " ");
+
+      if (!dept.includes(filterDept)) return false;
     }
 
     return true;

@@ -1,6 +1,6 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import React, { useState } from "react";
 import {
   Dialog,
@@ -18,7 +18,6 @@ const ViewComplianceReport = ({
   documents: TeacherDocument[];
   teachers: User[];
 }) => {
-  const [selectedDoc, setSelectedDoc] = useState<TeacherDocument | null>(null);
   // Map teacherId => expired/expiring documents
   const complianceMapping = React.useMemo(() => {
     const map = new Map<
