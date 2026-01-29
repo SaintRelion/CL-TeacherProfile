@@ -210,40 +210,6 @@ const DashboardPage = () => {
     });
   }, [complianceMapping, nonAdminTeachers]);
 
-  const { globalPendingActions } = React.useMemo(() => {
-    if (!complianceMapping || complianceMapping.size === 0) {
-      return { globalComplianceRate: "100%", globalPendingActions: "0" };
-    }
-
-    let totalPending = 0;
-    let sumFolderPercents = 0;
-    let folderCount = 0;
-
-    const totalTeachers = nonAdminTeachers?.length || 0;
-
-    complianceMapping.forEach((bucket) => {
-      const {
-        expired = 0,
-        expiring = 0,
-        compliantTeachers = new Set(),
-      } = bucket as any;
-      totalPending += expired + expiring;
-
-      if (totalTeachers > 0) {
-        sumFolderPercents += (compliantTeachers.size / totalTeachers) * 100;
-        folderCount++;
-      }
-    });
-
-    const avgPercent =
-      folderCount === 0 ? 100 : sumFolderPercents / folderCount;
-
-    return {
-      globalComplianceRate: avgPercent.toFixed(1) + "%",
-      globalPendingActions: totalPending.toString(),
-    };
-  }, [complianceMapping, nonAdminTeachers]);
-
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
       alert("Please select a teacher");
@@ -278,10 +244,13 @@ const DashboardPage = () => {
     },
 
     {
-      title: "Pending Actions",
-      value: globalPendingActions,
+      title: "Total Folders",
+      value:
+        documentFolders.length == undefined
+          ? "0"
+          : documentFolders.length.toString(),
       kpiIcon:
-        "fas fa-tasks text-error-600 text-xl bg-error-100 p-3 rounded-lg",
+        "fas fa-folder text-error-600 text-xl bg-error-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
     },
   ];
