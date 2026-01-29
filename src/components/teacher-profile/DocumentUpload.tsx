@@ -107,7 +107,7 @@ export default function DocumentForm({
       />
 
       {/* License Type */}
-      <RenderFormField
+      {/* <RenderFormField
         field={{
           label: "Document Type",
           type: "select",
@@ -119,7 +119,7 @@ export default function DocumentForm({
         }}
         labelClassName="mb-1 block text-xs font-medium text-gray-700"
         inputClassName="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
+      /> */}
 
       {/* Conditional Certificate/License Number */}
       {selectedDocumentType !== "" && (

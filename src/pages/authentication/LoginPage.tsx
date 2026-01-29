@@ -1,4 +1,5 @@
 import { useAuth } from "@saintrelion/auth-lib";
+import { useState } from "react";
 
 import {
   RenderForm,
@@ -67,7 +68,7 @@ const LoginPage = () => {
                 placeholder: "••••••••",
               }}
               labelClassName="mb-1 block text-sm font-medium text-gray-300"
-              iconClassName="fas fa-lock absolute left-3 top-3 text-gray-400"
+              iconClassName="fas fa-lock absolute left-3 top-3 text-white"
               inputClassName="w-full rounded-lg bg-gray-900 border border-gray-700 py-2 pl-10 pr-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
 
