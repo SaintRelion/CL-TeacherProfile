@@ -7,11 +7,11 @@ import {
 import { useState } from "react";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
-import { DOCUMENT_TYPES } from "@/constants";
 import type { CreateTeacherDocument } from "@/models/TeacherDocument";
 import type { CreateMyNotification } from "@/models/MyNotification";
 import { FolderSelect } from "../document-repository/FolderSelect";
 import type { DocumentFolder } from "@/models/DocumentFolder";
+import { toast } from "@saintrelion/notifications";
 
 export default function DocumentForm({
   userId,
@@ -23,19 +23,19 @@ export default function DocumentForm({
   const { useInsert: insertDocument } = useResourceLocked<
     never,
     CreateTeacherDocument
-  >("teacherdocument", {showToast: false});
+  >("teacherdocument", { showToast: false });
 
   const { useInsert: insertNotification } = useResourceLocked<
     never,
     CreateMyNotification
-  >("mynotification", {showToast: false});
+  >("mynotification", { showToast: false });
 
   const { useList: getFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
   const documentFolders = getFolders().data;
 
   const [selectedFolderId, setSelectedFolderId] = useState("");
-  const [selectedDocumentType, setSelectedDocumentType] = useState("");
+  // const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
 
   const maxKB = 5000;
@@ -63,33 +63,42 @@ export default function DocumentForm({
       return;
     }
 
-    const extension = file.name.split(".").pop() ?? "";
-    const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-    const base64 = await fileToBase64(file);
+    try {
+      const extension = file.name.split(".").pop() ?? "";
+      const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+      const base64 = await fileToBase64(file);
 
-    data.extension = extension;
-    data.fileSizeInMB = fileSizeInMB;
-    data.fileBase64 = base64;
-    data.userId = userId;
+      data.extension = extension;
+      data.fileSizeInMB = fileSizeInMB;
+      data.fileBase64 = base64;
+      data.userId = userId;
 
-    await insertDocument.run({
-      userId: userId,
-      folderId: selectedFolderId,
-      documentTitle: data.documentTitle,
-      documentType: data.documentType,
-      documentNumber: data.documentNumber,
-      issueDate: data.issueDate,
-      expiryDate: data.expiryDate,
-      extension: data.extension,
-      fileSizeInMB: data.fileSizeInMB,
-      fileBase64: data.fileBase64,
-    });
-    await insertNotification.run({
-      userId: userId,
-      type: "upload",
-      title: "Document uploaded",
-      description: `${selectedDocumentType} - ${fullName}`,
-    });
+      await insertDocument.run({
+        userId: userId,
+        folderId: selectedFolderId,
+        documentTitle: data.documentTitle,
+        // documentType: data.documentType,
+        // documentNumber: data.documentNumber,
+        issueDate: data.issueDate,
+        expiryDate: data.expiryDate,
+        extension: data.extension,
+        fileSizeInMB: data.fileSizeInMB,
+        fileBase64: data.fileBase64,
+      });
+
+      await insertNotification.run({
+        userId: userId,
+        type: "upload",
+        title: "Document uploaded",
+        description: `${data.documentTitle} - ${fullName}`,
+      });
+
+      toast.success("Document Uploaded");
+    } catch (err) {
+      const error = err as Record<string, string>;
+      console.log(error);
+      toast.error("Document Upload error");
+    }
   };
 
   return (
@@ -106,8 +115,8 @@ export default function DocumentForm({
         inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
       />
 
-      {/* License Type */}
-      {/* <RenderFormField
+      {/*
+      <RenderFormField
         field={{
           label: "Document Type",
           type: "select",
@@ -119,9 +128,8 @@ export default function DocumentForm({
         }}
         labelClassName="mb-1 block text-xs font-medium text-gray-700"
         inputClassName="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      /> */}
+      />
 
-      {/* Conditional Certificate/License Number */}
       {selectedDocumentType !== "" && (
         <RenderFormField
           field={{
@@ -133,7 +141,7 @@ export default function DocumentForm({
           labelClassName="mb-1 block text-xs font-medium text-gray-700"
           inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
         />
-      )}
+      )} */}
 
       {/* Dates Grid */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">

@@ -37,7 +37,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toDate } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
-import type { User } from "@/models/user";
+import type { User } from "@/models/User";
 
 const Navbar = () => {
   const user = useCurrentUser<User>();
@@ -58,7 +58,7 @@ const Navbar = () => {
       PersonalInformation,
       CreatePersonalInformation,
       CreatePersonalInformation
-    >("personalinformation");
+    >("personalinformation", { showToast: false });
 
   const role = user.roles ? user.roles[0] : "";
   const { data: informations } = getInformation({
@@ -75,7 +75,7 @@ const Navbar = () => {
     MyNotification,
     CreateMyNotification,
     UpdateMyNotification
-  >("mynotification");
+  >("mynotification", { showToast: false });
 
   const notifications = getNotifications({
     filters:
@@ -186,7 +186,8 @@ const Navbar = () => {
 
   // Open detailed compliance report dialog for a notification
   const [showComplianceDialog, setShowComplianceDialog] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState<MyNotification | null>(null);
+  const [selectedNotification, setSelectedNotification] =
+    useState<MyNotification | null>(null);
   const navigate = useNavigate();
 
   const handleNotificationClick = async (notification: MyNotification) => {
@@ -323,7 +324,12 @@ const Navbar = () => {
           </div> */}
 
           <div className="flex items-center space-x-4">
-            <DropdownMenu onOpenChange={(open) => { setNotifMenuOpened(open); if (open) setLocalUnreadCount(0); }}>
+            <DropdownMenu
+              onOpenChange={(open) => {
+                setNotifMenuOpened(open);
+                if (open) setLocalUnreadCount(0);
+              }}
+            >
               <DropdownMenuTrigger asChild>
                 <button className="text-primary-200 relative p-2 transition-colors hover:text-white">
                   <i className="fas fa-bell text-lg"></i>
@@ -480,20 +486,23 @@ const Navbar = () => {
       </Dialog>
 
       {/* Detailed Compliance Report Dialog */}
-      <Dialog open={showComplianceDialog} onOpenChange={setShowComplianceDialog}>
+      <Dialog
+        open={showComplianceDialog}
+        onOpenChange={setShowComplianceDialog}
+      >
         <DialogContent className="bg-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <i className="fas fa-file-alt text-primary-600"></i>
               View Expirey Documents
             </DialogTitle>
-            <DialogDescription>
-              {selectedNotification?.title}
-            </DialogDescription>
+            <DialogDescription>{selectedNotification?.title}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <p className="text-sm text-gray-700">{selectedNotification?.description}</p>
+            <p className="text-sm text-gray-700">
+              {selectedNotification?.description}
+            </p>
           </div>
 
           <DialogFooter>
@@ -508,8 +517,12 @@ const Navbar = () => {
                 setShowComplianceDialog(false);
                 let searchValue = selectedNotification?.description ?? "";
                 const lastIdx = searchValue.lastIndexOf(" - ");
-                if (lastIdx !== -1) searchValue = searchValue.substring(lastIdx + 3);
-                navigate("/admin/documentrepository?q=" + encodeURIComponent(searchValue));
+                if (lastIdx !== -1)
+                  searchValue = searchValue.substring(lastIdx + 3);
+                navigate(
+                  "/admin/documentrepository?q=" +
+                    encodeURIComponent(searchValue),
+                );
               }}
               className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white"
             >

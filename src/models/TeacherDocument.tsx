@@ -19,8 +19,6 @@ export interface CreateTeacherDocument {
   userId: string;
   folderId: string;
   documentTitle: string;
-  documentType: string;
-  documentNumber: string;
   issueDate: string;
   expiryDate: string;
   extension: string;

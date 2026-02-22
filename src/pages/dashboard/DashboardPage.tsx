@@ -130,8 +130,9 @@ const DashboardPage = () => {
     if (liveDocuments && liveDocuments.length > 0) {
       liveDocuments.forEach((doc) => {
         const folderName =
-          (documentFolders && documentFolders.find((f) => f.id === doc.folderId)
-            ?.name) || "Uncategorized";
+          (documentFolders &&
+            documentFolders.find((f) => f.id === doc.folderId)?.name) ||
+          "Uncategorized";
 
         if (!map.has(folderName)) {
           map.set(folderName, {
@@ -148,7 +149,11 @@ const DashboardPage = () => {
 
         bucket.total++;
         const key =
-          state === "expired" ? "expired" : state === "expiring" ? "expiring" : "valid";
+          state === "expired"
+            ? "expired"
+            : state === "expiring"
+              ? "expiring"
+              : "valid";
         (bucket as any)[key]++;
 
         // Count teacher as compliant for this folder only when they have at least one VALID document
@@ -168,7 +173,9 @@ const DashboardPage = () => {
 
       const compliantCount = compliantTeachers ? compliantTeachers.size : 0;
       const compliancePercent =
-        totalTeachers === 0 ? 100 : Math.round((compliantCount / totalTeachers) * 100);
+        totalTeachers === 0
+          ? 100
+          : Math.round((compliantCount / totalTeachers) * 100);
 
       let wrapperColor = "";
       let iconClassName = "";
@@ -203,35 +210,6 @@ const DashboardPage = () => {
     });
   }, [complianceMapping, nonAdminTeachers]);
 
-  const { globalPendingActions } = React.useMemo(() => {
-    if (!complianceMapping || complianceMapping.size === 0) {
-      return { globalComplianceRate: "100%", globalPendingActions: "0" };
-    }
-
-    let totalPending = 0;
-    let sumFolderPercents = 0;
-    let folderCount = 0;
-
-    const totalTeachers = nonAdminTeachers?.length || 0;
-
-    complianceMapping.forEach((bucket) => {
-      const { expired = 0, expiring = 0, compliantTeachers = new Set() } = bucket as any;
-      totalPending += expired + expiring;
-
-      if (totalTeachers > 0) {
-        sumFolderPercents += (compliantTeachers.size / totalTeachers) * 100;
-        folderCount++;
-      }
-    });
-
-    const avgPercent = folderCount === 0 ? 100 : sumFolderPercents / folderCount;
-
-    return {
-      globalComplianceRate: avgPercent.toFixed(1) + "%",
-      globalPendingActions: totalPending.toString(),
-    };
-  }, [complianceMapping, nonAdminTeachers]);
-
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
       alert("Please select a teacher");
@@ -249,7 +227,10 @@ const DashboardPage = () => {
   const kpi = [
     {
       title: "Total Teachers",
-      value: nonAdminTeachers == undefined ? "0" : nonAdminTeachers.length.toString(),
+      value:
+        nonAdminTeachers == undefined
+          ? "0"
+          : nonAdminTeachers.length.toString(),
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
       path: "/admin/teacherdirectory",
@@ -261,12 +242,15 @@ const DashboardPage = () => {
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
     },
-  
+
     {
-      title: "Pending Actions",
-      value: globalPendingActions,
+      title: "Total Folders",
+      value:
+        documentFolders.length == undefined
+          ? "0"
+          : documentFolders.length.toString(),
       kpiIcon:
-        "fas fa-tasks text-error-600 text-xl bg-error-100 p-3 rounded-lg",
+        "fas fa-folder text-error-600 text-xl bg-error-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
     },
   ];
@@ -276,12 +260,7 @@ const DashboardPage = () => {
       {/* Dashboard Header */}
       <div className="mb-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900">Dashboard</h1>
-            <p className="mt-1 text-slate-600">
-              Welcome back! Here's your compliance overview.
-            </p>
-          </div>
+         
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <i className="fas fa-calendar-alt"></i>
             <span>
@@ -298,7 +277,7 @@ const DashboardPage = () => {
 
       {/* KPI Cards */}
       <div className="mb-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:gap-6 lg:grid-cols-3">
           {kpi.map((value, index) => (
             <KPICard key={index} kvp={value} index={index} />
           ))}
