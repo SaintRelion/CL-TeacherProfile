@@ -34,9 +34,7 @@ export default function ForgotPasswordPage() {
           <h1 className="mb-4 text-4xl font-bold text-white">
             Forgot Password?
           </h1>
-          <p className="mb-8 text-lg text-purple-100">
-            No worries! We'll help you recover your account.
-          </p>
+          
 
           {/* Steps */}
           <div className="space-y-4 text-left">

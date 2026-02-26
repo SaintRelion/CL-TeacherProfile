@@ -28,7 +28,7 @@ const LoginPage = () => {
         
 
           <img
-            src="https://img.freepik.com/free-vector/teacher-concept-illustration_114360-7501.jpg"
+            src="public/logo.jpg"
             alt="Teaching Illustration"
             className="w-72 rounded-xl border border-white/20 shadow-xl"
           />

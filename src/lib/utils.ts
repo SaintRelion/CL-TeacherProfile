@@ -98,7 +98,7 @@ export const getExpiryState = (expiryDate: string) => {
   if (exp < today) return "expired";
 
   const diffDays = (exp.getTime() - today.getTime()) / (1000 * 86400);
-  if (diffDays <= 30) return "expiring";
+  if (diffDays <= 15) return "expiring";
 
   return "valid";
 };

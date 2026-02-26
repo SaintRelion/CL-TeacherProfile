@@ -1,3 +1,13 @@
+import { Link } from "react-router-dom";
+interface ComplianceStatusCardProps {
+  wrapperColor: string;
+  iconClassName: string;
+  title: string;
+  description: string;
+  value: string;
+  valueClassName: string;
+  to: string; // ✅ add this
+}
 interface ComplianceStatusCardProps {
   wrapperColor: string;
   iconClassName: string;
