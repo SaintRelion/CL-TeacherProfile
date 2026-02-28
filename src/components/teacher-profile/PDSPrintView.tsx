@@ -60,12 +60,12 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
               </td>
               <td className="pds-sublabel">SURNAME</td>
               <td className="pds-value-cell" colSpan={2}>
-                {myInformation?.lastName || ""}
+                {myInformation?.last_name || ""}
               </td>
               <td className="pds-photo-cell" rowSpan={6}>
                 <div className="pds-photo-box">
                   <img
-                    src={resolveImageSource(myInformation?.photoBase64)}
+                    src={resolveImageSource(myInformation?.photo_base64)}
                     alt="ID Photo"
                     className="pds-photo"
                   />
@@ -77,13 +77,13 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
             <tr>
               <td className="pds-sublabel">FIRST NAME</td>
               <td className="pds-value-cell" colSpan={2}>
-                {myInformation?.firstName || ""}
+                {myInformation?.first_name || ""}
               </td>
             </tr>
             <tr>
               <td className="pds-sublabel">MIDDLE NAME</td>
               <td className="pds-value-cell" colSpan={2}>
-                {myInformation?.middleName || ""}
+                {myInformation?.middle_name || ""}
               </td>
             </tr>
 
@@ -94,7 +94,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
               </td>
               <td className="pds-sublabel">(mm/dd/yyyy)</td>
               <td className="pds-value-cell" colSpan={2}>
-                {formatDate(myInformation?.dateOfBirth || "")}
+                {formatDate(myInformation?.date_of_birth || "")}
               </td>
             </tr>
 
@@ -123,19 +123,19 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
               <td className="pds-value-cell" colSpan={3}>
                 <div className="pds-checkbox-group">
                   <span className="pds-checkbox">
-                    {myInformation?.civilStatus === "Single" ? "☑" : "☐"}{" "}
+                    {myInformation?.civil_status === "Single" ? "☑" : "☐"}{" "}
                     Single
                   </span>
                   <span className="pds-checkbox">
-                    {myInformation?.civilStatus === "Married" ? "☑" : "☐"}{" "}
+                    {myInformation?.civil_status === "Married" ? "☑" : "☐"}{" "}
                     Married
                   </span>
                   <span className="pds-checkbox">
-                    {myInformation?.civilStatus === "Widowed" ? "☑" : "☐"}{" "}
+                    {myInformation?.civil_status === "Widowed" ? "☑" : "☐"}{" "}
                     Widowed
                   </span>
                   <span className="pds-checkbox">
-                    {myInformation?.civilStatus === "Divorced" ? "☑" : "☐"}{" "}
+                    {myInformation?.civil_status === "Divorced" ? "☑" : "☐"}{" "}
                     Separated
                   </span>
                 </div>
@@ -149,7 +149,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
               </td>
               <td className="pds-sublabel">Complete Address</td>
               <td className="pds-value-cell pds-address-cell" colSpan={3}>
-                {myInformation?.homeAddress || ""}
+                {myInformation?.home_address || ""}
               </td>
             </tr>
             <tr>
@@ -171,7 +171,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
                 <span className="pds-field-number">8.</span> MOBILE NO.
               </td>
               <td className="pds-value-cell" colSpan={4}>
-                {myInformation?.mobileNumber || ""}
+                {myInformation?.mobile_number || ""}
               </td>
             </tr>
             <tr>
@@ -200,7 +200,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
                 <span className="pds-field-number">10.</span> EMPLOYEE ID
               </td>
               <td className="pds-value-cell">
-                {myInformation?.employeeId || ""}
+                {myInformation?.employee_id || ""}
               </td>
               <td className="pds-label-cell">
                 <span className="pds-field-number">11.</span> TIN
@@ -218,7 +218,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
                 <span className="pds-field-number">13.</span> SALARY GRADE
               </td>
               <td className="pds-value-cell">
-                {myInformation?.salaryGrade || ""}
+                {myInformation?.salary_grade || ""}
               </td>
             </tr>
             <tr>
@@ -232,7 +232,7 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
                 <span className="pds-field-number">15.</span> EMPLOYMENT STATUS
               </td>
               <td className="pds-value-cell">
-                {myInformation?.employmentStatus || ""}
+                {myInformation?.employment_status || ""}
               </td>
             </tr>
             <tr>
@@ -240,13 +240,13 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
                 <span className="pds-field-number">16.</span> DATE HIRED
               </td>
               <td className="pds-value-cell">
-                {formatDate(myInformation?.dateHired || "")}
+                {formatDate(myInformation?.date_hired || "")}
               </td>
               <td className="pds-label-cell">
                 <span className="pds-field-number">17.</span> YEARS OF SERVICE
               </td>
               <td className="pds-value-cell pds-highlight">
-                {getYearsOfService(myInformation?.dateHired ?? "")}
+                {getYearsOfService(myInformation?.date_hired ?? "")}
               </td>
             </tr>
           </tbody>

@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { formatReadableDate } from "@saintrelion/time-functions";
 
 const getDocumentIcon = (ext: string) => {
   const e = ext.toLowerCase();
@@ -83,7 +84,7 @@ const FileCard = ({
   onArchive: () => void;
 }) => {
   const { iconClass, bg } = getDocumentIcon(doc.extension);
-  const statusClassName = getDocumentStatusClassName(doc.expiryDate);
+  const statusClassName = getDocumentStatusClassName(doc.expiry_date);
 
   const [isContextOpen, setIsContextOpen] = useState(false);
 
@@ -91,7 +92,7 @@ const FileCard = ({
     try {
       // Convert base64 to blob
       const byteCharacters = atob(
-        doc.fileBase64.split(",")[1] || doc.fileBase64,
+        doc.file_base64.split(",")[1] || doc.file_base64,
       );
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -106,7 +107,7 @@ const FileCard = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${doc.documentTitle}.${doc.extension}`;
+      link.download = `${doc.document_title}.${doc.extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -120,7 +121,7 @@ const FileCard = ({
 
   const handlePrint = async () => {
     try {
-      const byteCharacters = atob(doc.fileBase64.split(",")[1] || doc.fileBase64);
+      const byteCharacters = atob(doc.file_base64.split(",")[1] || doc.file_base64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -135,12 +136,12 @@ const FileCard = ({
       if (doc.extension === "pdf") {
         const printWindow = window.open("", "_blank");
         if (!printWindow) throw new Error("Popup blocked");
-        printWindow.document.write(`<!doctype html><html><head><title>${doc.documentTitle}</title></head><body style="margin:0"><iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe><script>const f = document.querySelector('iframe'); f.onload = function(){ setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); },300); };</script></body></html>`);
+        printWindow.document.write(`<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0"><iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe><script>const f = document.querySelector('iframe'); f.onload = function(){ setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); },300); };</script></body></html>`);
         printWindow.document.close();
       } else if (["png", "jpg", "jpeg", "webp"].includes(doc.extension)) {
         const printWindow = window.open("", "_blank");
         if (!printWindow) throw new Error("Popup blocked");
-        printWindow.document.write(`<!doctype html><html><head><title>${doc.documentTitle}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="${url}" style="max-width:100%;max-height:100vh" onload="window.print();"/></body></html>`);
+        printWindow.document.write(`<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="${url}" style="max-width:100%;max-height:100vh" onload="window.print();"/></body></html>`);
         printWindow.document.close();
       } else {
         // For other types, open in a new tab; user can print from there
@@ -160,7 +161,7 @@ const FileCard = ({
 
   const handleRemove = () => {
     if (
-      window.confirm(`Are you sure you want to archive "${doc.documentTitle}"?`)
+      window.confirm(`Are you sure you want to archive "${doc.document_title}"?`)
     ) {
       setIsContextOpen(false);
       onArchive();
@@ -180,20 +181,20 @@ const FileCard = ({
             <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
               {/* Header */}
               <DialogHeader className="text-md truncate px-4 py-2 font-medium">
-                <DialogTitle>{doc.documentTitle}</DialogTitle>
+                <DialogTitle>{doc.document_title}</DialogTitle>
                 <DialogDescription></DialogDescription>
               </DialogHeader>
 
               {/* Content */}
               <div className="min-h-0 flex-1">
                 {doc.extension === "pdf" && (
-                  <iframe src={doc.fileBase64} className="h-full w-full" />
+                  <iframe src={doc.file_base64} className="h-full w-full" />
                 )}
 
                 {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
                   <div className="flex h-full items-center justify-center">
                     <img
-                      src={doc.fileBase64}
+                      src={doc.file_base64}
                       className="max-h-full max-w-full"
                     />
                   </div>
@@ -247,18 +248,18 @@ const FileCard = ({
 
       <div className="flex flex-col items-start">
         <h4 className="text-secondary-900 mb-1 truncate font-medium">
-          {doc.documentTitle}
+          {doc.document_title}
         </h4>
 
         <p className="text-secondary-500 mb-2 text-xs">
-          {doc.extension.toUpperCase()} • {doc.fileSizeInMB} MB
+          {doc.extension.toUpperCase()} • {doc.file_size_in_mb} MB
         </p>
       </div>
       <div className="text-secondary-500 flex items-center justify-between text-xs">
-        <span>{doc.issueDate}</span>
+        <span>{formatReadableDate(doc.issue_date)}</span>
         <div className="flex items-center space-x-1">
           <i className="fas fa-calendar"></i>
-          <span>{doc.expiryDate}</span>
+          <span>{formatReadableDate(doc.expiry_date)}</span>
         </div>
       </div>
 

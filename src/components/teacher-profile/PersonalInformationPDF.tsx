@@ -177,8 +177,8 @@ const PersonalInformationPDF = ({ data }: PersonalInformationPDFProps) => {
             <Text style={styles.documentTitle}>Personal Information Form</Text>
             <Text style={styles.subtitle}>Teacher Profile Documentation</Text>
           </View>
-          {data?.photoBase64 && (
-            <Image src={data.photoBase64} style={styles.profileImage} />
+          {data?.photo_base64 && (
+            <Image src={data.photo_base64} style={styles.profileImage} />
           )}
         </View>
 
@@ -187,22 +187,22 @@ const PersonalInformationPDF = ({ data }: PersonalInformationPDFProps) => {
           <Text style={styles.sectionTitle}>Basic Information</Text>
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FieldRow label="First Name" value={data?.firstName} />
+              <FieldRow label="First Name" value={data?.first_name} />
             </View>
             <View style={styles.gridCol}>
-              <FieldRow label="Last Name" value={data?.lastName} />
+              <FieldRow label="Last Name" value={data?.last_name} />
             </View>
           </View>
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FieldRow label="Middle Name" value={data?.middleName} />
+              <FieldRow label="Middle Name" value={data?.middle_name} />
             </View>
           </View>
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
               <FieldRow
                 label="Date of Birth"
-                value={formatDate(data?.dateOfBirth)}
+                value={formatDate(data?.date_of_birth)}
               />
             </View>
             <View style={styles.gridCol}>
@@ -211,7 +211,7 @@ const PersonalInformationPDF = ({ data }: PersonalInformationPDFProps) => {
           </View>
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FieldRow label="Civil Status" value={data?.civilStatus} />
+              <FieldRow label="Civil Status" value={data?.civil_status} />
             </View>
           </View>
         </View>
@@ -224,12 +224,12 @@ const PersonalInformationPDF = ({ data }: PersonalInformationPDFProps) => {
               <FieldRow label="Email" value={data?.email} />
             </View>
             <View style={styles.gridCol}>
-              <FieldRow label="Mobile Number" value={data?.mobileNumber} />
+              <FieldRow label="Mobile Number" value={data?.mobile_number} />
             </View>
           </View>
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FieldRow label="Home Address" value={data?.homeAddress} />
+              <FieldRow label="Home Address" value={data?.home_address} />
             </View>
           </View>
         </View>
@@ -239,7 +239,7 @@ const PersonalInformationPDF = ({ data }: PersonalInformationPDFProps) => {
           <Text style={styles.sectionTitle}>Employment Details</Text>
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FieldRow label="Employee ID" value={data?.employeeId} />
+              <FieldRow label="Employee ID" value={data?.employee_id} />
             </View>
             <View style={styles.gridCol}>
               <FieldRow label="Position" value={data?.position} />
@@ -252,17 +252,17 @@ const PersonalInformationPDF = ({ data }: PersonalInformationPDFProps) => {
             <View style={styles.gridCol}>
               <FieldRow
                 label="Employment Status"
-                value={data?.employmentStatus}
+                value={data?.employment_status}
               />
             </View>
             <View style={styles.gridCol}>
               <FieldRow
                 label="Date Hired"
-                value={formatDate(data?.dateHired)}
+                value={formatDate(data?.date_hired)}
               />
             </View>
             <View style={styles.gridCol}>
-              <FieldRow label="Salary Grade" value={data?.salaryGrade} />
+              <FieldRow label="Salary Grade" value={data?.salary_grade} />
             </View>
           </View>
           <View style={styles.gridRow}>

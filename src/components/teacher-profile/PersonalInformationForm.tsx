@@ -52,7 +52,7 @@ const PersonalInformationForm = ({
   myInformation: PersonalInformation | null;
 }) => {
   const fileName = myInformation
-    ? `${myInformation.firstName}_${myInformation.lastName}_PersonalInfo.pdf`
+    ? `${myInformation.first_name}_${myInformation.last_name}_PersonalInfo.pdf`
     : "PersonalInformation.pdf";
 
   const printRef = useRef<HTMLDivElement>(null);
@@ -275,18 +275,18 @@ const PersonalInformationForm = ({
             <div class="print-section">
               <div class="section-title">Basic Information</div>
               <div class="form-row">
-                ${createField("First Name", formData?.firstName)}
-                ${createField("Last Name", formData?.lastName)}
+                ${createField("First Name", formData?.first_name)}
+                ${createField("Last Name", formData?.last_name)}
               </div>
               <div class="form-row full">
-                ${createField("Middle Name", formData?.middleName)}
+                ${createField("Middle Name", formData?.middle_name)}
               </div>
               <div class="form-row">
-                ${createField("Date of Birth", formData?.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString() : undefined)}
+                ${createField("Date of Birth", formData?.date_of_birth ? new Date(formData.date_of_birth).toLocaleDateString() : undefined)}
                 ${createField("Gender", formData?.gender)}
               </div>
               <div class="form-row">
-                ${createField("Civil Status", formData?.civilStatus)}
+                ${createField("Civil Status", formData?.civil_status)}
               </div>
             </div>
             
@@ -294,24 +294,24 @@ const PersonalInformationForm = ({
               <div class="section-title">Contact Information</div>
               <div class="form-row">
                 ${createField("Email Address", formData?.email)}
-                ${createField("Mobile Number", formData?.mobileNumber)}
+                ${createField("Mobile Number", formData?.mobile_number)}
               </div>
               <div class="form-row full">
-                ${createField("Home Address", formData?.homeAddress)}
+                ${createField("Home Address", formData?.home_address)}
               </div>
             </div>
             
             <div class="print-section">
               <div class="section-title">Employment Details</div>
               <div class="form-row three">
-                ${createField("Employee ID", formData?.employeeId)}
+                ${createField("Employee ID", formData?.employee_id)}
                 ${createField("Position", formData?.position)}
                 ${createField("Department", formData?.department)}
               </div>
               <div class="form-row three">
-                ${createField("Employment Status", formData?.employmentStatus)}
-                ${createField("Date Hired", formData?.dateHired ? new Date(formData.dateHired).toLocaleDateString() : undefined)}
-                ${createField("Salary Grade", formData?.salaryGrade)}
+                ${createField("Employment Status", formData?.employment_status)}
+                ${createField("Date Hired", formData?.date_hired ? new Date(formData.date_hired).toLocaleDateString() : undefined)}
+                ${createField("Salary Grade", formData?.salary_grade)}
               </div>
               <div class="form-row full">
                 ${createField("TIN", formData?.tin)}
@@ -406,10 +406,10 @@ const PersonalInformationForm = ({
                     field={{
                       label: "",
                       type: "text",
-                      name: "firstName",
+                      name: "first_name",
                     }}
                     defaultValue={
-                      myInformation == null ? "" : myInformation.firstName
+                      myInformation == null ? "" : myInformation.first_name
                     }
                     labelClassName="hidden"
                     inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -421,10 +421,10 @@ const PersonalInformationForm = ({
                     field={{
                       label: "",
                       type: "text",
-                      name: "lastName",
+                      name: "last_name",
                     }}
                     defaultValue={
-                      myInformation == null ? "" : myInformation.lastName
+                      myInformation == null ? "" : myInformation.last_name
                     }
                     labelClassName="hidden"
                     inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -437,10 +437,10 @@ const PersonalInformationForm = ({
                   field={{
                     label: "",
                     type: "text",
-                    name: "middleName",
+                    name: "middle_name",
                   }}
                   defaultValue={
-                    myInformation == null ? "" : myInformation.middleName
+                    myInformation == null ? "" : myInformation.middle_name
                   }
                   labelClassName="hidden"
                   inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -453,10 +453,10 @@ const PersonalInformationForm = ({
                     field={{
                       label: "",
                       type: "date",
-                      name: "dateOfBirth",
+                      name: "date_of_birth",
                     }}
                     defaultValue={
-                      myInformation == null ? "" : myInformation.dateOfBirth
+                      myInformation == null ? "" : myInformation.date_of_birth
                     }
                     labelClassName="hidden"
                     inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -485,11 +485,11 @@ const PersonalInformationForm = ({
                   field={{
                     label: "",
                     type: "select",
-                    name: "civilStatus",
+                    name: "civil_status",
                     options: ["Married", "Single", "Divorced", "Widowed"],
                   }}
                   defaultValue={
-                    myInformation == null ? "" : myInformation.civilStatus
+                    myInformation == null ? "" : myInformation.civil_status
                   }
                   labelClassName="hidden"
                   inputClassName="input-field text-md !py-6 print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -527,10 +527,10 @@ const PersonalInformationForm = ({
                   field={{
                     label: "",
                     type: "text",
-                    name: "mobileNumber",
+                    name: "mobile_number",
                   }}
                   defaultValue={
-                    myInformation == null ? "" : myInformation.mobileNumber
+                    myInformation == null ? "" : myInformation.mobile_number
                   }
                   labelClassName="hidden"
                   inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -542,10 +542,10 @@ const PersonalInformationForm = ({
                   field={{
                     label: "",
                     type: "textarea",
-                    name: "homeAddress",
+                    name: "home_address",
                   }}
                   defaultValue={
-                    myInformation == null ? "" : myInformation.homeAddress
+                    myInformation == null ? "" : myInformation.home_address
                   }
                   labelClassName="hidden"
                   inputClassName="input-field min-h-[100px] print:border-0 print:bg-transparent print:p-0 print:shadow-none print:min-h-0"
@@ -569,10 +569,10 @@ const PersonalInformationForm = ({
                 field={{
                   label: "",
                   type: "text",
-                  name: "employeeId",
+                  name: "employee_id",
                 }}
                 defaultValue={
-                  myInformation == null ? "" : myInformation.employeeId
+                  myInformation == null ? "" : myInformation.employee_id
                 }
                 labelClassName="hidden"
                 inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -621,7 +621,7 @@ const PersonalInformationForm = ({
                 field={{
                   label: "",
                   type: "select",
-                  name: "employmentStatus",
+                  name: "employment_status",
                   options: [
                     "Permanent",
                     "Temporary",
@@ -630,7 +630,7 @@ const PersonalInformationForm = ({
                   ],
                 }}
                 defaultValue={
-                  myInformation == null ? "" : myInformation.employmentStatus
+                  myInformation == null ? "" : myInformation.employment_status
                 }
                 labelClassName="hidden"
                 inputClassName="input-field text-md !py-6 print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -642,10 +642,10 @@ const PersonalInformationForm = ({
                 field={{
                   label: "",
                   type: "date",
-                  name: "dateHired",
+                  name: "date_hired",
                 }}
                 defaultValue={
-                  myInformation == null ? "" : myInformation.dateHired
+                  myInformation == null ? "" : myInformation.date_hired
                 }
                 labelClassName="hidden"
                 inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
@@ -657,10 +657,10 @@ const PersonalInformationForm = ({
                 field={{
                   label: "",
                   type: "text",
-                  name: "salaryGrade",
+                  name: "salary_grade",
                 }}
                 defaultValue={
-                  myInformation == null ? "" : myInformation.salaryGrade
+                  myInformation == null ? "" : myInformation.salary_grade
                 }
                 labelClassName="hidden"
                 inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"

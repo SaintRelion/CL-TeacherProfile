@@ -1,4 +1,4 @@
-import type { MyNotification } from "@/models/MyNotification";
+import type { Notification } from "@/models/Notification";
 import { timeAgo } from "@saintrelion/time-functions";
 
 function getIcon(type: string) {
@@ -15,7 +15,7 @@ const NotificationCard = ({
   notification,
   isRead = false,
 }: {
-  notification: MyNotification;
+  notification: Notification;
   isRead?: boolean;
 }) => {
   const iconClassName = getIcon(notification.type);
@@ -32,11 +32,11 @@ const NotificationCard = ({
           {notification.description}
         </p>
         <p className="text-secondary-500 mt-1 text-sm">
-          {timeAgo(notification.createdAt)}
+          {timeAgo(notification.created_at)}
         </p>
       </div>
       {!isRead && (
-        <div className="bg-accent-500 mt-1 h-2 w-2 rounded-full flex-shrink-0"></div>
+        <div className="bg-accent-500 mt-1 h-2 w-2 rounded-full shrink-0"></div>
       )}
     </div>
   );

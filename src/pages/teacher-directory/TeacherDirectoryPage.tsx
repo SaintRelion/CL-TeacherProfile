@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { NO_FACE_IMAGE } from "@/constants";
 import { getYearsOfService, getExpiryState } from "@/lib/utils";
-import type { TeacherPerformance } from "@/models/Performance";
+import type { TeacherPerformance } from "@/models/TeacherPerformance";
 import { type PersonalInformation } from "@/models/PersonalInformation";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { toast } from "@saintrelion/notifications";
@@ -23,30 +23,29 @@ import { useState } from "react";
 function createFallbackTeacher(user: User): PersonalInformation {
   return {
     id: "",
-    userId: user.id,
-    employeeId: "",
-    photoBase64: "",
-    firstName: user.username ?? "",
-    lastName: "",
-    middleName: "",
-    dateOfBirth: "",
+    user: user.id,
+    employee_id: "",
+    photo_base64: "",
+    first_name: user.username ?? "",
+    last_name: "",
+    middle_name: "",
+    date_of_birth: "",
     gender: "",
-    civilStatus: "",
+    civil_status: "",
     email: "",
-    mobileNumber: "",
-    homeAddress: "",
+    mobile_number: "",
+    home_address: "",
     position: "",
     department: "",
-    employmentStatus: "",
-    dateHired: "",
-    salaryGrade: "",
+    employment_status: "",
+    date_hired: "",
+    salary_grade: "",
     tin: "",
   };
 }
 
 const TeacherDirectoryPage = () => {
-  const { useList: getUsers } = useResourceLocked<User>("user");
-  const { useDelete: deleteUser } = useResourceLocked<User>("user");
+  const { useList: getUsers, useDelete: deleteUser } = useResourceLocked<User>("user");
   const { useList: getTeacherInformation } =
     useResourceLocked<PersonalInformation>("personalinformation");
   const { useList: getTeacherPerformance } =
@@ -73,25 +72,25 @@ const TeacherDirectoryPage = () => {
   const filteredTeachers = users
     .map((user) => {
       const teacherInformation =
-        teachersInformation?.find((ti) => ti.userId == user.id) ??
+        teachersInformation?.find((ti) => ti.user == user.id) ??
         createFallbackTeacher(user);
 
-      if (teacherInformation.photoBase64 == "")
-        teacherInformation.photoBase64 = NO_FACE_IMAGE;
+      if (teacherInformation.photo_base64 == "")
+        teacherInformation.photo_base64 = NO_FACE_IMAGE;
 
       const teacherPerformance = teacherPerformances.find(
-        (p) => p.userId == user.id,
+        (p) => p.user == user.id,
       );
 
       if (teacherPerformance == null) return null; // Shouldn't happen
 
       // Create searchable fields
       const name =
-        `${teacherInformation.firstName} ${teacherInformation.middleName} ${teacherInformation.lastName}`.toLowerCase();
+        `${teacherInformation.first_name} ${teacherInformation.middle_name} ${teacherInformation.last_name}`.toLowerCase();
       const department = teacherInformation.department.toLowerCase();
-      const employeeID = teacherInformation.employeeId.toLowerCase();
-      const yearOfService = teacherInformation.dateHired
-        ? getYearsOfService(teacherInformation.dateHired).toLowerCase()
+      const employeeID = teacherInformation.employee_id.toLowerCase();
+      const yearOfService = teacherInformation.date_hired
+        ? getYearsOfService(teacherInformation.date_hired).toLowerCase()
         : "";
 
       // ---------- SEARCH ----------
@@ -117,20 +116,20 @@ const TeacherDirectoryPage = () => {
       // Certification Status filter (checks document expiry status)
       if (filters.certificationStatus && filters.certificationStatus !== "") {
         const teacherDocs =
-          documents?.filter((doc) => doc.userId === user.id) || [];
+          documents?.filter((doc) => doc.user === user.id) || [];
         let hasStatus = false;
 
         if (filters.certificationStatus === "current") {
           hasStatus = teacherDocs.some(
-            (doc) => getExpiryState(doc.expiryDate) === "valid",
+            (doc) => getExpiryState(doc.expiry_date) === "valid",
           );
         } else if (filters.certificationStatus === "expiring") {
           hasStatus = teacherDocs.some(
-            (doc) => getExpiryState(doc.expiryDate) === "expiring",
+            (doc) => getExpiryState(doc.expiry_date) === "expiring",
           );
         } else if (filters.certificationStatus === "expired") {
           hasStatus = teacherDocs.some(
-            (doc) => getExpiryState(doc.expiryDate) === "expired",
+            (doc) => getExpiryState(doc.expiry_date) === "expired",
           );
         }
 
@@ -269,7 +268,7 @@ const TeacherDirectoryPage = () => {
                 <TeacherCard
                   key={index}
                   info={value}
-                  isSelected={selectedTeachersId.indexOf(value.userId) != -1}
+                  isSelected={selectedTeachersId.indexOf(value.user) != -1}
                   onTeacherSelect={(userId, checked) => {
                     if (userId != "")
                       setSelectedTeachers((prev) =>

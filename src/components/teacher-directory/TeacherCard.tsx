@@ -1,5 +1,5 @@
 import { getYearsOfService } from "@/lib/utils";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import {
   createImpersonationToken,
   useCurrentUser,
@@ -32,15 +32,15 @@ const TeacherCard = ({
     );
   };
 
-  const complete = info.userId != "";
+  const complete = info.user != "";
 
-  const fullName = `${info.firstName} ${info.middleName} ${info.lastName}`;
+  const fullName = `${info.first_name} ${info.middle_name} ${info.last_name}`;
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50">
       {/* Image Container */}
       <div className="relative h-44 overflow-hidden">
         <img
-          src={info.photoBase64}
+          src={info.photo_base64}
           alt={fullName}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -54,18 +54,10 @@ const TeacherCard = ({
               type="checkbox"
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               checked={isSelected}
-              onChange={(e) => onTeacherSelect(info.userId, e.target.checked)}
+              onChange={(e) => onTeacherSelect(info.user, e.target.checked)}
             />
           </label>
         </div>
-
-        {/* Rating Badge */}
-        {/* <div className="absolute top-3 right-3">
-          <div className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold shadow-sm backdrop-blur-sm">
-            <i className="fas fa-star text-amber-500"></i>
-            <span className="text-slate-700">{info.rating || "0"}</span>
-          </div>
-        </div> */}
 
         {/* Name on Image */}
         <div className="absolute inset-x-0 bottom-0 p-4">
@@ -88,7 +80,7 @@ const TeacherCard = ({
             <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">Employee ID</p>
               <p className="truncate font-medium text-slate-900">
-                {info.employeeId || "—"}
+                {info.employee_id || "—"}
               </p>
             </div>
           </div>
@@ -100,7 +92,7 @@ const TeacherCard = ({
             <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">Years of Service</p>
               <p className="truncate font-medium text-slate-900">
-                {getYearsOfService(info.dateHired)}
+                {getYearsOfService(info.date_hired)}
               </p>
             </div>
           </div>

@@ -1,5 +1,4 @@
 import { useAuth } from "@saintrelion/auth-lib";
-import { useState } from "react";
 
 import {
   RenderForm,
@@ -25,7 +24,9 @@ const LoginPage = () => {
           <h2 className="mb-4 text-3xl font-bold text-white">
             Teacher Profiling System
           </h2>
-        
+          <p className="mb-6 max-w-sm text-blue-100">
+            Securely manage, update, and track teacher profiles with ease.
+          </p>
 
           <img
             src="https://img.freepik.com/free-vector/teacher-concept-illustration_114360-7501.jpg"
@@ -38,7 +39,7 @@ const LoginPage = () => {
         <div className="flex w-full flex-col justify-center space-y-6 p-8 md:w-1/2 md:p-12">
           {/* Header */}
           <div className="text-center">
-           
+            <h1 className="text-4xl font-bold">Welcome Back</h1>
             <p className="mt-1 text-sm text-gray-400">Login to continue</p>
           </div>
 

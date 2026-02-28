@@ -1,10 +1,10 @@
 export interface TeacherPerformance {
   id: string;
-  userId: string;
+  user: string;
   rating: string;
 }
 
 export interface CreateTeacherPerformance {
-  userId: string;
+  user: string;
   rating: string;
 }
