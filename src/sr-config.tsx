@@ -12,7 +12,8 @@ import { setShowQueryTypeOnLogs } from "@saintrelion/data-access-layer/dist/lib/
 
 setShowQueryTypeOnLogs(false);
 
-export const BASE_API = "http://127.0.0.1:8000/";
+export const BASE_API =
+  "http://uog0gwc84go00wso8scsww4w.76.13.217.76.sslip.io/";
 // AUTH-LIB
 setAuthLibClientAppName("teacherprofile");
 setAuthAPIBaseUrl(`${BASE_API}api/auth/`);
@@ -20,5 +21,5 @@ setAuthMode("api-jwt");
 
 // DAL
 setDALClientAppName("teacherprofile");
-setDALApiBaseUrl(`${BASE_API}api/`)
+setDALApiBaseUrl(`${BASE_API}api/`);
 setGlobalMode("api");
