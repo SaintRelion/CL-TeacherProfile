@@ -12,13 +12,13 @@ import { setShowQueryTypeOnLogs } from "@saintrelion/data-access-layer/dist/lib/
 
 setShowQueryTypeOnLogs(false);
 
-export const BASE_API = "127.0.0.1";
+export const BASE_API = "http://127.0.0.1:8000/";
 // AUTH-LIB
 setAuthLibClientAppName("teacherprofile");
-setAuthAPIBaseUrl(`http://${BASE_API}:8000/api/auth/`);
+setAuthAPIBaseUrl(`${BASE_API}api/auth/`);
 setAuthMode("api-jwt");
 
 // DAL
 setDALClientAppName("teacherprofile");
-setDALApiBaseUrl(`http://${BASE_API}:8000/api/`)
+setDALApiBaseUrl(`${BASE_API}api/`)
 setGlobalMode("api");

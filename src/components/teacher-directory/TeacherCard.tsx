@@ -1,10 +1,5 @@
 import { getYearsOfService } from "@/lib/utils";
-import type { User } from "@/models/user";
-import {
-  createImpersonationToken,
-  useCurrentUser,
-} from "@saintrelion/auth-lib";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const TeacherCard = ({
   info,
@@ -15,21 +10,12 @@ const TeacherCard = ({
   isSelected: boolean;
   onTeacherSelect: (userId: string, checked: boolean) => void;
 }) => {
-  const user = useCurrentUser<User>();
-  const [isTokenGenerating, setIsTokenGenerating] = useState(false);
+  const navigate = useNavigate();
 
   if (info == null) return <p>This shouldn't happen, null</p>;
 
   const handleViewProfile = async () => {
-    setIsTokenGenerating(true);
-    const token = await createImpersonationToken(user.id, info.userId);
-    setIsTokenGenerating(false);
-
-    window.open(
-      `/teacherprofileinspect?token=${token}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    navigate(`/admin/teacherprofileinspect?teacher=${info.user}`);
   };
 
   const complete = info.user != "";
@@ -102,20 +88,12 @@ const TeacherCard = ({
         {complete && (
           <button
             onClick={() => handleViewProfile()}
-            disabled={isTokenGenerating}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg disabled:opacity-50"
           >
-            {isTokenGenerating ? (
-              <>
-                <i className="fas fa-spinner fa-spin"></i>
-                <span>Loading...</span>
-              </>
-            ) : (
-              <>
-                <i className="fas fa-user"></i>
-                <span>View Profile</span>
-              </>
-            )}
+            <>
+              <i className="fas fa-user"></i>
+              <span>View Profile</span>
+            </>
           </button>
         )}
       </div>
