@@ -12,8 +12,7 @@ import { setShowQueryTypeOnLogs } from "@saintrelion/data-access-layer/dist/lib/
 
 setShowQueryTypeOnLogs(false);
 
-export const BASE_API =
-  "http://uog0gwc84go00wso8scsww4w.76.13.217.76.sslip.io/";
+export const BASE_API = "https://api.teacherprofiling-kc.online/";
 // AUTH-LIB
 setAuthLibClientAppName("teacherprofile");
 setAuthAPIBaseUrl(`${BASE_API}api/auth/`);
