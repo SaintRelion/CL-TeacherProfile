@@ -23,19 +23,19 @@ export function DocumentPreview({
       <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
         {/* Header */}
         <DialogHeader className="text-md truncate px-4 py-2 font-medium">
-          <DialogTitle>{doc.documentTitle}</DialogTitle>
+          <DialogTitle>{doc.document_title}</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
 
         {/* Content */}
         <div className="min-h-0 flex-1">
           {doc.extension === "pdf" && (
-            <iframe src={doc.fileBase64} className="h-full w-full" />
+            <iframe src={doc.file_base64} className="h-full w-full" />
           )}
 
           {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
             <div className="flex h-full items-center justify-center">
-              <img src={doc.fileBase64} className="max-h-full max-w-full" />
+              <img src={doc.file_base64} className="max-h-full max-w-full" />
             </div>
           )}
 

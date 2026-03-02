@@ -4,6 +4,7 @@ import {
   setAuthMode,
 } from "@saintrelion/auth-lib";
 import {
+  setDALApiBaseUrl,
   setDALClientAppName,
   setGlobalMode,
 } from "@saintrelion/data-access-layer";
@@ -11,11 +12,13 @@ import { setShowQueryTypeOnLogs } from "@saintrelion/data-access-layer/dist/lib/
 
 setShowQueryTypeOnLogs(false);
 
+export const BASE_API = "https://api.teacherprofiling-kc.online/";
 // AUTH-LIB
 setAuthLibClientAppName("teacherprofile");
-setAuthAPIBaseUrl("");
-setAuthMode("firebase");
+setAuthAPIBaseUrl(`${BASE_API}api/auth/`);
+setAuthMode("api-jwt");
 
 // DAL
 setDALClientAppName("teacherprofile");
-setGlobalMode("firebase");
+setDALApiBaseUrl(`${BASE_API}api/`);
+setGlobalMode("api");

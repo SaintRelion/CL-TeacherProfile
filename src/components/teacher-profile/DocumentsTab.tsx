@@ -10,7 +10,7 @@ import {
 import DocumentUpload from "@/components/teacher-profile/DocumentUpload";
 import DocumentExplorer from "../document-repository/DocumentExplorer";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 
 const DocumentsTab = ({ userId }: { userId: string }) => {
@@ -25,7 +25,7 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
   );
   const informations = getInformation({
     filters: {
-      userId: userId,
+      user: userId,
     },
   }).data;
 
@@ -65,7 +65,7 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
           {myInformation != undefined && user != undefined && (
             <DocumentUpload
               userId={userId}
-              fullName={`${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`}
+              fullName={`${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name}`}
             />
           )}
         </DialogContent>

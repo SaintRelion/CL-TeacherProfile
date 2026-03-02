@@ -1,7 +1,7 @@
 import { registerResource } from "@saintrelion/data-access-layer";
 
 registerResource({
-  name: "mynotification",
-  endpoint: "mynotification/",
-  store: "MyNotification",
+  name: "notification",
+  endpoint: "notification/",
+  store: "Notification",
 });

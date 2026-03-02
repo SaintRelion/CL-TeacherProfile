@@ -9,11 +9,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { DOCUMENT_TYPES } from "@/constants";
 import type { DocumentFolder } from "@/models/DocumentFolder";
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -58,16 +57,9 @@ const DashboardPage = () => {
   }, [showWelcome]);
 
   const { useList: getUsers } = useResourceLocked<User>("user");
-  const teachers = getUsers().data;
-
-  const nonAdminTeachers = React.useMemo(() => {
-    if (!teachers) return [];
-    return teachers.filter((t: any) => {
-      // `roles` may be an array or undefined; exclude users with 'admin' role
-      if (!t.roles) return true;
-      return !t.roles.includes("admin");
-    });
-  }, [teachers]);
+  const teachers = getUsers({filters: {
+    groups: 2
+  }}).data;
 
   // Filter teachers based on search
   useEffect(() => {
@@ -82,12 +74,8 @@ const DashboardPage = () => {
 
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
-  const documents = getDocuments().data;
-  const liveDocuments = React.useMemo(() => {
-    if (!documents) return [];
-    return documents.filter((d) => !d.archived);
-  }, [documents]);
-
+  const activeDocuments = getDocuments({filters: {is_archived: "False"}}).data;
+  
   const { useList: getDocumentFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
   const documentFolders = getDocumentFolders().data;
@@ -105,7 +93,7 @@ const DashboardPage = () => {
     >();
 
     // Initialize map with folders (use folder name); fallback to DOCUMENT_TYPES if no folders
-    if (documentFolders && documentFolders.length > 0) {
+    if (documentFolders.length > 0) {
       documentFolders.forEach((f) => {
         map.set(f.name, {
           total: 0,
@@ -115,23 +103,13 @@ const DashboardPage = () => {
           compliantTeachers: new Set<string>(),
         });
       });
-    } else {
-      DOCUMENT_TYPES.forEach((type) =>
-        map.set(type, {
-          total: 0,
-          expired: 0,
-          expiring: 0,
-          valid: 0,
-          compliantTeachers: new Set<string>(),
-        }),
-      );
-    }
+    } 
 
-    if (liveDocuments && liveDocuments.length > 0) {
-      liveDocuments.forEach((doc) => {
+    if ( activeDocuments.length > 0) {
+      activeDocuments.forEach((doc) => {
         const folderName =
           (documentFolders &&
-            documentFolders.find((f) => f.id === doc.folderId)?.name) ||
+            documentFolders.find((f) => f.id === doc.folder)?.name) ||
           "Uncategorized";
 
         if (!map.has(folderName)) {
@@ -144,7 +122,7 @@ const DashboardPage = () => {
           });
         }
 
-        const state = getExpiryState(doc.expiryDate);
+        const state = getExpiryState(doc.expiry_date);
         const bucket = map.get(folderName)!;
 
         bucket.total++;
@@ -154,22 +132,22 @@ const DashboardPage = () => {
             : state === "expiring"
               ? "expiring"
               : "valid";
-        (bucket as any)[key]++;
+        (bucket)[key]++;
 
         // Count teacher as compliant for this folder only when they have at least one VALID document
         if (state === "valid") {
-          bucket.compliantTeachers.add(doc.userId);
+          bucket.compliantTeachers.add(doc.user);
         }
       });
     }
 
     return map;
-  }, [liveDocuments, documentFolders]);
+  }, [activeDocuments, documentFolders]);
 
   const complianceStatus = React.useMemo(() => {
-    const totalTeachers = nonAdminTeachers?.length || 0;
+    const totalTeachers = teacherSearch.length
     return Array.from(complianceMapping.entries()).map(([title, bucket]) => {
-      const { expired, expiring, compliantTeachers } = bucket as any;
+      const { expired, expiring, compliantTeachers } = bucket;
 
       const compliantCount = compliantTeachers ? compliantTeachers.size : 0;
       const compliancePercent =
@@ -208,7 +186,7 @@ const DashboardPage = () => {
         valueClassName,
       };
     });
-  }, [complianceMapping, nonAdminTeachers]);
+  }, [complianceMapping, teacherSearch.length]);
 
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
@@ -228,16 +206,14 @@ const DashboardPage = () => {
     {
       title: "Total Teachers",
       value:
-        nonAdminTeachers == undefined
-          ? "0"
-          : nonAdminTeachers.length.toString(),
+        teachers.length.toString(),
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
       path: "/admin/teacherdirectory",
     },
     {
       title: "Documents Processed",
-      value: liveDocuments == undefined ? "0" : liveDocuments.length.toString(),
+      value: activeDocuments == undefined ? "0" : activeDocuments.length.toString(),
       kpiIcon:
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
@@ -339,9 +315,9 @@ const DashboardPage = () => {
                   </button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-4xl">
-                  {liveDocuments && teachers && (
+                  {activeDocuments && teachers && (
                     <ViewComplianceReport
-                      documents={liveDocuments}
+                      documents={activeDocuments}
                       teachers={teachers}
                     />
                   )}
@@ -527,13 +503,13 @@ const DashboardPage = () => {
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-2xl font-bold text-slate-800">
-                    {nonAdminTeachers?.length || 0}
+                    {teachers.length}
                   </p>
                   <p className="text-xs text-slate-500">Active Users</p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-2xl font-bold text-slate-800">
-                    {liveDocuments?.length || 0}
+                    {activeDocuments?.length || 0}
                   </p>
                   <p className="text-xs text-slate-500">Total Docs</p>
                 </div>

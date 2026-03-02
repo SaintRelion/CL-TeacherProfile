@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/drawer";
 import { NO_FACE_IMAGE } from "@/constants";
 import { resolveImageSource, getYearsOfService } from "@/lib/utils";
-import type { CreateMyNotification } from "@/models/MyNotification";
+import type { CreateNotification } from "@/models/Notification";
 import {
   type CreatePersonalInformation,
   type PersonalInformation,
@@ -25,7 +25,7 @@ import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
 import { useState, useRef } from "react";
-import type { User, UpdateUser } from "@/models/User";
+import type { User, UpdateUser } from "@/models/user";
 import { toast } from "@saintrelion/notifications";
 
 const TeacherProfilePage = () => {
@@ -56,56 +56,57 @@ const TeacherProfilePage = () => {
   >("personalinformation", { showToast: false });
 
   const informations = getInformation({
-    filters: { userId: user.id },
+    filters: { user: user.id },
   }).data;
 
   const myInformation = informations.length > 0 ? informations[0] : null;
   if (myInformation != null) {
     if (selectedProfilePic != "")
-      myInformation.photoBase64 = selectedProfilePic;
-    else if (myInformation.photoBase64 == "")
-      myInformation.photoBase64 = NO_FACE_IMAGE;
+      myInformation.photo_base64 = selectedProfilePic;
+    else if (myInformation.photo_base64 == "")
+      myInformation.photo_base64 = NO_FACE_IMAGE;
   }
 
   const { useInsert: insertNotification } = useResourceLocked<
     never,
-    CreateMyNotification
-  >("mynotification", { showToast: false });
+    CreateNotification
+  >("notification", { showToast: false });
 
   const handleInformationSaveChanges = async (data: Record<string, string>) => {
     try {
-      data.userId = user.id;
-      if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
+      data.user = user.id;
+      if (selectedProfilePic != "") data.photo_base64 = selectedProfilePic;
       console.log(data);
 
       if (myInformation == undefined) {
-        if (selectedProfilePic == "") data.photoBase64 = "";
+        if (selectedProfilePic == "") data.photo_base64 = "";
         await insertInformation.run({
-          userId: user.id,
-          employeeId: data.employeeId,
-          photoBase64: data.photoBase64,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          middleName: data.middleName,
-          dateOfBirth: data.dateOfBirth,
+          user: user.id,
+          employee_id: data.employee_id,
+          photo_base64: data.photo_base64,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          middle_name: data.middle_name,
+          date_of_birth: data.date_of_birth,
           gender: data.gender,
-          civilStatus: data.civilStatus,
+          civil_status: data.civil_status,
           email: data.email,
-          mobileNumber: data.mobileNumber,
-          homeAddress: data.homeAddress,
+          mobile_number: data.mobile_number,
+          home_address: data.home_address,
           position: data.position,
           department: data.department,
-          employmentStatus: data.employmentStatus,
-          dateHired: data.dateHired,
-          salaryGrade: data.salaryGrade,
+          employment_status: data.employment_status,
+          date_hired: data.date_hired,
+          salary_grade: data.salary_grade,
           tin: data.tin,
         });
 
         await insertNotification.run({
-          userId: user.id,
+          user: user.id,
           type: "profileNew",
           title: "New teacher profile created",
-          description: `${data.firstName} ${data.middleName} ${data.lastName} - ${data.department} Department`,
+          description: `${data.first_name} ${data.middle_name} ${data.last_name} - ${data.department} Department`,
+          is_read: false
         });
       } else {
         updateInformation.run({
@@ -114,10 +115,11 @@ const TeacherProfilePage = () => {
         });
 
         await insertNotification.run({
-          userId: user.id,
+          user: user.id,
           type: "profileUpdate",
           title: "Profile updated",
-          description: `${data.firstName} ${data.middleName} ${data.lastName}`,
+          description: `${data.fist_name} ${data.middle_name} ${data.last_name}`,
+          is_read: false
         });
       }
 
@@ -194,7 +196,7 @@ const TeacherProfilePage = () => {
                           <div className="relative mb-4">
                             <img
                               src={resolveImageSource(
-                                myInformation?.photoBase64 || NO_FACE_IMAGE,
+                                myInformation?.photo_base64 || NO_FACE_IMAGE,
                               )}
                               alt="Profile"
                               className="h-24 w-24 rounded-2xl border-4 border-slate-100 object-cover shadow-lg"
@@ -205,7 +207,7 @@ const TeacherProfilePage = () => {
                           </div>
                           <h3 className="text-xl font-bold text-slate-900">
                             {myInformation
-                              ? `${myInformation.firstName} ${myInformation.lastName}`
+                              ? `${myInformation.first_name} ${myInformation.last_name}`
                               : "No Name"}
                           </h3>
                           <p className="text-slate-500">
@@ -225,7 +227,7 @@ const TeacherProfilePage = () => {
                               Employee ID
                             </p>
                             <p className="font-bold text-slate-900">
-                              {myInformation?.employeeId || "—"}
+                              {myInformation?.employee_id || "—"}
                             </p>
                           </div>
                           <div className="rounded-xl bg-purple-50 p-4 text-center">
@@ -244,7 +246,7 @@ const TeacherProfilePage = () => {
                             </p>
                             <p className="font-bold text-slate-900">
                               {getYearsOfService(
-                                myInformation?.dateHired ?? "",
+                                myInformation?.date_hired ?? "",
                               )}
                             </p>
                           </div>
@@ -254,7 +256,7 @@ const TeacherProfilePage = () => {
                               Status
                             </p>
                             <p className="font-bold text-slate-900">
-                              {myInformation?.employmentStatus || "—"}
+                              {myInformation?.employment_status || "—"}
                             </p>
                           </div>
                         </div>
@@ -284,7 +286,7 @@ const TeacherProfilePage = () => {
                               <div>
                                 <p className="text-xs text-slate-400">Mobile</p>
                                 <p className="text-sm font-medium text-slate-700">
-                                  {myInformation?.mobileNumber || "—"}
+                                  {myInformation?.mobile_number || "—"}
                                 </p>
                               </div>
                             </div>
@@ -297,7 +299,7 @@ const TeacherProfilePage = () => {
                                   Address
                                 </p>
                                 <p className="line-clamp-2 text-sm font-medium text-slate-700">
-                                  {myInformation?.homeAddress || "—"}
+                                  {myInformation?.home_address || "—"}
                                 </p>
                               </div>
                             </div>

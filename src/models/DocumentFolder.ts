@@ -1,13 +1,13 @@
 export interface DocumentFolder {
   id: string;
   name: string;
-  userId: string;
-  createdAt: string;
+  user: string;
+  created_at: string;
 }
 
 export interface CreateDocumentFolder {
   name: string;
-  userId: string;
+  user: string;
 }
 
 export interface UpdateDocumentFolder {

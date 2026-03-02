@@ -32,11 +32,6 @@ registerGroupAppRoutes({
       auth: true,
       element: <ForgotPasswordPage />,
     },
-    {
-      path: "teacherprofileinspect",
-      public: true,
-      element: <TeacherProfileInspectPage />,
-    },
   ],
 });
 
@@ -68,6 +63,11 @@ registerGroupAppRoutes({
       element: <DocumentRepositoryPage />,
       label: "Document Repository",
       iconClassName: "fas fa-folder-open",
+      allowedRoles: ["admin"],
+    },
+    {
+      path: "teacherprofileinspect",
+      element: <TeacherProfileInspectPage />,
       allowedRoles: ["admin"],
     },
   ],

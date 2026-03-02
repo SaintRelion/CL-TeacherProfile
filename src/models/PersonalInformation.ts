@@ -1,42 +1,42 @@
 export interface PersonalInformation {
   id: string;
-  userId: string;
-  employeeId: string;
-  photoBase64: string;
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  dateOfBirth: string;
+  user: string;
+  employee_id: string;
+  photo_base64: string;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  date_of_birth: string;
   gender: string;
-  civilStatus: string;
+  civil_status: string;
   email: string;
-  mobileNumber: string;
-  homeAddress: string;
+  mobile_number: string;
+  home_address: string;
   position: string;
   department: string;
-  employmentStatus: string;
-  dateHired: string;
-  salaryGrade: string;
+  employment_status: string;
+  date_hired: string;
+  salary_grade: string;
   tin: string;
 }
 
 export interface CreatePersonalInformation {
-  userId: string;
-  employeeId: string;
-  photoBase64: string;
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  dateOfBirth: string;
+  user: string;
+  employee_id: string;
+  photo_base64: string;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  date_of_birth: string;
   gender: string;
-  civilStatus: string;
+  civil_status: string;
   email: string;
-  mobileNumber: string;
-  homeAddress: string;
+  mobile_number: string;
+  home_address: string;
   position: string;
   department: string;
-  employmentStatus: string;
-  dateHired: string;
-  salaryGrade: string;
+  employment_status: string;
+  date_hired: string;
+  salary_grade: string;
   tin: string;
 }

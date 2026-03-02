@@ -6,16 +6,16 @@ import {
   type CreatePersonalInformation,
   type PersonalInformation,
 } from "@/models/PersonalInformation";
-import type { UpdateUser } from "@/models/User";
-import { validateImpersonationToken } from "@saintrelion/auth-lib";
+import type { UpdateUser } from "@/models/user";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { RenderForm, RenderFormButton } from "@saintrelion/forms";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const TeacherProfileInspectPage = () => {
-  const [tokenStatus, setTokenStatus] = useState<string>("");
-  const [inspectUserId, setInspectUserId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const teacher = searchParams.get("teacher");
 
   const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
     "personal",
@@ -33,11 +33,11 @@ const TeacherProfileInspectPage = () => {
     PersonalInformation,
     CreatePersonalInformation,
     CreatePersonalInformation
-  >("personalinformation");
+  >("inspect_personalinformation");
 
   const informations = getInformation({
     filters: {
-      userId: inspectUserId,
+      user: teacher,
     },
   }).data;
 
@@ -46,39 +46,38 @@ const TeacherProfileInspectPage = () => {
   const myInformation = informations.length > 0 ? informations[0] : null;
   if (myInformation != null) {
     if (selectedProfilePic != "")
-      myInformation.photoBase64 = selectedProfilePic;
-    else if (myInformation.photoBase64 == "")
-      myInformation.photoBase64 = NO_FACE_IMAGE;
+      myInformation.photo_base64 = selectedProfilePic;
+    else if (myInformation.photo_base64 == "")
+      myInformation.photo_base64 = NO_FACE_IMAGE;
   }
 
   const handleInformationSaveChanges = (data: Record<string, string>) => {
-    if (inspectUserId == null) return;
+    if (teacher == null) return;
 
-    data.userId = inspectUserId;
-    if (selectedProfilePic != "") data.photoBase64 = selectedProfilePic;
-    console.log(data);
+    data.userId = teacher;
+    if (selectedProfilePic != "") data.photo_base64 = selectedProfilePic;
 
     if (myInformation == undefined) {
-      if (selectedProfilePic == "") data.photoBase64 = "";
+      if (selectedProfilePic == "") data.photo_base64 = "";
 
       insertInformation.run({
-        userId: inspectUserId,
-        employeeId: data.employeeId,
-        photoBase64: data.photoBase64,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        middleName: data.middleName,
-        dateOfBirth: data.dateOfBirth,
+        user: teacher,
+        employee_id: data.employee_id,
+        photo_base64: data.photo_base64,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        middle_name: data.middle_name,
+        date_of_birth: data.date_of_birth,
         gender: data.gender,
-        civilStatus: data.civilStatus,
+        civil_status: data.civil_status,
         email: data.email,
-        mobileNumber: data.mobileNumber,
-        homeAddress: data.homeAddress,
+        mobile_number: data.mobile_number,
+        home_address: data.home_address,
         position: data.position,
         department: data.department,
-        employmentStatus: data.employementStatus,
-        dateHired: data.dateHired,
-        salaryGrade: data.salaryGrade,
+        employment_status: data.employementStatus,
+        date_hired: data.date_hired,
+        salary_grade: data.salary_grade,
         tin: data.tin,
       });
     } else {
@@ -90,80 +89,11 @@ const TeacherProfileInspectPage = () => {
 
     if (data.emailAddress) {
       updateUser.run({
-        id: inspectUserId,
+        id: teacher,
         payload: { email: data.email },
       });
     }
   };
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("token");
-      const teacherId = params.get("teacherId");
-
-      if (token) {
-        try {
-          const targetUserId = await validateImpersonationToken(token);
-          setInspectUserId(targetUserId);
-        } catch (err: unknown) {
-          console.log(err);
-          setTokenStatus("expired");
-        }
-      } else if (teacherId) {
-        // Direct teacher ID from dashboard
-        setInspectUserId(teacherId);
-        setTokenStatus("direct");
-      } else {
-        setTokenStatus("none");
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  if (tokenStatus == "expired")
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        <div className="text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-100">
-            <i className="fas fa-clock text-3xl text-red-500"></i>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900">Session Expired</h2>
-          <p className="mt-2 text-slate-500">
-            Your inspection token has expired. Please request a new one.
-          </p>
-          <a
-            href="/teacher-directory"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            <i className="fas fa-arrow-left"></i>
-            Back to Directory
-          </a>
-        </div>
-      </div>
-    );
-  else if (tokenStatus == "none")
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        <div className="text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
-            <i className="fas fa-key text-3xl text-amber-500"></i>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900">No Access Token</h2>
-          <p className="mt-2 text-slate-500">
-            Please access this page from the Teacher Directory.
-          </p>
-          <a
-            href="/teacher-directory"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            <i className="fas fa-arrow-left"></i>
-            Go to Directory
-          </a>
-        </div>
-      </div>
-    );
 
   return (
     <RenderForm>
@@ -250,8 +180,8 @@ const TeacherProfileInspectPage = () => {
               )}
 
               {/* DOCUMENTS */}
-              {tabSelected == "documents" && inspectUserId != null && (
-                <DocumentsTab userId={inspectUserId} />
+              {tabSelected == "documents" && teacher != null && (
+                <DocumentsTab userId={teacher} />
               )}
             </div>
           </div>

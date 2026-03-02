@@ -28,16 +28,16 @@ import { getExpiryState, resolveImageSource } from "@/lib/utils";
 import { NO_FACE_IMAGE } from "@/constants";
 import NotificationCard from "./dashboard/NotificationCard";
 import type {
-  CreateMyNotification,
-  MyNotification,
-  UpdateMyNotification,
-} from "@/models/MyNotification";
+  CreateNotification,
+  Notification,
+  UpdateNotification,
+} from "@/models/Notification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toDate } from "@saintrelion/time-functions";
+import { sortByTime } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 
 const Navbar = () => {
   const user = useCurrentUser<User>();
@@ -62,7 +62,7 @@ const Navbar = () => {
 
   const role = user.roles ? user.roles[0] : "";
   const { data: informations } = getInformation({
-    filters: role == "admin" ? {} : { userId: user.id },
+    filters: { user: user.id }
   });
 
   const myInformation = informations != null ? informations[0] : undefined;
@@ -72,95 +72,75 @@ const Navbar = () => {
     useInsert: insertNotifications,
     useUpdate: updateNotifications,
   } = useResourceLocked<
-    MyNotification,
-    CreateMyNotification,
-    UpdateMyNotification
-  >("mynotification", { showToast: false });
+    Notification,
+    CreateNotification,
+    UpdateNotification
+  >("notification", { showToast: false });
 
   const notifications = getNotifications({
     filters:
       role == "admin"
         ? {}
         : {
-            userId: user.id,
+            user: user.id,
           },
   }).data;
-  const sortedNotifications = useMemo(() => {
-    if (!notifications) return [];
-
-    return [...notifications].sort((a, b) => {
-      const aDate = toDate(a.createdAt);
-      const bDate = toDate(b.createdAt);
-
-      if (aDate != null && bDate != null) {
-        const aTime = aDate.getTime() ?? 0;
-        const bTime = bDate.getTime() ?? 0;
-
-        return bTime - aTime; // newest first
-      }
-
-      return -1;
-    });
-  }, [notifications]);
-
-  const existingDescriptions = new Set(
-    sortedNotifications?.map((n) => n.description) ?? [],
-  );
 
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
 
   const documents = getDocuments({
     filters: {
-      userId: user.id,
+      user: user.id,
     },
   }).data;
 
-  // --- Placing Document Expiry Notifs here for now
+  const sortedNotifications = sortByTime(notifications, "created_at"); 
+
+  const existingDescriptions = useRef(new Set());
+    useEffect(() => {
+    if (sortedNotifications?.length > 0) {
+      existingDescriptions.current = new Set(sortedNotifications.map(n => n.description));
+    }
+  }, [sortedNotifications]);
+
   useEffect(() => {
-    if (!myInformation || !documents || !notifications || user.role == "admin")
-      return; // Don't run this for admin
+  if (!myInformation || documents.length === 0 || role === "admin") return;
 
-    const run = async () => {
-      for (const doc of documents) {
-        const status = getExpiryState(doc.expiryDate);
+  const run = async () => {
+    for (const doc of documents) {
+      const status = getExpiryState(doc.expiry_date);
 
-        if (status !== "expiring" && status !== "expired") continue;
+      if (status !== "expiring" && status !== "expired") continue;
 
-        const description = `${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName} - ${doc.documentTitle}`;
+      const description = `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name} - ${doc.document_title}`;
 
-        // 🔒 DUPLICATE CHECK
-        if (existingDescriptions.has(description)) continue;
+      // 🔒 DUPLICATE CHECK
+      if (existingDescriptions.current.has(description)) continue;
 
-        await insertNotifications.run({
-          userId: user.id,
-          type: status,
-          title: `${doc.documentType} ${status}`,
-          description,
-        });
-      }
-    };
+      // Immediately mark as existing to prevent duplicates in this render
+      existingDescriptions.current.add(description);
 
-    run();
-  }, [
-    documents,
-    existingDescriptions,
-    insertNotifications,
-    myInformation,
-    notifications,
-    user.id,
-    user.role,
-  ]);
+      await insertNotifications.run({
+        user: user.id,
+        type: status,
+        title: `${doc.document_title} ${status}`,
+        description,
+        is_read: false
+      });
+    }
+  };
+
+  run();
+}, [documents, myInformation, role, user.id]);
 
   const profilePic =
-    myInformation != undefined ? myInformation.photoBase64 : NO_FACE_IMAGE;
+    myInformation != undefined ? myInformation.photo_base64 : NO_FACE_IMAGE;
 
   // Count only unread notifications
-
   const unreadNotifications = useMemo(() => {
-    if (!notifications) return [];
-    return notifications.filter((n) => !n.isRead);
-  }, [notifications]);
+    return sortedNotifications.length == 0 ? [] : sortedNotifications.filter((n) => !n.is_read);
+  }, [sortedNotifications]);
 
   // Track if notification menu has been opened
   const [notifMenuOpened, setNotifMenuOpened] = useState(false);
@@ -173,11 +153,11 @@ const Navbar = () => {
     setLocalUnreadCount(unreadNotifications.length);
   }, [unreadNotifications]);
 
-  const handleMarkAsRead = async (notification: MyNotification) => {
-    if (!notification.isRead) {
+  const handleMarkAsRead = async (notification: Notification) => {
+    if (!notification.is_read) {
       await updateNotifications.run({
         id: notification.id,
-        payload: { isRead: true },
+        payload: { is_read: true },
       });
       // Optimistically update local unread count
       setLocalUnreadCount((c) => Math.max(0, c - 1));
@@ -187,10 +167,10 @@ const Navbar = () => {
   // Open detailed compliance report dialog for a notification
   const [showComplianceDialog, setShowComplianceDialog] = useState(false);
   const [selectedNotification, setSelectedNotification] =
-    useState<MyNotification | null>(null);
+    useState<Notification | null>(null);
   const navigate = useNavigate();
 
-  const handleNotificationClick = async (notification: MyNotification) => {
+  const handleNotificationClick = async (notification: Notification) => {
     // mark as read
     await handleMarkAsRead(notification);
     // open dialog
@@ -212,8 +192,13 @@ const Navbar = () => {
 
   // Handle photo update
   const handleUpdatePhoto = async () => {
-    if (!photoPreview || !myInformation) {
+    if (!photoPreview ) {
       toast.error("Please select a photo");
+      return;
+    }
+
+    if ( !myInformation) {
+      toast.error("No Personal information for this user");
       return;
     }
 
@@ -222,7 +207,7 @@ const Navbar = () => {
       await updateInformation.run({
         id: myInformation.id,
         payload: {
-          photoBase64: photoPreview,
+          photo_base64: photoPreview,
         } as Partial<PersonalInformation>,
       });
       toast.success("Profile photo updated successfully");
@@ -312,17 +297,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* <div className="mx-8 hidden max-w-md flex-1 md:flex">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search teachers, documents, or records..."
-                className="bg-primary-700 border-primary-600 placeholder-primary-300 focus:ring-accent-500 w-full rounded-lg border py-2 pr-4 pl-10 text-white focus:border-transparent focus:ring-2 focus:outline-none"
-              />
-              <i className="fas fa-search text-primary-300 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
-            </div>
-          </div> */}
-
           <div className="flex items-center space-x-4">
             <DropdownMenu
               onOpenChange={(open) => {
@@ -342,7 +316,7 @@ const Navbar = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="max-h-[450px] min-w-[350px] bg-white shadow-sm"
+                className="max-h-112.5 min-w-87.5 bg-white shadow-sm"
               >
                 <div className="border-b border-slate-200 p-4">
                   <h3 className="text-secondary-900 text-lg font-semibold">
@@ -363,7 +337,7 @@ const Navbar = () => {
                         >
                           <NotificationCard
                             notification={value}
-                            isRead={value.isRead}
+                            isRead={value.is_read}
                           />
                         </div>
                       ))}
@@ -459,7 +433,7 @@ const Navbar = () => {
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoSelect}
-                className="file:bg-primary-500 hover:file:bg-primary-600 block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+                className="file:bg-blue-500 hover:file:bg-primary-600 block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
               />
             </div>
           </div>
@@ -494,25 +468,21 @@ const Navbar = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <i className="fas fa-file-alt text-primary-600"></i>
-              View Expirey Documents
+              View Expiring Documents
             </DialogTitle>
-            <DialogDescription>{selectedNotification?.title}</DialogDescription>
+            <DialogDescription><p className="text-sm text-gray-700">
+              {selectedNotification?.description}
+            </p></DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <p className="text-sm text-gray-700">
-              {selectedNotification?.description}
-            </p>
-          </div>
-
-          <DialogFooter>
+          <DialogFooter className="flex justify-center">
             <button
               onClick={() => setShowComplianceDialog(false)}
               className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Close
             </button>
-            <button
+            {role == "admin" && <button
               onClick={() => {
                 setShowComplianceDialog(false);
                 let searchValue = selectedNotification?.description ?? "";
@@ -527,7 +497,7 @@ const Navbar = () => {
               className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white"
             >
               View Detailed Compliance Report
-            </button>
+            </button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>

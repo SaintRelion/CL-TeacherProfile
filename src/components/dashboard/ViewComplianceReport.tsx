@@ -1,6 +1,6 @@
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import React from "react";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { formatReadableDate } from "@saintrelion/time-functions";
 
 const ViewComplianceReport = ({
   documents,
@@ -30,10 +31,10 @@ const ViewComplianceReport = ({
     });
 
     documents.forEach((doc) => {
-      const bucket = map.get(doc.userId);
+      const bucket = map.get(doc.user);
       if (!bucket) return;
 
-      const state = getExpiryState(doc.expiryDate);
+      const state = getExpiryState(doc.expiry_date);
       if (state === "expired") bucket.expired.push(doc);
       else if (state === "expiring") bucket.expiring.push(doc);
     });
@@ -65,25 +66,25 @@ const ViewComplianceReport = ({
       <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
         {/* Header */}
         <DialogHeader className="text-md truncate border-b border-slate-200 px-4 py-3 font-medium">
-          <DialogTitle>{doc.documentTitle}</DialogTitle>
+          <DialogTitle>{doc.document_title}</DialogTitle>
           <DialogDescription className="mt-1 text-xs text-slate-500">
-            {doc.documentType} • {doc.extension.toUpperCase()} •{" "}
-            {doc.fileSizeInMB} MB
+            {doc.extension.toUpperCase()} •{" "}
+            {doc.file_size_in_mb} MB
           </DialogDescription>
         </DialogHeader>
 
         {/* Content */}
         <div className="min-h-0 flex-1 overflow-auto">
           {doc.extension === "pdf" && (
-            <iframe src={doc.fileBase64} className="h-full w-full" />
+            <iframe src={doc.file_base64} className="h-full w-full" />
           )}
 
           {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
             <div className="flex h-full items-center justify-center bg-slate-50">
               <img
-                src={doc.fileBase64}
+                src={doc.file_base64}
                 className="max-h-full max-w-full"
-                alt={doc.documentTitle}
+                alt={doc.document_title}
               />
             </div>
           )}
@@ -103,8 +104,8 @@ const ViewComplianceReport = ({
         {/* Footer */}
         <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
           <div className="flex justify-between">
-            <span>Issued: {doc.issueDate}</span>
-            <span>Expires: {doc.expiryDate}</span>
+            <span>Issued: {formatReadableDate(doc.issue_date)}</span>
+            <span>Expires: {formatReadableDate(doc.expiry_date)}</span>
           </div>
         </div>
       </DialogContent>
@@ -148,16 +149,16 @@ const ViewComplianceReport = ({
                         key={doc.id}
                         className="bg-error-50 flex items-start gap-3 rounded p-2 text-sm text-slate-700"
                       >
-                        <span className="mt-1 flex-shrink-0">
+                        <span className="mt-1 shrink-0">
                           <i className="fas fa-file-alt text-error-600"></i>
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium">{doc.documentTitle}</p>
+                          <p className="font-medium">{doc.document_title}</p>
                           <p className="text-xs text-slate-600">
-                            {doc.documentType} • Expired on {doc.expiryDate}
+                            {doc.extension.toUpperCase()} • Expired on {formatReadableDate(doc.expiry_date)}
                           </p>
                         </div>
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <DocumentPreviewDialog doc={doc} />
                         </div>
                       </li>
@@ -178,16 +179,16 @@ const ViewComplianceReport = ({
                         key={doc.id}
                         className="bg-warning-50 flex items-start gap-3 rounded p-2 text-sm text-slate-700"
                       >
-                        <span className="mt-1 flex-shrink-0">
+                        <span className="mt-1 shrink-0">
                           <i className="fas fa-file-alt text-warning-600"></i>
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium">{doc.documentTitle}</p>
+                          <p className="font-medium">{doc.document_title}</p>
                           <p className="text-xs text-slate-600">
-                            {doc.documentType} • Expires {doc.expiryDate}
+                            {doc.extension.toUpperCase()} • Expires on {formatReadableDate(doc.expiry_date)}
                           </p>
                         </div>
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <DocumentPreviewDialog doc={doc} />
                         </div>
                       </li>

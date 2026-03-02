@@ -5,3 +5,9 @@ registerResource({
   endpoint: "personalinformation/",
   store: "PersonalInformation",
 });
+
+registerResource({
+  name: "inspect_personalinformation",
+  endpoint: "inspect_personalinformation/",
+  store: "PersonalInformation",
+});

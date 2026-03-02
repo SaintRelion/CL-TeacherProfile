@@ -5,27 +5,20 @@ import { type TeacherDocument } from "@/models/TeacherDocument";
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useCurrentUser } from "@saintrelion/auth-lib";
-import type { User } from "@/models/User";
+import type { User } from "@/models/user";
 import { RenderForm } from "@saintrelion/forms";
 
 const DocumentRepositoryPage = () => {
   const user = useCurrentUser<User>();
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
-  const documents = getDocuments().data;
-  const { useList: getFolders } = useResourceLocked("documentfolder");
-  const documentFolders = getFolders().data;
-
-  const liveDocuments = React.useMemo(() => {
-    if (!documents) return [];
-    return documents.filter((d) => !d.archived);
-  }, [documents]);
+  const liveDocuments = getDocuments({filters: {is_archived: "False"}}).data;
 
   const totalStorageGB = React.useMemo(() => {
-    if (!liveDocuments || liveDocuments.length === 0) return 0;
+    if (liveDocuments.length === 0) return 0;
 
     const totalMB = liveDocuments.reduce((sum, doc) => {
-      const size = parseFloat(doc.fileSizeInMB) || 0; // convert string MB to number
+      const size = parseFloat(doc.file_size_in_mb) || 0; // convert string MB to number
       return sum + size;
     }, 0);
 
@@ -36,7 +29,7 @@ const DocumentRepositoryPage = () => {
   const kpi: Record<string, string>[] = [
     {
       title: "Total Documents",
-      value: liveDocuments == undefined ? "0" : liveDocuments.length.toString(),
+      value: liveDocuments.length.toString(),
       iconClassName:
         "fas fa-file-alt text-primary-600 bg-primary-100 rounded-lg p-2",
     },
@@ -47,7 +40,7 @@ const DocumentRepositoryPage = () => {
     },
     {
       title: "Recent Uploads",
-      value: liveDocuments == undefined ? "0" : liveDocuments.length.toString(),
+      value: liveDocuments.length.toString(),
       iconClassName:
         "fas fa-upload text-success-600 bg-success-100 rounded-lg p-2",
     },

@@ -8,9 +8,9 @@ import {
 interface FolderCardProps {
   userRole: string;
   folderInfo: {
-    folderName: string;
-    filesCount: string;
-    folderId: string;
+    folder_name: string;
+    files_count: string;
+    folder: string;
   };
   selectedFolderId: string;
   onFolderClicked: (folder: string) => void;
@@ -28,9 +28,9 @@ const FolderCard = ({
 }: FolderCardProps) => {
   return (
     <div
-      onClick={() => onFolderClicked(folderInfo.folderId)}
+      onClick={() => onFolderClicked(folderInfo.folder)}
       className={`group relative flex cursor-pointer flex-col items-center rounded-xl p-4 transition-all ${
-        selectedFolderId === folderInfo.folderId
+        selectedFolderId === folderInfo.folder
           ? "bg-blue-50 ring-2 ring-blue-500/20"
           : "hover:bg-slate-50"
       }`}
@@ -50,7 +50,7 @@ const FolderCard = ({
           <DropdownMenuContent align="end" className="w-40 bg-white">
             {onRenameFolder && (
               <DropdownMenuItem
-                onClick={() => onRenameFolder(folderInfo.folderId)}
+                onClick={() => onRenameFolder(folderInfo.folder)}
                 className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
                 <i className="fas fa-edit text-amber-500"></i>
@@ -59,7 +59,7 @@ const FolderCard = ({
             )}
             {onDeleteFolder && (
               <DropdownMenuItem
-                onClick={() => onDeleteFolder(folderInfo.folderId)}
+                onClick={() => onDeleteFolder(folderInfo.folder)}
                 className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
               >
                 <i className="fas fa-trash"></i>
@@ -76,10 +76,10 @@ const FolderCard = ({
         <i className={`fas fa-folder "text-primary-600" text-2xl`}></i>
       </div>
       <span className="text-center text-sm font-medium text-slate-900">
-        {folderInfo.folderName}
+        {folderInfo.folder_name}
       </span>
       <span className="text-xs text-slate-500">
-        {folderInfo.filesCount} files
+        {folderInfo.files_count} files
       </span>
     </div>
   );

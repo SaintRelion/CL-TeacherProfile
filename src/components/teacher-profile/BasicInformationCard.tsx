@@ -12,9 +12,9 @@ const BasicInformationCard = ({
   myInformation: PersonalInformation | null;
   onProfilePicChanged: (profilePic: string) => void;
 }) => {
-  const yearsOfService = getYearsOfService(myInformation?.dateHired ?? "");
+  const yearsOfService = getYearsOfService(myInformation?.date_hired ?? "");
   const fullName = myInformation
-    ? `${myInformation.firstName} ${myInformation.middleName} ${myInformation.lastName}`.trim()
+    ? `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name}`.trim()
     : "No Name";
 
   return (
@@ -43,7 +43,7 @@ const BasicInformationCard = ({
               <div className="relative">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 opacity-20 blur-sm print:hidden"></div>
                 <img
-                  src={resolveImageSource(myInformation?.photoBase64)}
+                  src={resolveImageSource(myInformation?.photo_base64)}
                   alt="Teacher Profile"
                   className="relative h-36 w-36 rounded-2xl border-4 border-white object-cover shadow-lg transition-transform duration-300 group-hover:scale-[1.02] md:h-44 md:w-44 print:h-32 print:w-32 print:border-2 print:border-slate-300 print:shadow-none"
                 />
@@ -108,7 +108,7 @@ const BasicInformationCard = ({
                       Employee ID
                     </p>
                     <p className="text-secondary-900 text-base font-semibold print:text-sm">
-                      {myInformation?.employeeId || "—"}
+                      {myInformation?.employee_id || "—"}
                     </p>
                   </div>
                 </div>
@@ -154,13 +154,13 @@ const BasicInformationCard = ({
               <div className="rounded border border-slate-200 p-2">
                 <p className="text-xs text-slate-600">Date Hired</p>
                 <p className="text-sm font-medium">
-                  {myInformation?.dateHired || "—"}
+                  {myInformation?.date_hired || "—"}
                 </p>
               </div>
               <div className="rounded border border-slate-200 p-2">
                 <p className="text-xs text-slate-600">Employment Status</p>
                 <p className="text-sm font-medium">
-                  {myInformation?.employmentStatus || "—"}
+                  {myInformation?.employment_status || "—"}
                 </p>
               </div>
             </div>

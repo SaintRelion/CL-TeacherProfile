@@ -26,8 +26,8 @@ import type {
   DocumentFolder,
   UpdateDocumentFolder,
 } from "@/models/DocumentFolder";
-import type { User } from "@/models/User";
 import type { PersonalInformation } from "@/models/PersonalInformation";
+import type { User } from "@/models/user";
 
 const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?: string }) => {
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
@@ -62,17 +62,18 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
 
   const role = user.roles ? user.roles[0] : "";
 
-  const documentFolders = getFolders({}).data;
+  const personalInfos = getPersonalInfo().data;
+  const documentFolders = getFolders().data;
 
   const documents = getDocuments({
     filters:
       role === "admin"
         ? {
-            archived: false,
+            is_archived: "False",
           }
         : {
-            userId: user.id,
-            archived: false,
+            user: user.id,
+            is_archived: "False",
           },
   }).data;
 
@@ -81,35 +82,35 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
 
     const map = new Map<
       string,
-      { folderId: string; folderName: string; count: number }
+      { folder: string; folder_name: string; count: number }
     >();
 
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
-        folderId: folder.id,
-        folderName: folder.name,
+        folder: folder.id,
+        folder_name: folder.name,
         count: 0,
       });
     });
 
     documents?.forEach((doc) => {
-      if (!doc.folderId) return;
+      if (!doc.folder) return;
 
-      const entry = map.get(doc.folderId);
+      const entry = map.get(doc.folder);
       if (entry) {
         entry.count += 1;
       }
     });
 
     return Array.from(map.values()).map((f) => ({
-      folderName: f.folderName,
-      filesCount: String(f.count),
-      folderId: f.folderId,
+      folder_name: f.folder_name,
+      files_count: String(f.count),
+      folder: f.folder,
     }));
   }, [documentFolders, documents]);
 
   const folderName =
-    foldersWithDocs.find((f) => f.folderId == selectedFolderId)?.folderName ??
+    foldersWithDocs.find((f) => f.folder == selectedFolderId)?.folder_name ??
     "";
 
   const filteredDocuments = documents.filter((document) => {
@@ -119,15 +120,14 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
     if (
       searchTerm &&
       !(
-        document.documentTitle.toLowerCase().includes(searchTerm) ||
-        document.documentType.toLowerCase().includes(searchTerm)
+        document.document_title.toLowerCase().includes(searchTerm) 
       )
     ) {
       return false;
     }
 
     // Folder filter
-    if (selectedFolderId != "" && document.folderId != selectedFolderId) {
+    if (selectedFolderId != "" && document.folder != selectedFolderId) {
       return false;
     }
 
@@ -137,10 +137,10 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
         case "none":
           // e.g., last 3 files
           if (
-            new Date(document.createdAt) <
+            new Date(document.created_at) <
             new Date(
               Math.max(
-                ...documents.map((f) => new Date(f.createdAt).getTime()),
+                ...documents.map((f) => new Date(f.created_at).getTime()),
               ),
             )
           )
@@ -149,10 +149,10 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
         case "recent":
           // e.g., last 3 files
           if (
-            new Date(document.createdAt) <
+            new Date(document.created_at) <
             new Date(
               Math.max(
-                ...documents.map((f) => new Date(f.createdAt).getTime()),
+                ...documents.map((f) => new Date(f.created_at).getTime()),
               ),
             )
           )
@@ -162,15 +162,14 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
         //     if (!document.status.toLowerCase().includes("expires")) return false;
         //     break;
         case "large":
-          if (parseFloat(document.fileSizeInMB) < 2) return false;
+          if (parseFloat(document.file_size_in_mb) < 2) return false;
           break;
       }
     }
 
     // Department filter: compare document owner department
     if (filters.department) {
-      const personalInfos = getPersonalInfo().data;
-      const ownerInfo = personalInfos?.find((p) => p.userId === document.userId);
+      const ownerInfo = personalInfos?.find((p) => p.user === document.user);
       const dept = (ownerInfo?.department ?? "").toLowerCase();
       const filterDept = filters.department.toLowerCase().replaceAll("-", " ");
 
@@ -183,32 +182,32 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
   const sortedDocuments = [...filteredDocuments].sort((a, b) => {
     switch (filters.sort) {
       case "created": {
-        const aDate = toDate(a.createdAt);
-        const bDate = toDate(b.createdAt);
+        const aDate = toDate(a.created_at);
+        const bDate = toDate(b.created_at);
 
         if (aDate != null && bDate != null)
           return aDate.getTime() - bDate.getTime();
         else return -1;
       }
       case "modified": {
-        const aDate = toDate(a.updatedAt);
-        const bDate = toDate(b.updatedAt);
+        const aDate = toDate(a.updated_at);
+        const bDate = toDate(b.updated_at);
 
         if (aDate != null && bDate != null)
           return aDate.getTime() - bDate.getTime();
         else return -1;
       }
       case "name":
-        return a.documentTitle.localeCompare(b.documentTitle);
+        return a.document_title.localeCompare(b.document_title);
       case "size":
-        return parseFloat(a.fileSizeInMB) - parseFloat(b.fileSizeInMB);
+        return parseFloat(a.file_size_in_mb) - parseFloat(b.file_size_in_mb);
       default:
         return 0;
     }
   });
 
   async function handleNewFolder(data: Record<string, string>) {
-    const folderName = data.folderName.toLowerCase().trim();
+    const folderName = data.folder_name.toLowerCase().trim();
 
     if (documentFolders) {
       const alreadyExist =
@@ -224,24 +223,22 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
 
     await insertFolder.run({
       name: folderName,
-      userId: user.id,
+      user: user.id,
     });
   }
 
   const handleFolderRename = async (data: Record<string, string>) => {
-    if (!data.folderRename.trim()) {
+    if (!data.folder_rename.trim()) {
       toast.error("Folder name cannot be empty");
       return;
     }
 
-    const newName = data.folderRename.toLowerCase().trim();
+    const newName = data.folder_rename.toLowerCase().trim();
 
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
           (value) => value.name.toLowerCase().trim() === newName,
-          // value.id !== folderOwnerId,
-          // TODO: what to really do here? folder unique for all, or different, but then admin?
         ).length > 0;
 
       if (alreadyExist) {
@@ -254,7 +251,7 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
       await updateFolder.run({
         id: selectedFolderId,
         payload: {
-          name: data.folderRename,
+          name: data.folder_rename,
         },
       });
 
@@ -265,13 +262,13 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
     }
   };
 
-  const handleDeleteFolder = async (folderId: string) => {
+  const handleDeleteFolder = async (folder: string) => {
     if (
       window.confirm(
         "Are you sure you want to delete this folder? Documents in this folder will not be deleted.",
       )
     ) {
-      await deleteFolder.run(folderId);
+      await deleteFolder.run(folder);
       toast.success("Folder deleted successfully");
     }
   };
@@ -344,7 +341,7 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
                     </label>
                     <RenderFormField
                       field={{
-                        name: "folderName",
+                        name: "folder_name",
                         type: "text",
                         placeholder: "e.g. Project Files",
                       }}
@@ -367,7 +364,7 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
             {foldersWithDocs.map((value) => {
               return (
                 <FolderCard
-                  key={value.folderId}
+                  key={value.folder}
                   userRole={role}
                   folderInfo={value}
                   selectedFolderId={selectedFolderId}
@@ -399,7 +396,7 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
                 </label>
                 <RenderFormField
                   field={{
-                    name: "folderRename",
+                    name: "folder_rename",
                     type: "text",
                     placeholder: "Enter new folder name",
                   }}
@@ -437,7 +434,7 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
                   if (!updateDocument.isLocked)
                     updateDocument.run({
                       id: doc.id,
-                      payload: { archived: true },
+                      payload: { is_archived: true },
                     });
                 }}
               />

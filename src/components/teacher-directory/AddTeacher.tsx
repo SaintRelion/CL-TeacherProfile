@@ -1,4 +1,4 @@
-import { type CreateTeacherPerformance } from "@/models/Performance";
+import { type CreateTeacherPerformance } from "@/models/TeacherPerformance";
 import { useAuth } from "@saintrelion/auth-lib";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import {
@@ -24,7 +24,7 @@ export default function AddTeacherForm() {
     );
 
     if (userId != null)
-      insertTeacherPerformance.run({ userId: userId, rating: "5" });
+      insertTeacherPerformance.run({ user: userId, rating: "5" });
   };
 
   return (

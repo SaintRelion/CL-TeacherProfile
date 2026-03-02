@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { fileToBase64 } from "@/lib/utils";
 import type { CreateTeacherDocument } from "@/models/TeacherDocument";
-import type { CreateMyNotification } from "@/models/MyNotification";
+import type { CreateNotification } from "@/models/Notification";
 import { FolderSelect } from "../document-repository/FolderSelect";
 import type { DocumentFolder } from "@/models/DocumentFolder";
 import { toast } from "@saintrelion/notifications";
@@ -27,8 +27,8 @@ export default function DocumentForm({
 
   const { useInsert: insertNotification } = useResourceLocked<
     never,
-    CreateMyNotification
-  >("mynotification", { showToast: false });
+    CreateNotification
+  >("notification", { showToast: false });
 
   const { useList: getFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
@@ -69,28 +69,27 @@ export default function DocumentForm({
       const base64 = await fileToBase64(file);
 
       data.extension = extension;
-      data.fileSizeInMB = fileSizeInMB;
-      data.fileBase64 = base64;
-      data.userId = userId;
+      data.file_size_in_mb = fileSizeInMB;
+      data.file_base64 = base64;
+      data.user = userId;
 
       await insertDocument.run({
-        userId: userId,
-        folderId: selectedFolderId,
-        documentTitle: data.documentTitle,
-        // documentType: data.documentType,
-        // documentNumber: data.documentNumber,
-        issueDate: data.issueDate,
-        expiryDate: data.expiryDate,
+        user: userId,
+        folder: selectedFolderId,
+        document_title: data.document_title,
+        issue_date: data.issue_date,
+        expiry_date: data.expiry_date,
         extension: data.extension,
-        fileSizeInMB: data.fileSizeInMB,
-        fileBase64: data.fileBase64,
+        file_size_in_mb: data.file_size_in_mb,
+        file_base64: data.file_base64,
       });
 
       await insertNotification.run({
-        userId: userId,
+        user: userId,
         type: "upload",
         title: "Document uploaded",
-        description: `${data.documentTitle} - ${fullName}`,
+        description: `${data.document_title} - ${fullName}`,
+        is_read: false
       });
 
       toast.success("Document Uploaded");
@@ -108,40 +107,12 @@ export default function DocumentForm({
         field={{
           label: "Document Title *",
           type: "text",
-          name: "documentTitle",
+          name: "document_title",
           placeholder: "Enter title",
         }}
         labelClassName="mb-1 block text-xs font-medium text-gray-700"
         inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
       />
-
-      {/*
-      <RenderFormField
-        field={{
-          label: "Document Type",
-          type: "select",
-          name: "documentType",
-          options: DOCUMENT_TYPES,
-          onValueChange: (value) => {
-            if (typeof value === "string") setSelectedDocumentType(value);
-          },
-        }}
-        labelClassName="mb-1 block text-xs font-medium text-gray-700"
-        inputClassName="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
-
-      {selectedDocumentType !== "" && (
-        <RenderFormField
-          field={{
-            label: `${selectedDocumentType} Number *`,
-            type: "text",
-            name: "documentNumber",
-            placeholder: `Enter ${selectedDocumentType.toLowerCase()} number`,
-          }}
-          labelClassName="mb-1 block text-xs font-medium text-gray-700"
-          inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-        />
-      )} */}
 
       {/* Dates Grid */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
@@ -150,7 +121,7 @@ export default function DocumentForm({
           field={{
             label: "Issue Date *",
             type: "date",
-            name: "issueDate",
+            name: "issue_date",
           }}
           labelClassName="mb-1 block text-xs font-medium text-gray-700"
           inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
@@ -161,7 +132,7 @@ export default function DocumentForm({
           field={{
             label: "Expiry Date *",
             type: "date",
-            name: "expiryDate",
+            name: "expiry_date",
           }}
           labelClassName="mb-1 block text-xs font-medium text-gray-700"
           inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
@@ -206,7 +177,7 @@ export default function DocumentForm({
                 <Upload className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <p className="max-w-[150px] truncate text-sm font-medium text-gray-800">
+                <p className="max-w-37.5 truncate text-sm font-medium text-gray-800">
                   {file.name}
                 </p>
                 <p className="text-[10px] text-gray-500">
