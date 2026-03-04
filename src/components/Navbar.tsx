@@ -39,7 +39,7 @@ import { sortByTime } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
 import type { User } from "@/models/user";
 
-const Navbar = () => {
+const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const user = useCurrentUser<User>();
   const auth = useAuth();
 
@@ -82,8 +82,8 @@ const Navbar = () => {
       role == "admin"
         ? {}
         : {
-            user: user.id,
-          },
+          user: user.id,
+        },
   }).data;
 
   const { useList: getDocuments } =
@@ -95,44 +95,44 @@ const Navbar = () => {
     },
   }).data;
 
-  const sortedNotifications = sortByTime(notifications, "created_at"); 
+  const sortedNotifications = sortByTime(notifications, "created_at");
 
   const existingDescriptions = useRef(new Set());
-    useEffect(() => {
+  useEffect(() => {
     if (sortedNotifications?.length > 0) {
       existingDescriptions.current = new Set(sortedNotifications.map(n => n.description));
     }
   }, [sortedNotifications]);
 
   useEffect(() => {
-  if (!myInformation || documents.length === 0 || role === "admin") return;
+    if (!myInformation || documents.length === 0 || role === "admin") return;
 
-  const run = async () => {
-    for (const doc of documents) {
-      const status = getExpiryState(doc.expiry_date);
+    const run = async () => {
+      for (const doc of documents) {
+        const status = getExpiryState(doc.expiry_date);
 
-      if (status !== "expiring" && status !== "expired") continue;
+        if (status !== "expiring" && status !== "expired") continue;
 
-      const description = `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name} - ${doc.document_title}`;
+        const description = `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name} - ${doc.document_title}`;
 
-      // 🔒 DUPLICATE CHECK
-      if (existingDescriptions.current.has(description)) continue;
+        // 🔒 DUPLICATE CHECK
+        if (existingDescriptions.current.has(description)) continue;
 
-      // Immediately mark as existing to prevent duplicates in this render
-      existingDescriptions.current.add(description);
+        // Immediately mark as existing to prevent duplicates in this render
+        existingDescriptions.current.add(description);
 
-      await insertNotifications.run({
-        user: user.id,
-        type: status,
-        title: `${doc.document_title} ${status}`,
-        description,
-        is_read: false
-      });
-    }
-  };
+        await insertNotifications.run({
+          user: user.id,
+          type: status,
+          title: `${doc.document_title} ${status}`,
+          description,
+          is_read: false
+        });
+      }
+    };
 
-  run();
-}, [documents, myInformation, role, user.id]);
+    run();
+  }, [documents, myInformation, role, user.id]);
 
   const profilePic =
     myInformation != undefined ? myInformation.photo_base64 : NO_FACE_IMAGE;
@@ -192,12 +192,12 @@ const Navbar = () => {
 
   // Handle photo update
   const handleUpdatePhoto = async () => {
-    if (!photoPreview ) {
+    if (!photoPreview) {
       toast.error("Please select a photo");
       return;
     }
 
-    if ( !myInformation) {
+    if (!myInformation) {
       toast.error("No Personal information for this user");
       return;
     }
@@ -284,17 +284,19 @@ const Navbar = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-accent-500 rounded-lg p-2">
-              <i className="fas fa-graduation-cap text-xl text-white"></i>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">
-                Katipunan Central School & SPED Center
-              </h1>
-              <p className="text-primary-200 text-xs">
-                Educational Administration Platform
-              </p>
-            </div>
+            <button
+              onClick={() => toggleSidebar?.()}
+              className="lg:hidden text-white mr-3"
+            >
+              {/* menu bars for mobile */}
+              <i className="fas fa-bars text-xl"></i>
+            </button>
+
+
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-tight">
+              Katipunan Central School & SPED Center
+            </h1>
+
           </div>
 
           <div className="flex items-center space-x-4">
@@ -325,7 +327,7 @@ const Navbar = () => {
                 </div>
                 <div className="p-4">
                   {sortedNotifications == undefined ||
-                  sortedNotifications.length == 0 ? (
+                    sortedNotifications.length == 0 ? (
                     <p className="text-sm text-gray-500"> No Notifications </p>
                   ) : (
                     <div className="space-y-4">
@@ -491,7 +493,7 @@ const Navbar = () => {
                   searchValue = searchValue.substring(lastIdx + 3);
                 navigate(
                   "/admin/documentrepository?q=" +
-                    encodeURIComponent(searchValue),
+                  encodeURIComponent(searchValue),
                 );
               }}
               className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white"
