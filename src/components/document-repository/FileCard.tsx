@@ -6,7 +6,6 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -121,7 +120,9 @@ const FileCard = ({
 
   const handlePrint = async () => {
     try {
-      const byteCharacters = atob(doc.file_base64.split(",")[1] || doc.file_base64);
+      const byteCharacters = atob(
+        doc.file_base64.split(",")[1] || doc.file_base64,
+      );
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -136,12 +137,16 @@ const FileCard = ({
       if (doc.extension === "pdf") {
         const printWindow = window.open("", "_blank");
         if (!printWindow) throw new Error("Popup blocked");
-        printWindow.document.write(`<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0"><iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe><script>const f = document.querySelector('iframe'); f.onload = function(){ setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); },300); };</script></body></html>`);
+        printWindow.document.write(
+          `<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0"><iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe><script>const f = document.querySelector('iframe'); f.onload = function(){ setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); },300); };</script></body></html>`,
+        );
         printWindow.document.close();
       } else if (["png", "jpg", "jpeg", "webp"].includes(doc.extension)) {
         const printWindow = window.open("", "_blank");
         if (!printWindow) throw new Error("Popup blocked");
-        printWindow.document.write(`<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="${url}" style="max-width:100%;max-height:100vh" onload="window.print();"/></body></html>`);
+        printWindow.document.write(
+          `<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="${url}" style="max-width:100%;max-height:100vh" onload="window.print();"/></body></html>`,
+        );
         printWindow.document.close();
       } else {
         // For other types, open in a new tab; user can print from there
@@ -161,7 +166,9 @@ const FileCard = ({
 
   const handleRemove = () => {
     if (
-      window.confirm(`Are you sure you want to archive "${doc.document_title}"?`)
+      window.confirm(
+        `Are you sure you want to archive "${doc.document_title}"?`,
+      )
     ) {
       setIsContextOpen(false);
       onArchive();
@@ -169,83 +176,83 @@ const FileCard = ({
   };
 
   return (
-    <div className="group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md">
+    <div
+      className={`group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md ${doc.is_archived ? "pointer-events-none opacity-50" : ""}`}
+    >
       <div className="mb-3 flex items-start justify-between">
         <i className={`${bg} rounded-lg p-2 ${iconClass}`}></i>
 
-        <div className="flex items-center gap-5 opacity-0 transition-opacity group-hover:opacity-100">
-          <Dialog>
-            <DialogTrigger>
-              <i className="fas fa-eye text-gray-700"></i>
-            </DialogTrigger>
-            <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
-              {/* Header */}
-              <DialogHeader className="text-md truncate px-4 py-2 font-medium">
-                <DialogTitle>{doc.document_title}</DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
+        {/* Action buttons, hidden for archived docs */}
+        {!doc.is_archived && (
+          <div className="flex items-center gap-5 opacity-0 transition-opacity group-hover:opacity-100">
+            <Dialog>
+              <DialogTrigger>
+                <i className="fas fa-eye text-gray-700"></i>
+              </DialogTrigger>
+              <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
+                <DialogHeader className="text-md truncate px-4 py-2 font-medium">
+                  <DialogTitle>{doc.document_title}</DialogTitle>
+                </DialogHeader>
 
-              {/* Content */}
-              <div className="min-h-0 flex-1">
-                {doc.extension === "pdf" && (
-                  <iframe src={doc.file_base64} className="h-full w-full" />
-                )}
+                <div className="min-h-0 flex-1">
+                  {doc.extension === "pdf" && (
+                    <iframe src={doc.file_base64} className="h-full w-full" />
+                  )}
+                  {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
+                    <div className="flex h-full items-center justify-center">
+                      <img
+                        src={doc.file_base64}
+                        className="max-h-full max-w-full"
+                      />
+                    </div>
+                  )}
+                  {!["pdf", "png", "jpg", "jpeg", "webp"].includes(
+                    doc.extension,
+                  ) && (
+                    <div className="text-muted-foreground p-4 text-sm">
+                      Preview not supported for this file type
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
 
-                {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
-                  <div className="flex h-full items-center justify-center">
-                    <img
-                      src={doc.file_base64}
-                      className="max-h-full max-w-full"
-                    />
-                  </div>
-                )}
-
-                {!["pdf", "png", "jpg", "jpeg", "webp"].includes(
-                  doc.extension,
-                ) && (
-                  <div className="text-muted-foreground p-4 text-sm">
-                    Preview not supported for this file type
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
-          <button
-            onClick={() => setIsContextOpen(!isContextOpen)}
-            className="text-secondary-400 hover:text-secondary-600 relative p-1"
-          >
-            <span className="fas fa-ellipsis-v"></span>
-            {isContextOpen && (
-              <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
-                <a
-                  onClick={handleDownload}
-                  className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  <Download size={16} className="text-gray-600" />
-                  <span className="text-sm">Download</span>
-                </a>
-
-                <a
-                  onClick={handlePrint}
-                  className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  <Printer size={16} className="text-gray-600" />
-                  <span className="text-sm">Print</span>
-                </a>
-
-                <a
-                  onClick={handleRemove}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
-                >
-                  <Trash2 size={16} />
-                  <span className="text-sm">Trash</span>
-                </a>
-              </div>
-            )}
-          </button>
-        </div>
+            <button
+              onClick={() => setIsContextOpen(!isContextOpen)}
+              className="text-secondary-400 hover:text-secondary-600 relative p-1"
+            >
+              <span className="fas fa-ellipsis-v"></span>
+              {isContextOpen && (
+                <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                  <a
+                    onClick={handleDownload}
+                    className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    <Download size={16} className="text-gray-600" />
+                    <span className="text-sm">Download</span>
+                  </a>
+                  <a
+                    onClick={handlePrint}
+                    className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    <Printer size={16} className="text-gray-600" />
+                    <span className="text-sm">Print</span>
+                  </a>
+                  <a
+                    onClick={handleRemove}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <Trash2 size={16} />
+                    <span className="text-sm">Trash</span>
+                  </a>
+                </div>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Document info */}
       <div className="flex flex-col items-start">
         <h4 className="text-secondary-900 mb-1 truncate font-medium">
           {doc.document_title}
@@ -255,6 +262,7 @@ const FileCard = ({
           {doc.extension.toUpperCase()} • {doc.file_size_in_mb} MB
         </p>
       </div>
+
       <div className="text-secondary-500 flex items-center justify-between text-xs">
         <span>{formatReadableDate(doc.issue_date)}</span>
         <div className="flex items-center space-x-1">

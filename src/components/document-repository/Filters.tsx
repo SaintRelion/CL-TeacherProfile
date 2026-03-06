@@ -2,10 +2,14 @@ const Filters = ({
   filters,
   onSearchChange,
   onFilterChange,
+  showArchive,
+  onShowArchive,
 }: {
   filters: Record<string, string>;
   onSearchChange: (value: string) => void;
   onFilterChange: (filterType: string, value: string) => void;
+  showArchive: boolean;
+  onShowArchive: (value: boolean) => void;
 }) => {
   return (
     <div className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -53,9 +57,18 @@ const Filters = ({
             <option value="size">File Size</option>
           </select>
 
-          <div className="flex items-center rounded-lg bg-slate-100 p-1">
-            <button className="text-primary-600 rounded-md bg-white p-2 shadow-sm">
-              <i className="fas fa-th-large"></i>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onShowArchive(!showArchive)}
+              className={`rounded-full px-4 py-1 font-medium transition-colors ${
+                showArchive
+                  ? "bg-primary-600 text-white"
+                  : "bg-slate-200 text-gray-700"
+              }`}
+            >
+              <span className="text-sm">
+                {showArchive ? "Archived" : "Active"}
+              </span>
             </button>
           </div>
         </div>

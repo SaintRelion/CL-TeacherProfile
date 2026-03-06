@@ -62,10 +62,14 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          {myInformation != undefined && user != undefined && (
+          {user != undefined && (
             <DocumentUpload
               userId={userId}
-              fullName={`${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name}`}
+              fullName={
+                myInformation != undefined
+                  ? `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name}`
+                  : `Username: ${user.username}`
+              }
             />
           )}
         </DialogContent>

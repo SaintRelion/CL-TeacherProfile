@@ -1,18 +1,37 @@
+import { BASE_API } from "@/sr-config";
 import {
   RenderForm,
   RenderFormButton,
   RenderFormField,
 } from "@saintrelion/forms";
 import { toast } from "@saintrelion/notifications";
+import { useState } from "react";
 
 export default function ForgotPasswordPage() {
-  // const { run: lockedPasswordReset, isLocked: isResetting } =
-  //   useLockedAuth(updatePassword);
-
+  const [sentLink, setSentLink] = useState(false);
   const handleForgotPassword = async (data: Record<string, string>) => {
     if (!data["email"]) return toast.error("Please enter your email");
 
-    // lockedPasswordReset(data["email"]);
+    setSentLink(true);
+    try {
+      const response = await fetch(`${BASE_API}api/accounts/send-reset-link/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data["email"] }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Check your inbox for the reset link!");
+      } else {
+        setSentLink(false);
+        toast.error(result.detail || "Something went wrong.");
+      }
+    } catch (err) {
+      const error = err as Record<string, string>;
+      toast.error(`Network error. Try again. ${error}`);
+    }
   };
 
   return (
@@ -102,6 +121,7 @@ export default function ForgotPasswordPage() {
 
             <RenderFormButton
               buttonLabel="Send Reset Link"
+              isDisabled={sentLink}
               onSubmit={handleForgotPassword}
               buttonClassName="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-semibold text-white shadow-lg shadow-purple-500/25 transition-all hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl disabled:opacity-50"
             />

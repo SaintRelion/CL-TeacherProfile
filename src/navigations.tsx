@@ -16,6 +16,7 @@ import { roleLayoutMap } from "@saintrelion/auth-lib";
 import { PublicLayout } from "./layout/PublicLayout";
 import AdminLayout from "./layout/AdminLayout";
 import InstructorLayout from "./layout/InstructorLayout";
+import ResetPasswordPage from "./pages/authentication/ResetPasswordPage";
 
 roleLayoutMap[""] = {
   redirect: "/",
@@ -31,6 +32,11 @@ registerGroupAppRoutes({
       path: "forgot",
       auth: true,
       element: <ForgotPasswordPage />,
+    },
+    {
+      path: "reset-password",
+      public: true,
+      element: <ResetPasswordPage />,
     },
   ],
 });

@@ -29,7 +29,15 @@ import type {
 import type { PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
 
-const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?: string }) => {
+const DocumentExplorer = ({
+  user,
+  initialSearch,
+}: {
+  user: User;
+  initialSearch?: string;
+}) => {
+  const [showArchive, setShowArchive] = useState(false);
+
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [folderIdToRename, setFolderIdToRename] = useState<string>("");
 
@@ -57,8 +65,9 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
       "teacherdocument",
     );
 
-  const { useList: getPersonalInfo } =
-    useResourceLocked<PersonalInformation>("personalinformation");
+  const { useList: getPersonalInfo } = useResourceLocked<PersonalInformation>(
+    "personalinformation",
+  );
 
   const role = user.roles ? user.roles[0] : "";
 
@@ -68,9 +77,11 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
   const documents = getDocuments({
     filters:
       role === "admin"
-        ? {
-            is_archived: "False",
-          }
+        ? showArchive
+          ? {}
+          : {
+              is_archived: "False",
+            }
         : {
             user: user.id,
             is_archived: "False",
@@ -119,9 +130,7 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
     // Search by fileName, fileType
     if (
       searchTerm &&
-      !(
-        document.document_title.toLowerCase().includes(searchTerm) 
-      )
+      !document.document_title.toLowerCase().includes(searchTerm)
     ) {
       return false;
     }
@@ -290,6 +299,8 @@ const DocumentExplorer = ({ user, initialSearch }: { user: User; initialSearch?:
 
           setFilters((prev) => ({ ...prev, [filterType]: value }));
         }}
+        showArchive={showArchive}
+        onShowArchive={setShowArchive}
       />
 
       <div className="text-secondary-600 mb-6 flex items-center space-x-2 text-sm">
