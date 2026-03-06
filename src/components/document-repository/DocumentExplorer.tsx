@@ -77,9 +77,11 @@ const DocumentExplorer = ({
   const documents = getDocuments({
     filters:
       role === "admin"
-        ? {
-            is_archived: showArchive ? "True" : "False",
-          }
+        ? showArchive
+          ? {}
+          : {
+              is_archived: "False",
+            }
         : {
             user: user.id,
             is_archived: "False",
