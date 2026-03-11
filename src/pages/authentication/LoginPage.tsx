@@ -39,7 +39,7 @@ const LoginPage = () => {
         <div className="flex w-full flex-col justify-center space-y-6 p-8 md:w-1/2 md:p-12">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-4xl font-bold">Welcome Back</h1>
+     
             <p className="mt-1 text-sm text-gray-400">Login to continue</p>
           </div>
 
