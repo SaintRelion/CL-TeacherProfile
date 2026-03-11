@@ -24,9 +24,7 @@ const LoginPage = () => {
           <h2 className="mb-4 text-3xl font-bold text-white">
             Teacher Profiling System
           </h2>
-          <p className="mb-6 max-w-sm text-blue-100">
-            Securely manage, update, and track teacher profiles with ease.
-          </p>
+         
 
           <img
             src="https://img.freepik.com/free-vector/teacher-concept-illustration_114360-7501.jpg"
