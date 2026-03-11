@@ -38,10 +38,10 @@ const LoginPage = () => {
         {/* RIGHT PANEL (Login Form) */}
         <div className="flex w-full flex-col justify-center space-y-6 p-8 md:w-1/2 md:p-12">
           {/* Header */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <h1 className="text-4xl font-bold">Welcome Back</h1>
             <p className="mt-1 text-sm text-gray-400">Login to continue</p>
-          </div>
+          </div> */}
 
           {/* Form */}
           <RenderForm wrapperClassName="w-full max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-5">
