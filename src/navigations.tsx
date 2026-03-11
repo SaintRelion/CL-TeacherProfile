@@ -27,6 +27,9 @@ registerGroupAppRoutes({
   layout: createRoleLayout(""),
   errorElement: <NotFound />,
   children: [
+   { path: "/",
+    element: <LandingPage />,},
+
     { path: "login", auth: true, element: <LoginPage /> },
     {
       path: "forgot",
