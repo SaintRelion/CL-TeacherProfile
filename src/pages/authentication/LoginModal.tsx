@@ -38,7 +38,7 @@ const LoginModal = ({ open, onClose }: Props) => {
         </button>
 
         {/* RIGHT PANEL */}
-        <div className="w-full p-8 font-bold md:w-1/2">
+        <div className="w-full p-8 font-bold">
           <RenderForm wrapperClassName="space-y-5">
             {/* USERNAME */}
             <RenderFormField
