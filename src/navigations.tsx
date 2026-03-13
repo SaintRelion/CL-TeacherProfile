@@ -1,5 +1,4 @@
 import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/authentication/LoginModal";  
 
 import {
   registerGroupAppRoutes,
@@ -28,7 +27,6 @@ registerGroupAppRoutes({
   layout: createRoleLayout(""),
   errorElement: <NotFound />,
   children: [
-   
     { path: "login", auth: true, element: <LandingPage /> },
     {
       path: "forgot",

@@ -27,19 +27,18 @@ const LoginModal = ({ open, onClose }: Props) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-gray-800 shadow-2xl md:flex">
-        
         {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 text-gray-200 hover:text-white"
+          className="absolute top-4 right-4 z-10 text-gray-200 hover:text-white"
         >
           ✕
         </button>
 
         {/* RIGHT PANEL */}
-        <div className="w-full md:w-1/2 p-8 font-bold ">
+        <div className="w-full p-8 font-bold md:w-1/2">
           <RenderForm wrapperClassName="space-y-5">
             {/* USERNAME */}
             <RenderFormField
@@ -73,7 +72,7 @@ const LoginModal = ({ open, onClose }: Props) => {
                 type="button"
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-[38px] flex items-center text-gray-400 hover:text-white"
+                className="absolute top-[38px] right-3 flex items-center text-gray-400 hover:text-white"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
