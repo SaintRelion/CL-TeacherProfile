@@ -1,5 +1,5 @@
 import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/authentication/LoginPage";
+import LoginPage from "./pages/authentication/LoginModal";  
 
 import {
   registerGroupAppRoutes,
@@ -17,6 +17,7 @@ import { PublicLayout } from "./layout/PublicLayout";
 import AdminLayout from "./layout/AdminLayout";
 import InstructorLayout from "./layout/InstructorLayout";
 import ResetPasswordPage from "./pages/authentication/ResetPasswordPage";
+import LandingPage from "./pages/authentication/LandingPage";
 
 roleLayoutMap[""] = {
   redirect: "/",
@@ -27,7 +28,8 @@ registerGroupAppRoutes({
   layout: createRoleLayout(""),
   errorElement: <NotFound />,
   children: [
-    { path: "login", auth: true, element: <LoginPage /> },
+   
+    { path: "login", auth: true, element: <LandingPage /> },
     {
       path: "forgot",
       auth: true,

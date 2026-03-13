@@ -18,12 +18,10 @@ const AdminLayout = () => {
           isOpen={sidebarOpen}
           closeSidebar={() => setSidebarOpen(false)}
         />
-
         {/* Content */}
         <main className="flex-1 p-4 lg:ml-64 transition-all duration-300">
           <Outlet />
         </main>
-
       </div>
     </div>
   );
