@@ -38,7 +38,7 @@ const BulkActions = ({
             className="text-red-600 hover:text-red-700 text-sm font-medium"
           >
             <i className="fas fa-trash mr-1"></i>
-            Delete Selected
+            Trash Selected
           </button>
         </div>
         <button
