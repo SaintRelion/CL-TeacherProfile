@@ -43,7 +43,7 @@ const LoginModal = ({ open, onClose }: Props) => {
             {/* USERNAME */}
             <RenderFormField
               field={{
-                label: "USERNAME",
+                label: "USERNAMES",
                 icon: true,
                 type: "text",
                 name: "username",

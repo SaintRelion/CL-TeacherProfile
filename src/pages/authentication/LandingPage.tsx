@@ -45,39 +45,12 @@ const FEATURES = [
   },
 ];
 
-/* ─── Nav links ──────────────────────────────────────────────────────── */
-const NAV_LINKS = [
-  "Home",
-  "Pages",
-  "Profiles",
-  "Reports",
-  "Research",
-  "News",
-  "Contact",
-];
-
 /* ─── Main Component ─────────────────────────────────────────────────── */
 const LandingPage = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white font-sans text-gray-800">
-      {/* <div className="bg-[#0d1b4b] text-white text-xs py-2 px-6 md:px-12 flex items-center justify-between">
-        <div className="flex items-center gap-5">
-          <span className="flex items-center gap-1.5 text-gray-300">
-            <PhoneIcon /> +63 912 345 6789
-          </span>
-          <span className="hidden sm:flex items-center gap-1.5 text-gray-300">
-            <MailIcon /> info@teacherpro.deped.ph
-          </span>
-        </div>
-        <button
-          onClick={() => setShowLoginModal(true)}
-          className="bg-yellow-400 hover:bg-yellow-300 text-[#0d1b4b] font-bold text-xs px-4 py-1.5 uppercase tracking-wider transition-colors duration-150">
-          Apply Now
-        </button>
-      </div> */}
-
       {/* ══ NAVBAR ═══════════════════════════════════════════════════════ */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 md:px-12">
@@ -91,19 +64,6 @@ const LandingPage = () => {
             <span className="text-xl font-black tracking-tight text-[#0d1b4b] uppercase">
               Teacher<span className="text-yellow-400">Pro</span>
             </span>
-          </div>
-
-          {/* Nav links */}
-          <div className="hidden items-center gap-7 lg:flex">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="text-sm font-semibold tracking-wide text-gray-700 uppercase no-underline transition-colors duration-150 hover:text-yellow-500"
-              >
-                {l}
-              </a>
-            ))}
           </div>
 
           {/* Right icons */}
