@@ -12,7 +12,7 @@ const Filters = ({
   onShowArchive: (value: boolean) => void;
 }) => {
   return (
-    <div className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl flex-1">
           <div className="relative">
@@ -20,10 +20,10 @@ const Filters = ({
               type="text"
               placeholder="Search documents, content, or metadata..."
               onChange={(e) => onSearchChange(e.target.value)}
-              className="focus:ring-primary-500 w-full rounded-lg border border-slate-300 py-3 pr-12 pl-10 focus:border-transparent focus:ring-2 focus:outline-none"
+              className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500 w-full rounded-lg border py-3 pr-12 pl-10 focus:ring-2 focus:outline-none"
             />
-            <i className="fas fa-search text-secondary-400 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
-            <button className="text-secondary-400 hover:text-primary-600 absolute top-1/2 right-3 -translate-y-1/2 transform">
+            <i className="fas fa-search text-gray-400 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
+            <button className="text-gray-400 hover:text-blue-600 absolute top-1/2 right-3 -translate-y-1/2 transform">
               <i className="fas fa-sliders-h"></i>
             </button>
           </div>
@@ -33,7 +33,7 @@ const Filters = ({
           <select
             value={filters.department}
             onChange={(e) => onFilterChange("department", e.target.value)}
-            className="focus:ring-primary-500 rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
+            className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
           >
             <option value="">All Departments</option>
             <option value="mathematics">Mathematics</option>
@@ -48,7 +48,7 @@ const Filters = ({
           <select
             value={filters.sort}
             onChange={(e) => onFilterChange("sort", e.target.value)}
-            className="focus:ring-primary-500 rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
+            className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
           >
             <option value="">Sort By</option>
             <option value="modified">Date Modified</option>
@@ -62,8 +62,8 @@ const Filters = ({
               onClick={() => onShowArchive(!showArchive)}
               className={`rounded-full px-4 py-1 font-medium transition-colors ${
                 showArchive
-                  ? "bg-primary-600 text-white"
-                  : "bg-slate-200 text-gray-700"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700"
               }`}
             >
               <span className="text-sm">
@@ -77,7 +77,9 @@ const Filters = ({
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           onClick={() => onFilterChange("quickTag", "none")}
-          className={`${filters.quickTag == "none" ? "bg-primary-100" : "bg-slate-100"} text-primary-700 hover:bg-primary-200 rounded-full px-3 py-1 text-sm font-medium transition-colors`}
+          className={`${
+            filters.quickTag == "none" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
+          } hover:bg-blue-200 rounded-full px-3 py-1 text-sm font-medium transition-colors`}
         >
           None
         </button>
