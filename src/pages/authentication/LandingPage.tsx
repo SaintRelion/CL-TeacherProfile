@@ -29,19 +29,19 @@ const CheckIcon = () => (
 /* ─── Feature card data ──────────────────────────────────────────────── */
 const FEATURES = [
   {
-    Icon: ScholarshipIcon,
-    title: "Scholarship Facility",
-    desc: "Manage and track teacher scholarship applications, eligibility records, and award histories in one place.",
-  },
-  {
     Icon: LecturerIcon,
-    title: "Skilled Lecturers",
-    desc: "Maintain complete educator profiles including credentials, specializations, and teaching assignments.",
+    title: "Teacher Directory",
+    desc: "Maintain comprehensive teacher profiles including personal information, employment details, qualifications, and contact records in a centralized system.",
   },
   {
     Icon: LibraryIcon,
-    title: "Records & Archives",
-    desc: "Securely store and retrieve teacher documents, certificates, and compliance records at any time.",
+    title: "Document Repository",
+    desc: "Organize and manage teacher credentials, certifications, contracts, and supporting documents by category for easy retrieval and secure storage.",
+  },
+  {
+    Icon: ScholarshipIcon,
+    title: "Compliance Report",
+    desc: "Monitor document validity, identify expired or expiring credentials, and ensure teachers meet institutional and regulatory requirements.",
   },
 ];
 
@@ -62,7 +62,7 @@ const LandingPage = () => {
               </svg>
             </div>
             <span className="text-xl font-black tracking-tight text-[#0d1b4b] uppercase">
-              Teacher<span className="text-yellow-400">Pro</span>
+              Teacher <span className="text-yellow-400">Profiling System</span>
             </span>
           </div>
 
@@ -86,36 +86,35 @@ const LandingPage = () => {
             "linear-gradient(to right, rgba(10,18,50,0.92) 45%, rgba(10,18,50,0.55) 75%, transparent 100%)",
         }}
       >
-        {/* background image via a library/study stock photo */}
-        <img
-          src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 h-full w-full object-cover select-none"
-        />
+     
 
         {/* overlay tint */}
         <div className="absolute inset-0 -z-10 bg-[#0a1232]/70" />
 
-        {/* content */}
-        <div className="relative z-10 mx-auto max-w-7xl px-8 py-24 md:px-16">
+        {/* content wrapper - Added 'grid' and 'items-center' */}
+        <div className="relative z-10 mx-auto max-w-7xl px-8 py-24 md:px-16 grid md:grid-cols-2 gap-8 items-center w-full">
+
+          {/* LEFT SIDE: Text Content */}
           <div className="max-w-xl">
             <h1 className="mb-5 text-4xl leading-tight font-black text-white md:text-5xl">
-              Best Teacher Profiling
+              Teacher Profiling System  
               <br />
-              System for DepEd
+              Katipunan Central School and SPED Center
             </h1>
             <p className="mb-8 max-w-md text-base leading-relaxed text-gray-300">
               A modern platform to manage, track, and update teacher profiles
               securely — designed for Philippine public schools and division
               offices.
             </p>
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="bg-yellow-400 px-8 py-3.5 text-sm font-black tracking-widest text-[#0d1b4b] uppercase transition-colors duration-200 hover:bg-yellow-300"
-            >
-              Get Started
-            </button>
+          </div>
+
+          {/* RIGHT SIDE: Floating Logo */}
+          <div className="flex justify-center md:justify-end animate-pulse-slow">
+            <img
+              src="public/background_logo.png"
+              alt="Katipunan Central School Logo"
+              className="w-84 h-84 md:w-80 md:h-80 object-contain animate-pulse drop-shadow-[0_0_25px_rgba(59,130,246,0.8)]"
+            />
           </div>
         </div>
       </section>
@@ -147,9 +146,9 @@ const LandingPage = () => {
         {/* Left — text */}
         <div>
           <h2 className="mb-6 text-3xl leading-tight font-black text-[#0d1b4b] md:text-4xl">
-            Welcome To Our
+            Welcome to Our
             <br />
-            Teacher Portal
+            Teacher Profiling System
           </h2>
           <p className="mb-4 text-sm leading-relaxed font-semibold text-gray-700">
             A centralized profiling system built to support school
@@ -189,7 +188,7 @@ const LandingPage = () => {
         {/* Right — image */}
         <div className="relative">
           <img
-            src="https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&q=80"
+            src="hero.jpg"
             alt="Teachers at a school"
             className="h-[420px] w-full object-cover shadow-2xl"
           />
