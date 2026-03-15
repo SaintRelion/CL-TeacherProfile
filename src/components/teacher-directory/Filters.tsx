@@ -24,10 +24,10 @@ const Filters = ({
             <input
               type="text"
               placeholder="Search by name, subject, or employee ID..."
-              className="focus:ring-primary-500 w-full rounded-lg border border-slate-300 py-3 pr-4 pl-10 focus:border-transparent focus:ring-2 focus:outline-none"
+              className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500 w-full rounded-lg border py-3 pr-4 pl-10 focus:ring-2 focus:outline-none"
               onChange={(e) => onSearchChange(e.target.value)}
             />
-            <i className="fas fa-search text-secondary-400 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
+            <i className="fas fa-search text-gray-400 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
           </div>
         </div>
 
@@ -36,14 +36,14 @@ const Filters = ({
             onClick={() => setShowFilter(!showFilter)}
             className={`flex items-center space-x-2 rounded-lg border px-4 py-3 transition-all ${
               showFilter
-                ? "border-primary-500 bg-primary-50 text-primary-600"
-                : "border-slate-300 text-secondary-600 hover:bg-slate-50"
+                ? "border-blue-500 bg-blue-50 text-blue-600"
+                : "border-gray-300 text-gray-600 hover:bg-gray-50"
             }`}
           >
             <i className={`fas fa-filter transition-transform ${showFilter ? "rotate-180" : ""}`}></i>
-            <span className="text-secondary-700">Filters</span>
+            <span className="text-gray-700">Filters</span>
           </button>
-          <div className="flex items-center rounded-lg border border-slate-300 p-1">
+          <div className="flex items-center rounded-lg border border-gray-300 p-1">
             <button
               onClick={() => {
                 setGridView("grid");
@@ -51,8 +51,8 @@ const Filters = ({
               }}
               className={`flex items-center space-x-1 rounded-md px-3 py-2 transition-all ${
                 gridView === "grid"
-                  ? "bg-primary-600 text-white shadow-sm"
-                  : "bg-white text-secondary-600 hover:bg-slate-50"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               <i className="fas fa-th-large"></i>
@@ -65,8 +65,8 @@ const Filters = ({
               }}
               className={`flex items-center space-x-1 rounded-md px-3 py-2 transition-all ${
                 gridView === "list"
-                  ? "bg-primary-600 text-white shadow-sm"
-                  : "bg-white text-secondary-600 hover:bg-slate-50"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               <i className="fas fa-list"></i>
@@ -77,16 +77,16 @@ const Filters = ({
       </div>
 
       {showFilter && (
-        <div className="mt-6 border-t border-slate-200 pt-6">
+        <div className="mt-6 border-t border-gray-200 pt-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="text-secondary-700 mb-2 block text-sm font-medium">
+              <label className="text-gray-700 mb-2 block text-sm font-medium">
                 Department
               </label>
               <select
                 value={filters.department}
                 onChange={(e) => onFilterChange("department", e.target.value)}
-                className="focus:ring-primary-500 w-full rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:outline-none"
+                className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 w-full rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
               >
                 <option value="">All Departments</option>
                 <option value="mathematics">Mathematics</option>

@@ -36,14 +36,14 @@ export default function AddTeacherForm() {
           name: "username",
         }}
         labelClassName="mb-2 block text-sm font-medium text-gray-700"
-        inputClassName="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-green-500"
+        inputClassName="w-full rounded-lg border border-gray-300 px-4 py-2 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
       />
 
       <RenderFormButton
         buttonLabel="Add Teacher"
         onSubmit={handleAddTeacher}
         isDisabled={auth.isLocked}
-        buttonClassName="w-full rounded-md bg-green-600 px-4 py-2 font-medium text-white shadow-md transition-colors hover:bg-green-700 hover:shadow-lg"
+        buttonClassName="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white shadow-md transition-colors hover:bg-blue-700 hover:shadow-lg"
       />
     </RenderForm>
   );

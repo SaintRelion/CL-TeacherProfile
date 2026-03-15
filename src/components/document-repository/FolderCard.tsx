@@ -32,7 +32,7 @@ const FolderCard = ({
       className={`group relative flex cursor-pointer flex-col items-center rounded-xl p-4 transition-all ${
         selectedFolderId === folderInfo.folder
           ? "bg-blue-50 ring-2 ring-blue-500/20"
-          : "hover:bg-slate-50"
+          : "hover:bg-gray-50"
       }`}
     >
       {/* Context menu for custom folders */}
@@ -41,7 +41,7 @@ const FolderCard = ({
           <DropdownMenuTrigger asChild>
             <button
               onClick={(e) => e.stopPropagation()}
-              className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-slate-200 hover:text-slate-700"
+              className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-700"
               title="Folder options"
             >
               <i className="fas fa-ellipsis-v text-xs"></i>
@@ -51,9 +51,9 @@ const FolderCard = ({
             {onRenameFolder && (
               <DropdownMenuItem
                 onClick={() => onRenameFolder(folderInfo.folder)}
-                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                <i className="fas fa-edit text-amber-500"></i>
+                <i className="fas fa-edit text-yellow-500"></i>
                 Rename
               </DropdownMenuItem>
             )}
@@ -71,14 +71,14 @@ const FolderCard = ({
       )}
 
       <div
-        className={`bg-primary-100 group-hover:bg-primary-200 mb-2 rounded-xl p-3 transition-all`}
+        className={`bg-blue-100 group-hover:bg-blue-200 mb-2 rounded-xl p-3 transition-all`}
       >
-        <i className={`fas fa-folder "text-primary-600" text-2xl`}></i>
+        <i className={`fas fa-folder text-blue-600 text-2xl`}></i>
       </div>
-      <span className="text-center text-sm font-medium text-slate-900">
+      <span className="text-center text-sm font-medium text-gray-900">
         {folderInfo.folder_name}
       </span>
-      <span className="text-xs text-slate-500">
+      <span className="text-xs text-gray-500">
         {folderInfo.files_count} files
       </span>
     </div>

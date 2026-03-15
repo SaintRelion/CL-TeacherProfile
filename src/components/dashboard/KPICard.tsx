@@ -6,12 +6,12 @@ interface KPICardProps {
 }
 
 const KPICard = ({ kvp, index = 0 }: KPICardProps) => {
-  // Gradient backgrounds based on index for visual variety
+  // Gradient backgrounds based on index for visual variety - Blue-Yellow-White scheme
   const gradients = [
+    { bg: "from-blue-600 to-blue-700", light: "bg-blue-50", text: "text-blue-600" },
+    { bg: "from-yellow-500 to-yellow-600", light: "bg-yellow-50", text: "text-yellow-600" },
     { bg: "from-blue-500 to-blue-600", light: "bg-blue-50", text: "text-blue-600" },
-    { bg: "from-amber-500 to-orange-500", light: "bg-amber-50", text: "text-amber-600" },
-    { bg: "from-emerald-500 to-green-500", light: "bg-emerald-50", text: "text-emerald-600" },
-    { bg: "from-rose-500 to-red-500", light: "bg-rose-50", text: "text-rose-600" },
+    { bg: "from-yellow-500 to-yellow-600", light: "bg-yellow-50", text: "text-yellow-600" },
   ];
   
   const gradient = gradients[index % gradients.length];
@@ -22,7 +22,7 @@ const KPICard = ({ kvp, index = 0 }: KPICardProps) => {
       <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${gradient.bg}`}></div>
       
       {/* Background pattern effect */}
-      <div className={`absolute -right-8 -top-8 h-32 w-32 rounded-full ${gradient.light} opacity-30 blur-2xl`}></div>
+      <div className={`absolute -right-8 -top-8 h-32 w-32 rounded-full ${gradient.light} opacity-20 blur-2xl`}></div>
       
       <div className="relative flex items-start justify-between">
         <div className="flex-1">
@@ -30,12 +30,12 @@ const KPICard = ({ kvp, index = 0 }: KPICardProps) => {
             {kvp.title}
           </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <p className="text-secondary-900 text-4xl font-bold tracking-tight">
+            <p className="text-gray-900 text-4xl font-bold tracking-tight">
               {kvp.value}
             </p>
           </div>
           {kvp.details && (
-            <p className="text-slate-600 mt-4 text-sm">
+            <p className="text-gray-600 mt-4 text-sm">
               {kvp.details}
             </p>
           )}
@@ -47,14 +47,14 @@ const KPICard = ({ kvp, index = 0 }: KPICardProps) => {
       
       {/* Click indicator */}
       {kvp.path && (
-        <div className="absolute bottom-4 right-4 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:bg-slate-200">
-          <i className="fas fa-arrow-right text-slate-600"></i>
+        <div className="absolute bottom-4 right-4 flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:bg-gray-200">
+          <i className="fas fa-arrow-right text-gray-600"></i>
         </div>
       )}
     </>
   );
 
-  const baseClassName = "group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 hover:border-slate-300";
+  const baseClassName = "group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-md transition-all duration-300 hover:shadow-xl hover:shadow-gray-400/20 hover:-translate-y-1 hover:border-blue-300";
 
   // If path is provided, render as a Link
   if (kvp.path) {

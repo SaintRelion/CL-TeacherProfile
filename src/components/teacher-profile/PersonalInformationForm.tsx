@@ -16,13 +16,13 @@ const SectionHeader = ({
 }) => (
   <div className="mb-5 flex items-center gap-3 print:mb-3">
     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 print:hidden">
-      <i className={`${icon} text-blue-500`}></i>
+      <i className={`${icon} text-blue-600`}></i>
     </div>
     <div>
-      <h4 className="text-secondary-900 text-lg font-semibold print:text-base">
+      <h4 className="text-gray-900 text-lg font-semibold print:text-base">
         {title}
       </h4>
-      {subtitle && <p className="text-secondary-400 text-xs">{subtitle}</p>}
+      {subtitle && <p className="text-gray-400 text-xs">{subtitle}</p>}
     </div>
   </div>
 );
@@ -35,11 +35,11 @@ const FieldLabel = ({
   isEditable?: boolean;
 }) => (
   <div className="mb-2 flex items-center gap-2">
-    <span className="text-secondary-700 block text-sm font-medium">
+    <span className="text-gray-700 block text-sm font-medium">
       {label}
     </span>
     {isEditable && (
-      <span className="text-secondary-300 text-xs print:hidden">
+      <span className="text-gray-300 text-xs print:hidden">
         <i className="fas fa-pencil-alt text-[10px]"></i>
       </span>
     )}
@@ -681,131 +681,12 @@ const PersonalInformationForm = ({
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-6 print:border-0 print:p-0">
-          <SectionHeader
-            icon="fas fa-briefcase"
-            title="Employment Details"
-            subtitle="Work-related information"
-          />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print:gap-2">
-            <div>
-              <FieldLabel label="Employee ID" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "text",
-                  name: "employee_id",
-                }}
-                defaultValue={
-                  myInformation == null ? "" : myInformation.employee_id
-                }
-                labelClassName="hidden"
-                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-            <div>
-              <FieldLabel label="Position" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "text",
-                  name: "position",
-                }}
-                defaultValue={
-                  myInformation == null ? "" : myInformation.position
-                }
-                labelClassName="hidden"
-                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-            <div>
-              <FieldLabel label="Department" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "select",
-                  name: "department",
-                  options: [
-                    "Mathematics",
-                    "Science",
-                    "English",
-                    "Filipino",
-                    "Social Studies",
-                  ],
-                }}
-                defaultValue={
-                  myInformation == null ? "" : myInformation.department
-                }
-                labelClassName="hidden"
-                inputClassName="input-field text-md !py-6 print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-            <div>
-              <FieldLabel label="Employment Status" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "select",
-                  name: "employment_status",
-                  options: [
-                    "Permanent",
-                    "Temporary",
-                    "Contractual",
-                    "Substitute",
-                  ],
-                }}
-                defaultValue={
-                  myInformation == null ? "" : myInformation.employment_status
-                }
-                labelClassName="hidden"
-                inputClassName="input-field text-md !py-6 print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-            <div>
-              <FieldLabel label="Date Hired" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "date",
-                  name: "date_hired",
-                }}
-                defaultValue={
-                  myInformation == null ? "" : myInformation.date_hired
-                }
-                labelClassName="hidden"
-                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-            <div>
-              <FieldLabel label="Salary Grade" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "text",
-                  name: "salary_grade",
-                }}
-                defaultValue={
-                  myInformation == null ? "" : myInformation.salary_grade
-                }
-                labelClassName="hidden"
-                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-            <div>
-              <FieldLabel label="TIN" />
-              <RenderFormField
-                field={{
-                  label: "",
-                  type: "text",
-                  name: "tin",
-                }}
-                defaultValue={myInformation == null ? "" : myInformation.tin}
-                labelClassName="hidden"
-                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
-              />
-            </div>
-          </div>
-        </div>
+        
+
+
+
+
+        
       </div>
     </div>
   );

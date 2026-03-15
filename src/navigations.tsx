@@ -60,7 +60,7 @@ registerGroupAppRoutes({
     {
       path: "teacherdirectory",
       element: <TeacherDirectoryPage />,
-      label: "Teacher Directory",
+      label: "Teacher Profile",
       iconClassName: "fas fa-users",
       allowedRoles: ["admin"],
     },

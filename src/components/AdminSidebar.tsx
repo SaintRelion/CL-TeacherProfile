@@ -19,23 +19,23 @@ const AdminSidebar = ({ isOpen, closeSidebar }: Props) => {
       <aside
         className={`
           fixed top-0 left-0 z-50
-          h-full w-64 bg-white shadow-xl
+          h-full w-64 bg-white shadow-lg border-r border-gray-200
           transform transition-transform duration-300 ease-in-out
           lg:translate-x-0
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* 🔥 LOGO SECTION */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200">
-          <div className="flex items-center space-x-3">
-            <div className="bg-primary-600 rounded-lg p-2">
-              <i className="fas fa-graduation-cap text-white text-lg"></i>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 shadow-md flex-shrink-0">
+              <img src="/background_logo.png" alt="" className="w-6 h-6" />
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-slate-800">
-                KCSS
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-gray-900 truncate">
+                KCSSC
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-gray-500 truncate">
                 Admin Panel
               </p>
             </div>
@@ -44,21 +44,21 @@ const AdminSidebar = ({ isOpen, closeSidebar }: Props) => {
           {/* Close button (mobile only) */}
           <button
             onClick={closeSidebar}
-            className="lg:hidden text-slate-500 hover:text-slate-800"
+            className="lg:hidden text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200"
           >
             <i className="fas fa-times text-lg"></i>
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="p-6">
-          <ul className="space-y-2">
+        <nav className="p-4 space-y-1">
+          <ul className="space-y-1">
             {renderNavItems({
               role: "admin",
               baseClassName:
-                "text-secondary-600 flex items-center space-x-3 rounded-lg px-4 py-3 transition hover:bg-slate-100",
+                "text-gray-600 flex items-center space-x-3 rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm",
               activeClassName:
-                "bg-primary-50 text-primary-800 flex items-center space-x-3 rounded-lg px-4 py-3 font-medium",
+                "bg-blue-100 text-blue-700 flex items-center space-x-3 rounded-lg px-4 py-2.5 font-semibold shadow-sm border-l-4 border-blue-600",
             })}
           </ul>
         </nav>

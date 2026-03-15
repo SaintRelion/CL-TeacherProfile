@@ -18,7 +18,7 @@ const BasicInformationCard = ({
     : "No Name";
 
   return (
-    <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm print:mb-4 print:border print:border-slate-300">
+    <div className="mb-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm print:mb-4 print:border print:border-gray-300">
       {/* Gradient Header Bar */}
       <div className="h-2 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 print:hidden"></div>
 
