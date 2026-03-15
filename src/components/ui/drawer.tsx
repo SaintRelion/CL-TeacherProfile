@@ -109,8 +109,8 @@ const DrawerContent = React.forwardRef<HTMLDivElement, DrawerContentProps>(
           ref={ref}
           className={cn(
             "fixed z-50 flex h-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out",
-            side === "right" && "right-0 top-0 w-full max-w-md border-l border-slate-200",
-            side === "left" && "left-0 top-0 w-full max-w-md border-r border-slate-200",
+            side === "right" && "right-0 top-0 w-full max-w-md border-l border-gray-200",
+            side === "left" && "left-0 top-0 w-full max-w-md border-r border-gray-200",
             open
               ? "translate-x-0"
               : side === "right"
@@ -135,7 +135,7 @@ const DrawerHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-6 py-4",
+      "flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white px-6 py-4",
       className
     )}
     {...props}
@@ -149,7 +149,7 @@ const DrawerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-lg font-semibold text-slate-900", className)}
+    className={cn("text-lg font-semibold text-gray-900", className)}
     {...props}
   />
 ));
@@ -161,7 +161,7 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-slate-500", className)}
+    className={cn("text-sm text-gray-600", className)}
     {...props}
   />
 ));
@@ -186,7 +186,7 @@ const DrawerFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4",
+      "flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4",
       className
     )}
     {...props}
@@ -209,7 +209,7 @@ const DrawerClose = React.forwardRef<
     <button
       ref={ref}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600",
+        "flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0",
         className
       )}
       onClick={handleClick}

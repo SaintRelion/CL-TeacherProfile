@@ -7,7 +7,7 @@ import type {
 } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { toDate } from "@saintrelion/time-functions";
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import {
   Dialog,
@@ -28,13 +28,17 @@ import type {
 } from "@/models/DocumentFolder";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
+import formatFolderName from "@/hooks/useFolderNameFormat";
+import { NO_FACE_IMAGE } from "@/constants";
 
 const DocumentExplorer = ({
   user,
   initialSearch,
+  initialFolder,
 }: {
   user: User;
   initialSearch?: string;
+  initialFolder?: string;
 }) => {
   const [showArchive, setShowArchive] = useState(false);
 
@@ -48,6 +52,13 @@ const DocumentExplorer = ({
     quickTag: "",
     department: "",
   });
+
+  // Set selected folder when initialFolder prop changes
+  useEffect(() => {
+    if (initialFolder) {
+      setSelectedFolderId(initialFolder);
+    }
+  }, [initialFolder]);
 
   const {
     useList: getFolders,
@@ -69,7 +80,10 @@ const DocumentExplorer = ({
     "personalinformation",
   );
 
+  const { useList: getUsers } = useResourceLocked<User>("user");
+
   const role = user.roles ? user.roles[0] : "";
+  const allUsers = getUsers().data;
 
   const personalInfos = getPersonalInfo().data;
   const documentFolders = getFolders().data;
@@ -88,6 +102,29 @@ const DocumentExplorer = ({
           },
   }).data;
 
+  // Get teachers who haven't submitted for selected folder
+  const nonSubmittingTeachers = React.useMemo(() => {
+    if (!selectedFolderId || !personalInfos || !documents) return [];
+
+    // Get IDs of teachers who have submitted to this folder
+    const submittedUserIds = new Set(
+      documents
+        .filter((doc) => doc.folder === selectedFolderId)
+        .map((doc) => doc.user)
+    );
+
+    // Get all teachers (those in personalInfos)
+    const allTeachers = personalInfos.map((info) => ({
+      userId: info.user,
+      name: `${info.first_name} ${info.middle_name} ${info.last_name}`.trim(),
+      photo: info.photo_base64 || NO_FACE_IMAGE,
+      department: info.department,
+    }));
+
+    // Return teachers who have NOT submitted to this folder
+    return allTeachers.filter((teacher) => !submittedUserIds.has(teacher.userId));
+  }, [selectedFolderId, personalInfos, documents]);
+
   const foldersWithDocs = React.useMemo(() => {
     if (documentFolders == undefined) return [];
 
@@ -99,7 +136,7 @@ const DocumentExplorer = ({
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
         folder: folder.id,
-        folder_name: folder.name,
+        folder_name: formatFolderName(folder.name),
         count: 0,
       });
     });
@@ -216,22 +253,22 @@ const DocumentExplorer = ({
   });
 
   async function handleNewFolder(data: Record<string, string>) {
-    const folderName = data.folder_name.toLowerCase().trim();
+    const formattedName = formatFolderName(data.folder_name);
 
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
-          (value) => value.name.toLowerCase().trim() == folderName,
+          (value) => formatFolderName(value.name).toLowerCase().trim() == formattedName.toLowerCase().trim(),
         ).length > 0;
 
       if (alreadyExist) {
-        toast.error(`${folderName} already exist`);
+        toast.error(`${formattedName} already exist`);
         return;
       }
     }
 
     await insertFolder.run({
-      name: folderName,
+      name: formattedName,
       user: user.id,
     });
   }
@@ -242,12 +279,12 @@ const DocumentExplorer = ({
       return;
     }
 
-    const newName = data.folder_rename.toLowerCase().trim();
+    const newName = formatFolderName(data.folder_rename);
 
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
-          (value) => value.name.toLowerCase().trim() === newName,
+          (value) => formatFolderName(value.name).toLowerCase().trim() === newName.toLowerCase().trim(),
         ).length > 0;
 
       if (alreadyExist) {
@@ -260,7 +297,7 @@ const DocumentExplorer = ({
       await updateFolder.run({
         id: selectedFolderId,
         payload: {
-          name: data.folder_rename,
+          name: newName,
         },
       });
 
@@ -303,8 +340,8 @@ const DocumentExplorer = ({
         onShowArchive={setShowArchive}
       />
 
-      <div className="text-secondary-600 mb-6 flex items-center space-x-2 text-sm">
-        <i className="fas fa-home"></i>
+      <div className="text-gray-600 mb-6 flex items-center space-x-2 text-sm">
+        <i className="fas fa-home text-blue-600"></i>
         <span
           className="cursor-pointer hover:opacity-60"
           onClick={() => {
@@ -321,10 +358,10 @@ const DocumentExplorer = ({
         )}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 p-6">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-md">
+        <div className="border-b border-gray-100 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-secondary-900 text-lg font-semibold">
+            <h3 className="text-gray-900 text-lg font-semibold">
               Folders
             </h3>
 
@@ -334,7 +371,7 @@ const DocumentExplorer = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
                   >
                     <FolderPlus className="h-4 w-4" />
                     New Folder
@@ -343,11 +380,11 @@ const DocumentExplorer = ({
 
                 <DialogContent className="bg-white sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Create Folder</DialogTitle>
+                    <DialogTitle className="text-gray-900">Create Folder</DialogTitle>
                   </DialogHeader>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
+                    <label className="text-sm font-medium text-gray-700">
                       Folder name
                     </label>
                     <RenderFormField
@@ -398,11 +435,11 @@ const DocumentExplorer = ({
           >
             <DialogContent className="bg-white sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Rename Folder</DialogTitle>
+                <DialogTitle className="text-gray-900">Rename Folder</DialogTitle>
               </DialogHeader>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
+                <label className="text-sm font-medium text-gray-700">
                   New folder name
                 </label>
                 <RenderFormField
@@ -429,12 +466,9 @@ const DocumentExplorer = ({
 
         <div className="p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-secondary-900 text-lg font-semibold">
+            <h3 className="text-gray-900 text-lg font-semibold">
               {selectedFolderId == "" ? "Recent Documents" : folderName}
             </h3>
-            {/* <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-              View all
-            </button> */}
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sortedDocuments.map((doc, index) => (
@@ -451,6 +485,53 @@ const DocumentExplorer = ({
               />
             ))}
           </div>
+
+          {/* Non-Submitting Teachers Section */}
+          {selectedFolderId !== "" && nonSubmittingTeachers.length > 0 && (
+            <div className="mt-8 border-t border-gray-100 pt-8">
+              <div className="mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Teachers Not Yet Submitted
+                </h3>
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-yellow-100 text-xs font-bold text-yellow-700">
+                  {nonSubmittingTeachers.length}
+                </span>
+              </div>
+              <p className="mb-4 text-sm text-gray-600">
+                The following teachers have not submitted documents to this folder
+              </p>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {nonSubmittingTeachers.map((teacher) => (
+                  <div
+                    key={teacher.userId}
+                    className="flex items-center gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4 transition-all hover:shadow-md"
+                  >
+                    <div className="shrink-0 overflow-hidden rounded-full border-2 border-yellow-200">
+                      <img
+                        src={teacher.photo}
+                        alt={teacher.name}
+                        className="h-12 w-12 object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-gray-900">
+                        {teacher.name}
+                      </p>
+                      <p className="truncate text-xs text-gray-600">
+                        {teacher.department || "No Department"}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-200">
+                        <i className="fas fa-exclamation-circle text-xs text-yellow-700"></i>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

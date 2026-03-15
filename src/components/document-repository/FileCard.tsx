@@ -18,43 +18,43 @@ const getDocumentIcon = (ext: string) => {
   if (e === "pdf") {
     return {
       iconClass: "fas fa-file-pdf",
-      bg: "bg-error-100 text-error-600",
+      bg: "bg-red-100 text-red-600",
     };
   }
   if (e === "doc" || e === "docx") {
     return {
       iconClass: "fas fa-file-word",
-      bg: "bg-primary-100 text-primary-600",
+      bg: "bg-blue-100 text-blue-600",
     };
   }
   if (e === "ppt" || e === "pptx") {
     return {
       iconClass: "fas fa-file-powerpoint",
-      bg: "bg-warning-100 text-warning-600",
+      bg: "bg-yellow-100 text-yellow-600",
     };
   }
   if (e === "xls" || e === "xlsx") {
     return {
       iconClass: "fas fa-file-excel",
-      bg: "bg-success-100 text-success-600",
+      bg: "bg-green-100 text-green-600",
     };
   }
   if (e === "jpg" || e === "jpeg" || e === "png") {
     return {
       iconClass: "fas fa-file-image",
-      bg: "bg-accent-100 text-accent-600",
+      bg: "bg-yellow-100 text-yellow-600",
     };
   }
   if (e === "zip" || e === "rar") {
     return {
       iconClass: "fas fa-file-archive",
-      bg: "bg-primary-100 text-primary-600",
+      bg: "bg-blue-100 text-blue-600",
     };
   }
 
   return {
     iconClass: "fas fa-file-alt",
-    bg: "bg-secondary-100 text-secondary-600",
+    bg: "bg-gray-100 text-gray-600",
   };
 };
 
@@ -62,17 +62,17 @@ const getDocumentStatusClassName = (expiry: string) => {
   const status = getExpiryState(expiry);
 
   if (status == "expired") {
-    return { label: "Expired", className: "bg-error-100 text-error-700" };
+    return { label: "Expired", className: "bg-red-100 text-red-700" };
   }
 
   if (status == "expiring") {
     return {
       label: "Expires Soon",
-      className: "bg-warning-100 text-warning-700",
+      className: "bg-yellow-100 text-yellow-700",
     };
   }
 
-  return { label: "Valid", className: "bg-success-100 text-success-700" };
+  return { label: "Valid", className: "bg-green-100 text-green-700" };
 };
 
 const FileCard = ({

@@ -33,23 +33,23 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
 
   return (
     <div>
-      <h4 className="text-secondary-900 mb-6 text-lg font-semibold">
+      <h4 className="text-gray-900 mb-6 text-lg font-semibold">
         Document Repository
       </h4>
 
       <Dialog>
         <DialogTrigger className="w-full">
-          <div className="hover:border-primary-400 hover:bg-primary-50 mb-6 cursor-pointer rounded-lg border-2 border-dashed border-slate-300 p-8 text-center transition-colors">
+          <div className="hover:border-blue-400 hover:bg-blue-50 mb-6 cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors">
             <div className="space-y-3">
-              <div className="bg-primary-100 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-                <i className="fas fa-cloud-upload-alt text-primary-600 text-2xl"></i>
+              <div className="bg-blue-100 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+                <i className="fas fa-cloud-upload-alt text-blue-600 text-2xl"></i>
               </div>
               <div>
-                <p className="text-secondary-900 text-lg font-medium">
+                <p className="text-gray-900 text-lg font-medium">
                   Click to upload files
                 </p>
               </div>
-              <p className="text-secondary-500 text-sm">
+              <p className="text-gray-500 text-sm">
                 Supports PDF, DOC, DOCX, JPG, PNG (Max 10MB)
               </p>
             </div>

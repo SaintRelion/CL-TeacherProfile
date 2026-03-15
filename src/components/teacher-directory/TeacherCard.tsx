@@ -22,7 +22,7 @@ const TeacherCard = ({
 
   const fullName = `${info.first_name} ${info.middle_name} ${info.last_name}`;
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50">
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-gray-300/50">
       {/* Image Container */}
       <div className="relative h-44 overflow-hidden">
         <img
@@ -59,19 +59,19 @@ const TeacherCard = ({
       {/* Content */}
       <div className="p-4">
         <div className="space-y-3">
-          <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2.5">
+          <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100">
               <i className="fas fa-id-badge text-sm text-blue-600"></i>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-slate-500">Employee ID</p>
-              <p className="truncate font-medium text-slate-900">
+              <p className="text-xs text-gray-500">Employee ID</p>
+              <p className="truncate font-medium text-gray-900">
                 {info.employee_id || "—"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2.5">
+          <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
               <i className="fas fa-clock text-sm text-emerald-600"></i>
             </div>

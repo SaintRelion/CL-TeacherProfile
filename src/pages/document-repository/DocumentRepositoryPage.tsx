@@ -31,24 +31,25 @@ const DocumentRepositoryPage = () => {
       title: "Total Documents",
       value: liveDocuments.length.toString(),
       iconClassName:
-        "fas fa-file-alt text-primary-600 bg-primary-100 rounded-lg p-2",
+        "fas fa-file-alt text-blue-600 bg-blue-100 rounded-lg p-2",
     },
     {
       title: "Storage Used",
       value: `${totalStorageGB} GB`,
-      iconClassName: "fas fa-hdd text-accent-600 bg-accent-100 rounded-lg p-2",
+      iconClassName: "fas fa-hdd text-yellow-600 bg-yellow-100 rounded-lg p-2",
     },
     {
       title: "Recent Uploads",
       value: liveDocuments.length.toString(),
       iconClassName:
-        "fas fa-upload text-success-600 bg-success-100 rounded-lg p-2",
+        "fas fa-upload text-blue-600 bg-blue-100 rounded-lg p-2",
     },
   ];
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const q = params.get("q") ?? "";
+  const folder = params.get("folder") ?? "";
 
   return (
     <RenderForm wrapperClassName="flex-1 p-6">
@@ -64,7 +65,7 @@ const DocumentRepositoryPage = () => {
         </div>
       </div>
 
-      <DocumentExplorer user={user} initialSearch={q} />
+      <DocumentExplorer user={user} initialSearch={q} initialFolder={folder} />
     </RenderForm>
   );
 };

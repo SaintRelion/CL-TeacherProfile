@@ -280,13 +280,13 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   };
 
   return (
-    <header className="bg-primary-800 sticky top-0 z-50 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-blue-600 to-blue-700 sticky top-0 z-50 text-white shadow-lg border-b-4 border-yellow-400">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => toggleSidebar?.()}
-              className="lg:hidden text-white mr-3"
+              className="lg:hidden text-white hover:bg-blue-500 rounded-lg p-2 transition-all duration-200 mr-3"
             >
               {/* menu bars for mobile */}
               <i className="fas fa-bars text-xl"></i>
@@ -307,10 +307,10 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               }}
             >
               <DropdownMenuTrigger asChild>
-                <button className="text-primary-200 relative p-2 transition-colors hover:text-white">
+                <button className="text-blue-100 relative p-2 transition-all duration-200 hover:text-white hover:bg-blue-500 rounded-lg">
                   <i className="fas fa-bell text-lg"></i>
                   {localUnreadCount > 0 && !notifMenuOpened && (
-                    <span className="bg-accent-500 absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white">
+                    <span className="bg-yellow-500 absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white">
                       {localUnreadCount > 9 ? "9+" : localUnreadCount}
                     </span>
                   )}
@@ -318,10 +318,10 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="max-h-112.5 min-w-87.5 bg-white shadow-sm"
+                className="max-h-112.5 min-w-87.5 bg-white shadow-lg border border-gray-200"
               >
-                <div className="border-b border-slate-200 p-4">
-                  <h3 className="text-secondary-900 text-lg font-semibold">
+                <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white p-4">
+                  <h3 className="text-gray-900 text-lg font-bold">
                     Notifications
                   </h3>
                 </div>
@@ -330,12 +330,12 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                     sortedNotifications.length == 0 ? (
                     <p className="text-sm text-gray-500"> No Notifications </p>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {sortedNotifications.map((value, index) => (
                         <div
                           key={index}
                           onClick={() => handleNotificationClick(value)}
-                          className="cursor-pointer rounded-lg p-2 transition-colors hover:bg-slate-50"
+                          className="cursor-pointer rounded-lg p-3 transition-all duration-200 hover:bg-blue-50 border border-transparent hover:border-blue-200"
                         >
                           <NotificationCard
                             notification={value}
@@ -345,7 +345,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                       ))}
                     </div>
                   )}
-                  {/* <button className="text-primary-600 hover:text-primary-700 mt-4 w-full text-sm font-medium">
+                  {/* <button className="text-blue-600 hover:text-blue-700 mt-4 w-full text-sm font-medium">
                     View all activity
                   </button> */}
                 </div>
@@ -354,44 +354,44 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="group flex cursor-pointer items-center space-x-2">
+                <div className="group flex cursor-pointer items-center space-x-2 hover:opacity-80 transition-opacity duration-200">
                   <img
                     src={resolveImageSource(profilePic)}
                     alt="Admin Profile"
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="h-8 w-8 rounded-full object-cover border-2 border-yellow-400 shadow-md"
                   />
-                  <span className="text-sm font-medium transition-colors duration-150 group-hover:text-white/70">
+                  <span className="text-sm font-medium text-blue-100 transition-colors duration-150 group-hover:text-white">
                     {user.username}
                   </span>
-                  <i className="fas fa-chevron-down text-primary-300 group-hover:text-primary-600 text-xs transition-colors duration-150"></i>
+                  <i className="fas fa-chevron-down text-blue-200 group-hover:text-white text-xs transition-colors duration-150"></i>
                 </div>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent
                 align="end"
-                className="mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
+                className="mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
               >
                 <DropdownMenuItem
                   onClick={() => setShowUpdatePhoto(true)}
-                  className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+                  className="flex items-center space-x-3 px-4 py-2.5 font-medium transition-all duration-150 hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
                 >
-                  <i className="fas fa-camera"></i>
+                  <i className="fas fa-camera text-blue-600"></i>
                   <span>Update Photo</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={() => setShowUpdatePassword(true)}
-                  className="flex items-center space-x-2 px-4 py-2 font-medium transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+                  className="flex items-center space-x-3 px-4 py-2.5 font-medium transition-all duration-150 hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
                 >
-                  <i className="fas fa-key"></i>
+                  <i className="fas fa-key text-blue-600"></i>
                   <span>Update Password</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={async () => await auth.logout()}
-                  className="flex items-center space-x-2 px-4 py-2 font-medium text-red-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
+                  className="flex items-center space-x-3 px-4 py-2.5 font-medium text-red-600 transition-all duration-150 hover:bg-red-50 hover:text-red-700 cursor-pointer"
                 >
-                  <i className="fas fa-sign-out-alt"></i>
+                  <i className="fas fa-sign-out-alt text-red-600"></i>
                   <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

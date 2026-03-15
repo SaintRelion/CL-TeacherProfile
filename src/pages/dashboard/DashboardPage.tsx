@@ -173,6 +173,9 @@ const DashboardPage = () => {
         description = ` ${compliantCount} of ${totalTeachers} teachers compliant`;
       }
 
+      // Find the folder ID for this title
+      const folderId = documentFolders?.find((f) => f.name === title)?.id;
+
       return {
         wrapperColor,
         iconClassName,
@@ -180,9 +183,10 @@ const DashboardPage = () => {
         description,
         value: `${compliancePercent}%`,
         valueClassName,
+        redirectPath: `/admin/documentrepository?folder=${folderId}`,
       };
     });
-  }, [complianceMapping, teacherSearch.length]);
+  }, [complianceMapping, teacherSearch.length, documentFolders]);
 
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
@@ -228,13 +232,13 @@ const DashboardPage = () => {
   ];
 
   return (
-    <main className="min-h-screen flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 md:p-6 lg:p-8">
+    <main className="min-h-screen flex-1 bg-white p-4 md:p-6 lg:p-8">
       {/* Dashboard Header */}
       <div className="mb-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
          
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <i className="fas fa-calendar-alt"></i>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <i className="fas fa-calendar-alt text-blue-600"></i>
             <span>
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -260,26 +264,26 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Compliance Status - Takes 2 columns */}
         <div className="lg:col-span-2">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl">
             {/* Card Header */}
-            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+            <div className="border-b border-gray-100 bg-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30">
                     <i className="fas fa-clipboard-check text-xl text-white"></i>
                   </div>
                   <div>
-                    <h3 className="text-secondary-900 text-lg font-semibold">
+                    <h3 className="text-gray-900 text-lg font-semibold">
                       Compliance Status
                     </h3>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-gray-500">
                       Document compliance by folder
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1">
-                  <span className="h-2 w-2 rounded-full bg-blue-600"></span>
-                  <span className="text-xs font-semibold text-blue-600">
+                <div className="flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1">
+                  <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+                  <span className="text-xs font-semibold text-yellow-700">
                     {complianceStatus.length} Categories
                   </span>
                 </div>
@@ -299,6 +303,7 @@ const DashboardPage = () => {
                     description={card.description}
                     value={card.value}
                     valueClassName={card.valueClassName}
+                    redirectPath={card.redirectPath}
                   />
                 ))}
               </div>
@@ -306,12 +311,12 @@ const DashboardPage = () => {
               {/* View Report Button */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-600 hover:to-blue-700 hover:shadow-2xl hover:shadow-blue-500/40">
+                  <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:shadow-blue-600/40 active:translate-y-0">
                     <i className="fas fa-chart-bar"></i>
                     View Expiry Document Reports
                   </button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl sm:max-w-4xl">
                   {activeDocuments && teachers && (
                     <ViewComplianceReport
                       documents={activeDocuments}
@@ -326,49 +331,49 @@ const DashboardPage = () => {
 
         {/* Quick Actions Sidebar */}
         <div className="lg:col-span-1">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
-            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl">
+            <div className="border-b border-gray-100 bg-white px-6 py-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg shadow-yellow-500/30">
                   <i className="fas fa-bolt text-xl text-white"></i>
                 </div>
                 <div>
-                  <h3 className="text-secondary-900 text-lg font-semibold">
+                  <h3 className="text-gray-900 text-lg font-semibold">
                     Quick Actions
                   </h3>
-                  <p className="text-sm text-slate-500">Common tasks</p>
+                  <p className="text-sm text-gray-500">Common tasks</p>
                 </div>
               </div>
             </div>   
             <div className="space-y-2 p-4">
               <Link
                 to="/admin/teacherdirectory"
-                className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-blue-50 hover:shadow-sm"
+                className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-blue-50 hover:shadow-md"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
                   <i className="fas fa-user-plus"></i>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-800">
+                  <p className="text-sm font-semibold text-gray-800">
                     Add New Teacher
                   </p>
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-xs text-gray-500">
                     Register faculty
                   </p>
                 </div>
               </Link>
               <Link
                 to="/admin/documentrepository"
-                className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-amber-50 hover:shadow-sm"
+                className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-yellow-50 hover:shadow-md"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-yellow-600 group-hover:text-white">
                   <i className="fas fa-folder-plus"></i>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-800">
+                  <p className="text-sm font-semibold text-gray-800">
                     Upload Documents
                   </p>
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-xs text-gray-500">
                     Add teacher docs
                   </p>
                 </div>
@@ -380,15 +385,15 @@ const DashboardPage = () => {
               >
          
                 <DialogTrigger asChild>
-                  <button className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-emerald-50 hover:shadow-sm">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white">
+                  <button className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-blue-50 hover:shadow-md">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
                       <i className="fas fa-user-edit"></i>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-800">
+                      <p className="text-sm font-semibold text-gray-800">
                         Update Profile
                       </p>
-                      <p className="truncate text-xs text-slate-500">
+                      <p className="truncate text-xs text-gray-500">
                         Edit teacher profile
                       </p>
                     </div>
@@ -414,7 +419,7 @@ const DashboardPage = () => {
                         placeholder="Search by name or email..."
                         value={teacherSearch}
                         onChange={(e) => setTeacherSearch(e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
@@ -427,15 +432,15 @@ const DashboardPage = () => {
                             onClick={() => setSelectedTeacherId(teacher.id)}
                             className={`w-full rounded-lg border-2 p-3 text-left transition-all duration-200 ${
                               selectedTeacherId === teacher.id
-                                ? "border-emerald-500 bg-emerald-50"
-                                : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                             }`}
                           >
-                            <p className="font-semibold text-slate-800">
+                            <p className="font-semibold text-gray-800">
                               {teacher.username}
                             </p>
                             {selectedTeacherId === teacher.id && (
-                              <div className="mt-2 flex items-center gap-1 text-emerald-600">
+                              <div className="mt-2 flex items-center gap-1 text-blue-600">
                                 <i className="fas fa-check text-sm"></i>
                                 <span className="text-xs font-medium">
                                   Selected
