@@ -479,13 +479,6 @@ const DocumentExplorer = ({
                       payload: { is_archived: true },
                     });
                 }}
-                onRestore={() => {
-                  if (!updateDocument.isLocked)
-                    updateDocument.run({
-                      id: doc.id,
-                      payload: { is_archived: false },
-                    });
-                }}
               />
             ))}
           </div>
