@@ -40,8 +40,6 @@ const DocumentExplorer = ({
   initialSearch?: string;
   initialFolder?: string;
 }) => {
-  const [showArchive, setShowArchive] = useState(false);
-
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [folderIdToRename, setFolderIdToRename] = useState<string>("");
 
@@ -88,11 +86,7 @@ const DocumentExplorer = ({
   const documents = getDocuments({
     filters:
       role === "admin"
-        ? showArchive
-          ? {}
-          : {
-              is_archived: "False",
-            }
+        ? { is_archived: "False" }
         : {
             user: user.id,
             is_archived: "False",
@@ -107,7 +101,7 @@ const DocumentExplorer = ({
     const submittedUserIds = new Set(
       documents
         .filter((doc) => doc.folder === selectedFolderId)
-        .map((doc) => doc.user)
+        .map((doc) => doc.user),
     );
 
     // Get all teachers (those in personalInfos)
@@ -119,7 +113,9 @@ const DocumentExplorer = ({
     }));
 
     // Return teachers who have NOT submitted to this folder
-    return allTeachers.filter((teacher) => !submittedUserIds.has(teacher.userId));
+    return allTeachers.filter(
+      (teacher) => !submittedUserIds.has(teacher.userId),
+    );
   }, [selectedFolderId, personalInfos, documents]);
 
   const foldersWithDocs = React.useMemo(() => {
@@ -255,7 +251,9 @@ const DocumentExplorer = ({
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
-          (value) => formatFolderName(value.name).toLowerCase().trim() == formattedName.toLowerCase().trim(),
+          (value) =>
+            formatFolderName(value.name).toLowerCase().trim() ==
+            formattedName.toLowerCase().trim(),
         ).length > 0;
 
       if (alreadyExist) {
@@ -281,7 +279,9 @@ const DocumentExplorer = ({
     if (documentFolders) {
       const alreadyExist =
         documentFolders.filter(
-          (value) => formatFolderName(value.name).toLowerCase().trim() === newName.toLowerCase().trim(),
+          (value) =>
+            formatFolderName(value.name).toLowerCase().trim() ===
+            newName.toLowerCase().trim(),
         ).length > 0;
 
       if (alreadyExist) {
@@ -333,11 +333,9 @@ const DocumentExplorer = ({
 
           setFilters((prev) => ({ ...prev, [filterType]: value }));
         }}
-        showArchive={showArchive}
-        onShowArchive={setShowArchive}
       />
 
-      <div className="text-gray-600 mb-6 flex items-center space-x-2 text-sm">
+      <div className="mb-6 flex items-center space-x-2 text-sm text-gray-600">
         <i className="fas fa-home text-blue-600"></i>
         <span
           className="cursor-pointer hover:opacity-60"
@@ -358,9 +356,7 @@ const DocumentExplorer = ({
       <div className="rounded-xl border border-gray-200 bg-white shadow-md">
         <div className="border-b border-gray-100 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-gray-900 text-lg font-semibold">
-              Folders
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Folders</h3>
 
             {role == "admin" && (
               <Dialog>
@@ -368,7 +364,7 @@ const DocumentExplorer = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
+                    className="flex items-center gap-2 border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50"
                   >
                     <FolderPlus className="h-4 w-4" />
                     New Folder
@@ -377,7 +373,9 @@ const DocumentExplorer = ({
 
                 <DialogContent className="bg-white sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-gray-900">Create Folder</DialogTitle>
+                    <DialogTitle className="text-gray-900">
+                      Create Folder
+                    </DialogTitle>
                   </DialogHeader>
 
                   <div className="space-y-2">
@@ -432,7 +430,9 @@ const DocumentExplorer = ({
           >
             <DialogContent className="bg-white sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-gray-900">Rename Folder</DialogTitle>
+                <DialogTitle className="text-gray-900">
+                  Rename Folder
+                </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-2">
@@ -463,7 +463,7 @@ const DocumentExplorer = ({
 
         <div className="p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-gray-900 text-lg font-semibold">
+            <h3 className="text-lg font-semibold text-gray-900">
               {selectedFolderId == "" ? "Recent Documents" : folderName}
             </h3>
           </div>
@@ -477,6 +477,13 @@ const DocumentExplorer = ({
                     updateDocument.run({
                       id: doc.id,
                       payload: { is_archived: true },
+                    });
+                }}
+                onRestore={() => {
+                  if (!updateDocument.isLocked)
+                    updateDocument.run({
+                      id: doc.id,
+                      payload: { is_archived: false },
                     });
                 }}
               />
@@ -495,7 +502,8 @@ const DocumentExplorer = ({
                 </span>
               </div>
               <p className="mb-4 text-sm text-gray-600">
-                The following teachers have not submitted documents to this folder
+                The following teachers have not submitted documents to this
+                folder
               </p>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
