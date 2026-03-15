@@ -3,13 +3,6 @@ import type { TeacherDocument } from "@/models/TeacherDocument";
 import { Download, Trash2, Printer } from "lucide-react";
 import { useState } from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { formatReadableDate } from "@saintrelion/time-functions";
 
 const getDocumentIcon = (ext: string) => {
@@ -78,9 +71,11 @@ const getDocumentStatusClassName = (expiry: string) => {
 const FileCard = ({
   doc,
   onArchive,
+  onRestore,
 }: {
   doc: TeacherDocument;
-  onArchive: () => void;
+  onArchive?: () => void;
+  onRestore?: () => void;
 }) => {
   const { iconClass, bg } = getDocumentIcon(doc.extension);
   const statusClassName = getDocumentStatusClassName(doc.expiry_date);
@@ -164,7 +159,9 @@ const FileCard = ({
     setIsContextOpen(false);
   };
 
-  const handleRemove = () => {
+  const handleArchive = () => {
+    if (!onArchive) return;
+
     if (
       window.confirm(
         `Are you sure you want to archive "${doc.document_title}"?`,
@@ -175,55 +172,38 @@ const FileCard = ({
     }
   };
 
+  const handleRestore = () => {
+    if (!onRestore) return;
+    if (
+      window.confirm(
+        `Are you sure you want to restore "${doc.document_title}"?`,
+      )
+    ) {
+      setIsContextOpen(false);
+      onRestore();
+    }
+  };
+
   return (
     <div
-      className={`group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md ${doc.is_archived ? "pointer-events-none opacity-50" : ""}`}
+      className={`group cursor-pointer rounded-lg border border-slate-200 p-4 transition-shadow hover:shadow-md ${doc.is_archived ? "opacity-70" : ""}`}
     >
       <div className="mb-3 flex items-start justify-between">
         <i className={`${bg} rounded-lg p-2 ${iconClass}`}></i>
 
         {/* Action buttons, hidden for archived docs */}
-        {!doc.is_archived && (
-          <div className="flex items-center gap-5 opacity-0 transition-opacity group-hover:opacity-100">
-            <Dialog>
-              <DialogTrigger>
-                <i className="fas fa-eye text-gray-700"></i>
-              </DialogTrigger>
-              <DialogContent className="flex h-[95vh] flex-col bg-white p-0">
-                <DialogHeader className="text-md truncate px-4 py-2 font-medium">
-                  <DialogTitle>{doc.document_title}</DialogTitle>
-                </DialogHeader>
+        <div className="relative flex items-center gap-5 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={() => setIsContextOpen(!isContextOpen)}
+            className="text-secondary-400 hover:text-secondary-600 p-1"
+          >
+            <span className="fas fa-ellipsis-v"></span>
+          </button>
 
-                <div className="min-h-0 flex-1">
-                  {doc.extension === "pdf" && (
-                    <iframe src={doc.file_base64} className="h-full w-full" />
-                  )}
-                  {["png", "jpg", "jpeg", "webp"].includes(doc.extension) && (
-                    <div className="flex h-full items-center justify-center">
-                      <img
-                        src={doc.file_base64}
-                        className="max-h-full max-w-full"
-                      />
-                    </div>
-                  )}
-                  {!["pdf", "png", "jpg", "jpeg", "webp"].includes(
-                    doc.extension,
-                  ) && (
-                    <div className="text-muted-foreground p-4 text-sm">
-                      Preview not supported for this file type
-                    </div>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <button
-              onClick={() => setIsContextOpen(!isContextOpen)}
-              className="text-secondary-400 hover:text-secondary-600 relative p-1"
-            >
-              <span className="fas fa-ellipsis-v"></span>
-              {isContextOpen && (
-                <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+          {isContextOpen && (
+            <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+              {!doc.is_archived ? (
+                <>
                   <a
                     onClick={handleDownload}
                     className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
@@ -239,17 +219,26 @@ const FileCard = ({
                     <span className="text-sm">Print</span>
                   </a>
                   <a
-                    onClick={handleRemove}
+                    onClick={handleArchive}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
                   >
                     <Trash2 size={16} />
-                    <span className="text-sm">Trash</span>
+                    <span className="text-sm">Archive</span>
                   </a>
-                </div>
+                </>
+              ) : (
+                <>
+                  <a
+                    onClick={handleRestore}
+                    className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-green-600 transition-colors hover:bg-green-50"
+                  >
+                    <span className="text-sm">Restore</span>
+                  </a>
+                </>
               )}
-            </button>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Document info */}

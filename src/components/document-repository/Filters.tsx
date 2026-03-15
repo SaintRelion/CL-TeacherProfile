@@ -2,14 +2,10 @@ const Filters = ({
   filters,
   onSearchChange,
   onFilterChange,
-  showArchive,
-  onShowArchive,
 }: {
   filters: Record<string, string>;
   onSearchChange: (value: string) => void;
   onFilterChange: (filterType: string, value: string) => void;
-  showArchive: boolean;
-  onShowArchive: (value: boolean) => void;
 }) => {
   return (
     <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -20,10 +16,10 @@ const Filters = ({
               type="text"
               placeholder="Search documents, content, or metadata..."
               onChange={(e) => onSearchChange(e.target.value)}
-              className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500 w-full rounded-lg border py-3 pr-12 pl-10 focus:ring-2 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 py-3 pr-12 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
-            <i className="fas fa-search text-gray-400 absolute top-1/2 left-3 -translate-y-1/2 transform"></i>
-            <button className="text-gray-400 hover:text-blue-600 absolute top-1/2 right-3 -translate-y-1/2 transform">
+            <i className="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400"></i>
+            <button className="absolute top-1/2 right-3 -translate-y-1/2 transform text-gray-400 hover:text-blue-600">
               <i className="fas fa-sliders-h"></i>
             </button>
           </div>
@@ -33,7 +29,7 @@ const Filters = ({
           <select
             value={filters.department}
             onChange={(e) => onFilterChange("department", e.target.value)}
-            className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="">All Departments</option>
             <option value="mathematics">Mathematics</option>
@@ -48,7 +44,7 @@ const Filters = ({
           <select
             value={filters.sort}
             onChange={(e) => onFilterChange("sort", e.target.value)}
-            className="border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900 rounded-lg border px-3 py-2 focus:ring-2 focus:outline-none"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="">Sort By</option>
             <option value="modified">Date Modified</option>
@@ -56,21 +52,6 @@ const Filters = ({
             <option value="name">File Name</option>
             <option value="size">File Size</option>
           </select>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onShowArchive(!showArchive)}
-              className={`rounded-full px-4 py-1 font-medium transition-colors ${
-                showArchive
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              <span className="text-sm">
-                {showArchive ? "Archived" : "Active"}
-              </span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -78,8 +59,10 @@ const Filters = ({
         <button
           onClick={() => onFilterChange("quickTag", "none")}
           className={`${
-            filters.quickTag == "none" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
-          } hover:bg-blue-200 rounded-full px-3 py-1 text-sm font-medium transition-colors`}
+            filters.quickTag == "none"
+              ? "bg-blue-100 text-blue-700"
+              : "bg-gray-100 text-gray-700"
+          } rounded-full px-3 py-1 text-sm font-medium transition-colors hover:bg-blue-200`}
         >
           None
         </button>

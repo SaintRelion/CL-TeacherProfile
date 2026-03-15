@@ -17,6 +17,7 @@ import AdminLayout from "./layout/AdminLayout";
 import InstructorLayout from "./layout/InstructorLayout";
 import ResetPasswordPage from "./pages/authentication/ResetPasswordPage";
 import LandingPage from "./pages/authentication/LandingPage";
+import ArchivedRepositoryPage from "./pages/archived-repository/ArchivedRepositoryPage";
 
 roleLayoutMap[""] = {
   redirect: "/",
@@ -69,6 +70,13 @@ registerGroupAppRoutes({
       element: <DocumentRepositoryPage />,
       label: "Document Repository",
       iconClassName: "fas fa-folder-open",
+      allowedRoles: ["admin"],
+    },
+    {
+      path: "archivedrepository",
+      element: <ArchivedRepositoryPage />,
+      label: "Archived Repository",
+      iconClassName: "fas fa-archive text-red-400",
       allowedRoles: ["admin"],
     },
     {
