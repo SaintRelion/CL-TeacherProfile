@@ -80,8 +80,6 @@ const DocumentExplorer = ({
     "personalinformation",
   );
 
-  const { useList: getUsers } = useResourceLocked<User>("user");
-
   const role = user.roles ? user.roles[0] : "";
 
   const personalInfos = getPersonalInfo().data;
