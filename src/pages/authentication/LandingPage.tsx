@@ -111,7 +111,7 @@ const LandingPage = () => {
           {/* RIGHT SIDE: Floating Logo */}
           <div className="flex justify-center md:justify-end animate-pulse-slow">
             <img
-              src="public/background_logo.png"
+              src="background_logo.png"
               alt="Katipunan Central School Logo"
               className="w-84 h-84 md:w-80 md:h-80 object-contain animate-pulse drop-shadow-[0_0_25px_rgba(59,130,246,0.8)]"
             />
