@@ -83,7 +83,6 @@ const DocumentExplorer = ({
   const { useList: getUsers } = useResourceLocked<User>("user");
 
   const role = user.roles ? user.roles[0] : "";
-  const allUsers = getUsers().data;
 
   const personalInfos = getPersonalInfo().data;
   const documentFolders = getFolders().data;

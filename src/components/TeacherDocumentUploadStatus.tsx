@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import type { User } from "@/models/user";
 import type { PersonalInformation } from "@/models/PersonalInformation";
