@@ -5,6 +5,7 @@ import {
   RenderFormField,
   RenderFormButton,
 } from "@saintrelion/forms";
+
 import { Eye, EyeOff } from "lucide-react";
 
 type Props = {
@@ -39,11 +40,11 @@ const LoginModal = ({ open, onClose }: Props) => {
 
         {/* RIGHT PANEL */}
         <div className="w-full p-8 font-bold">
-          <RenderForm wrapperClassName="space-y-5">
+          <RenderForm wrapperClassName="space-y-6">
             {/* USERNAME */}
             <RenderFormField
               field={{
-                label: "USERNAMES",
+                label: "USERNAME",
                 icon: true,
                 type: "text",
                 name: "username",
@@ -81,13 +82,12 @@ const LoginModal = ({ open, onClose }: Props) => {
                 )}
               </button>
             </div>
-
             {/* LOGIN BUTTON */}
             <RenderFormButton
               buttonLabel="LOGIN"
               onSubmit={handleLogin}
               isDisabled={auth.isLocked}
-              buttonClassName="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-2 text-white font-semibold"
+              buttonClassName="w-full bg-yellow-600 hover:bg-blue-700 rounded-lg py-2 text-white font-semibold"
             />
           </RenderForm>
         </div>

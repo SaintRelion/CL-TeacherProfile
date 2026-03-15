@@ -23,9 +23,7 @@ import {
 
 const DashboardPage = () => {
   const user = useCurrentUser();
-
   const navigate = useNavigate();
-
   // Welcome message state - shows on login, fades after 3 seconds
   const [showWelcome, setShowWelcome] = useState(() => {
     const hasSeenWelcome = sessionStorage.getItem("hasSeenWelcome");
@@ -35,9 +33,7 @@ const DashboardPage = () => {
   // Teacher selection state
   const [showTeacherSelection, setShowTeacherSelection] = useState(false);
   const [teacherSearch, setTeacherSearch] = useState("");
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
-    null,
-  );
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>( null,);
   const [filteredTeachers, setFilteredTeachers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -290,6 +286,7 @@ const DashboardPage = () => {
               </div>
             </div>
 
+
             {/* Card Content */}
             <div className="p-6">
               <div className="space-y-3">
@@ -326,6 +323,7 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>{" "}
+
         {/* Quick Actions Sidebar */}
         <div className="lg:col-span-1">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
@@ -341,7 +339,7 @@ const DashboardPage = () => {
                   <p className="text-sm text-slate-500">Common tasks</p>
                 </div>
               </div>
-            </div>
+            </div>   
             <div className="space-y-2 p-4">
               <Link
                 to="/admin/teacherdirectory"
@@ -358,9 +356,7 @@ const DashboardPage = () => {
                     Register faculty
                   </p>
                 </div>
-                <i className="fas fa-arrow-right ml-auto text-sm text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-500"></i>
               </Link>
-
               <Link
                 to="/admin/documentrepository"
                 className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-amber-50 hover:shadow-sm"
@@ -376,13 +372,13 @@ const DashboardPage = () => {
                     Add teacher docs
                   </p>
                 </div>
-                <i className="fas fa-arrow-right ml-auto text-sm text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-500"></i>
               </Link>
-
+    
               <Dialog
                 open={showTeacherSelection}
                 onOpenChange={setShowTeacherSelection}
               >
+         
                 <DialogTrigger asChild>
                   <button className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-emerald-50 hover:shadow-sm">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white">
@@ -396,9 +392,11 @@ const DashboardPage = () => {
                         Edit teacher profile
                       </p>
                     </div>
-                    <i className="fas fa-arrow-right ml-auto text-sm text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-500"></i>
+                    
                   </button>
                 </DialogTrigger>
+              
+
                 <DialogContent className="bg-white sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Select Teacher to Update</DialogTitle>
