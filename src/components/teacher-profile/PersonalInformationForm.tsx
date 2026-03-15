@@ -681,6 +681,131 @@ const PersonalInformationForm = ({
             </div>
           </div>
         </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 print:border-0 print:p-0">
+          <SectionHeader
+            icon="fas fa-briefcase"
+            title="Employment Details"
+            subtitle="Work-related information"
+          />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print:gap-2">
+            <div>
+              <FieldLabel label="Employee ID" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "text",
+                  name: "employee_id",
+                }}
+                defaultValue={
+                  myInformation == null ? "" : myInformation.employee_id
+                }
+                labelClassName="hidden"
+                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+            <div>
+              <FieldLabel label="Position" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "text",
+                  name: "position",
+                }}
+                defaultValue={
+                  myInformation == null ? "" : myInformation.position
+                }
+                labelClassName="hidden"
+                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+            <div>
+              <FieldLabel label="Department" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "select",
+                  name: "department",
+                  options: [
+                    "Mathematics",
+                    "Science",
+                    "English",
+                    "Filipino",
+                    "Social Studies",
+                  ],
+                }}
+                defaultValue={
+                  myInformation == null ? "" : myInformation.department
+                }
+                labelClassName="hidden"
+                inputClassName="input-field text-md !py-6 print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+            <div>
+              <FieldLabel label="Employment Status" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "select",
+                  name: "employment_status",
+                  options: [
+                    "Permanent",
+                    "Temporary",
+                    "Contractual",
+                    "Substitute",
+                  ],
+                }}
+                defaultValue={
+                  myInformation == null ? "" : myInformation.employment_status
+                }
+                labelClassName="hidden"
+                inputClassName="input-field text-md !py-6 print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+            <div>
+              <FieldLabel label="Date Hired" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "date",
+                  name: "date_hired",
+                }}
+                defaultValue={
+                  myInformation == null ? "" : myInformation.date_hired
+                }
+                labelClassName="hidden"
+                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+            <div>
+              <FieldLabel label="Salary Grade" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "text",
+                  name: "salary_grade",
+                }}
+                defaultValue={
+                  myInformation == null ? "" : myInformation.salary_grade
+                }
+                labelClassName="hidden"
+                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+            <div>
+              <FieldLabel label="TIN" />
+              <RenderFormField
+                field={{
+                  label: "",
+                  type: "text",
+                  name: "tin",
+                }}
+                defaultValue={myInformation == null ? "" : myInformation.tin}
+                labelClassName="hidden"
+                inputClassName="input-field print:border-0 print:bg-transparent print:p-0 print:shadow-none"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
