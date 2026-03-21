@@ -17,7 +17,6 @@ import { type PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
-import { toast } from "@saintrelion/notifications";
 import { useState, useEffect } from "react";
 
 function createFallbackTeacher(user: User): PersonalInformation {
@@ -45,8 +44,7 @@ function createFallbackTeacher(user: User): PersonalInformation {
 }
 
 const TeacherDirectoryPage = () => {
-  const { useList: getUsers, useDelete: deleteUser } =
-    useResourceLocked<User>("user");
+  const { useList: getUsers } = useResourceLocked<User>("user");
   const { useList: getTeacherInformation } =
     useResourceLocked<PersonalInformation>("personalinformation");
   const { useList: getTeacherPerformance } =
@@ -167,7 +165,15 @@ const TeacherDirectoryPage = () => {
         <DialogContent className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"> <DialogHeader> <DialogTitle className="flex items-center gap-3 text-xl"> <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600"> <i className="fas fa-user-plus text-white"></i> </div> Add New Teacher </DialogTitle> <DialogDescription className="text-slate-500"> Register a new faculty member to the system. </DialogDescription> </DialogHeader> <AddTeacherForm /> </DialogContent>
       </Dialog>
 
-      {selectedTeachersId.length > 0 && (<BulkActions teacherIds={selectedTeachersId} onClear={() => setSelectedTeachers([])} onDelete={async (ids: string[]) => { if (ids.length === 0) return; if (!window.confirm(`Delete ${ids.length} selected teacher(s)?`)) return; let successCount = 0; for (const id of ids) { try { await deleteUser.run(id); successCount++; } catch (err) { console.error("Failed to delete user", id, err); } } if (successCount > 0) { toast.success(`${successCount} teacher(s) deleted`); setSelectedTeachers((prev) => prev.filter((id) => !ids.includes(id))); } else { toast.error("Failed to delete selected teacher(s)"); } }} />)}
+      {selectedTeachersId.length > 0 && (
+        <BulkActions
+          teacherIds={selectedTeachersId}
+          onClear={() => setSelectedTeachers([])}
+          onDeleteSuccess={(ids) =>
+            setSelectedTeachers((prev) => prev.filter((id) => !ids.includes(id)))
+          }
+        />
+      )}
 
       {/* TEACHERS GRID */}
 
