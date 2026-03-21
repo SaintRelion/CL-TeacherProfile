@@ -169,11 +169,11 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     }
   };
 
-  const [showComplianceDialog, setShowComplianceDialog] = useState(false);
-  const [selectedNotification, setSelectedNotification] =
-    useState<Notification | null>(null);
+  // const [showComplianceDialog, setShowComplianceDialog] = useState(false);
+  // const [selectedNotification, setSelectedNotification] =
+  //   useState<Notification | null>(null);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleNotificationClick = async (notification: Notification) => {
     if (role !== "admin" && notification.user !== user.id) {
@@ -182,8 +182,8 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     }
 
     await handleMarkAsRead(notification);
-    setSelectedNotification(notification);
-    setShowComplianceDialog(true);
+    // setSelectedNotification(notification);
+    // setShowComplianceDialog(true);
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
