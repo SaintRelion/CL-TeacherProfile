@@ -34,7 +34,7 @@ import type {
 } from "@/models/Notification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { sortByTime } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
 import type { User } from "@/models/user";
