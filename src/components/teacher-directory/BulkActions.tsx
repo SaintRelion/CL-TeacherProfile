@@ -1,12 +1,45 @@
+import type { User } from "@/models/user";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
+import { toast } from "@saintrelion/notifications";
+
 const BulkActions = ({
   teacherIds,
   onClear,
-  onDelete,
+  onDeleteSuccess,
 }: {
   teacherIds: string[];
   onClear: () => void;
-  onDelete?: (ids: string[]) => void;
+  onDeleteSuccess?: (ids: string[]) => void;
 }) => {
+  const { useDelete: deleteUser } = useResourceLocked<User>("user");
+
+  const handleDelete = async () => {
+    if (teacherIds.length === 0) return;
+
+    if (!window.confirm(`Delete ${teacherIds.length} selected teacher(s)?`)) {
+      return;
+    }
+
+    let successCount = 0;
+
+    for (const id of teacherIds) {
+      try {
+        await deleteUser.run(id);
+        successCount++;
+      } catch (err) {
+        console.error("Failed to delete user", id, err);
+      }
+    }
+
+    if (successCount === 0) {
+      toast.error("Failed to delete selected teacher(s)");
+      return;
+    }
+
+    toast.success(`${successCount} teacher(s) deleted`);
+    onDeleteSuccess?.(teacherIds);
+  };
+
   return (
     <div
       id="bulkActions"
@@ -31,10 +64,7 @@ const BulkActions = ({
             Export Selected
           </button> */}
           <button
-            onClick={() => {
-              if (teacherIds.length === 0) return;
-              onDelete?.(teacherIds);
-            }}
+            onClick={handleDelete}
             className="text-red-600 hover:text-red-700 text-sm font-medium"
           >
             <i className="fas fa-trash mr-1"></i>
