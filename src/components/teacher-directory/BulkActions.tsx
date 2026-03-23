@@ -5,19 +5,19 @@ const BulkActions = ({
 }: {
   teacherIds: string[];
   onClear: () => void;
-  onDelete?: (ids: string[]) => void;
+  onDelete?: (selectedIds: string[]) => void;
 }) => {
   return (
     <div
       id="bulkActions"
-      className="bg-blue-50 border-blue-200 mb-6 rounded-lg border p-4"
+      className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <span className="text-blue-800 font-medium">
+          <span className="font-medium text-blue-800">
             {teacherIds.length} teachers selected
           </span>
-          <div className="bg-blue-300 h-4 w-px"></div>
+          <div className="h-4 w-px bg-blue-300"></div>
           {/* <button className="text-primary-700 hover:text-primary-800 text-sm font-medium">
             <i className="fas fa-envelope mr-1"></i>
             Send Notification
@@ -31,11 +31,8 @@ const BulkActions = ({
             Export Selected
           </button> */}
           <button
-            onClick={() => {
-              if (teacherIds.length === 0) return;
-              onDelete?.(teacherIds);
-            }}
-            className="text-red-600 hover:text-red-700 text-sm font-medium"
+            onClick={onDelete ? () => onDelete(teacherIds) : () => {}}
+            className="text-sm font-medium text-red-600 hover:text-red-700"
           >
             <i className="fas fa-trash mr-1"></i>
             Trash Selected

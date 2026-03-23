@@ -1,18 +1,29 @@
 import { useEffect, useState } from "react";
 
+type DeviceType = "mobile" | "tablet" | "desktop";
+
 export function useResponsive() {
-  const [isMobile, setIsMobile] = useState(
-    window.matchMedia("(max-width: 1023px)").matches,
-  );
+  const getDevice = (): DeviceType => {
+    const width = window.innerWidth;
+    if (width <= 767) return "mobile";
+    if (width <= 1023) return "tablet";
+    return "desktop";
+  };
+
+  const [device, setDevice] = useState<DeviceType>(getDevice);
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 1023px)");
+    const handleResize = () => setDevice(getDevice());
 
-    const listener = () => setIsMobile(media.matches);
-    media.addEventListener("change", listener);
+    window.addEventListener("resize", handleResize);
 
-    return () => media.removeEventListener("change", listener);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  return { isMobile };
+  return {
+    device,
+    isMobile: device === "mobile",
+    isTablet: device === "tablet",
+    isDesktop: device === "desktop",
+  };
 }

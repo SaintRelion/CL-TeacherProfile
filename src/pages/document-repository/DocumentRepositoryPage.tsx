@@ -53,17 +53,17 @@ const DocumentRepositoryPage = () => {
 
   return (
     <RenderForm wrapperClassName="flex-1 p-6">
-      <div className="mb-8">
-        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+      {/* <div className="mb-8"> */}
+        {/* <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="mt-4 flex items-center space-x-3 md:mt-0"></div>
-        </div>
+        </div> */}
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           {kpi.map((value, index) => (
             <KpiCard key={index} kvp={value} />
           ))}
         </div>
-      </div>
+      {/* </div> */}
 
       <DocumentExplorer user={user} initialSearch={q} initialFolder={folder} />
     </RenderForm>

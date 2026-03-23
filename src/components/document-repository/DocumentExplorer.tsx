@@ -80,7 +80,9 @@ const DocumentExplorer = ({
 
   const role = user.roles ? user.roles[0] : "";
 
-  const personalInfos = getPersonalInfo().data;
+  const personalInfos = getPersonalInfo({
+    filters: { is_archived: "False" },
+  }).data;
   const documentFolders = getFolders().data;
 
   const documents = getDocuments({
@@ -477,13 +479,6 @@ const DocumentExplorer = ({
                     updateDocument.run({
                       id: doc.id,
                       payload: { is_archived: true },
-                    });
-                }}
-                onRestore={() => {
-                  if (!updateDocument.isLocked)
-                    updateDocument.run({
-                      id: doc.id,
-                      payload: { is_archived: false },
                     });
                 }}
               />

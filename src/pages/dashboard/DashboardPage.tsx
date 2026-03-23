@@ -234,7 +234,7 @@ const DashboardPage = () => {
   return (
     <main className="min-h-screen flex-1 bg-white p-4 md:p-6 lg:p-8">
       {/* Dashboard Header */}
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
          
           <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -249,7 +249,7 @@ const DashboardPage = () => {
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* KPI Cards */}
       <div className="mb-8">
