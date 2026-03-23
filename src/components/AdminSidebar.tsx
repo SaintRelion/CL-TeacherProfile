@@ -1,65 +1,127 @@
-import { renderNavItems } from "@saintrelion/routers";
+import {
+  Archive,
+  FolderKanban,
+  LayoutDashboard,
+  PanelLeftClose,
+  Users,
+} from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 interface Props {
   isOpen: boolean;
   closeSidebar: () => void;
 }
 
+const navItems = [
+  {
+    to: "/admin",
+    label: "Dashboard",
+    Icon: LayoutDashboard,
+    matchEnd: true,
+    iconClassName: "text-blue-600",
+    iconWrapperClassName: "bg-blue-500/10",
+  },
+  {
+    to: "/admin/teacherdirectory",
+    label: "Teacher Profile",
+    Icon: Users,
+    iconClassName: "text-violet-600",
+    iconWrapperClassName: "bg-violet-500/10",
+  },
+  {
+    to: "/admin/documentrepository",
+    label: "Document Repository",
+    Icon: FolderKanban,
+    iconClassName: "text-amber-600",
+    iconWrapperClassName: "bg-amber-500/10",
+  },
+  {
+    to: "/admin/archivedrepository",
+    label: "Archived Repository",
+    Icon: Archive,
+    iconClassName: "text-rose-600",
+    iconWrapperClassName: "bg-rose-500/10",
+  },
+];
+
 const AdminSidebar = ({ isOpen, closeSidebar }: Props) => {
   return (
     <>
-      {/* Overlay (Mobile Only) */}
       <div
         onClick={closeSidebar}
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 lg:hidden ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        className={`fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[1px] transition-opacity duration-300 lg:hidden ${
+          isOpen ? "visible opacity-100" : "invisible opacity-0"
         }`}
       />
 
       <aside
         className={`
-          fixed top-0 left-0 z-50
-          h-full w-64 bg-white shadow-lg border-r border-gray-200
-          transform transition-transform duration-300 ease-in-out
+          fixed left-0 top-0 z-50 h-full w-72 border-r border-slate-200/60 bg-slate-50
+          shadow-xl shadow-slate-200/60 transition-transform duration-300 ease-in-out
           lg:translate-x-0
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        {/* 🔥 LOGO SECTION */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
-          <div className="flex items-center space-x-3 min-w-0">
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 shadow-md flex-shrink-0">
-              <img src="/background_logo.png" alt="" className="w-6 h-6" />
+        <div className="border-b border-slate-200/70 px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10">
+                <img src="/background_logo.png" alt="" className="h-7 w-7" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="truncate text-sm font-semibold text-slate-900">
+                  KCSSC
+                </h2>
+                <p className="truncate text-xs font-medium text-slate-500">
+                  Admin Panel
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h2 className="text-sm font-bold text-gray-900 truncate">
-                KCSSC
-              </h2>
-              <p className="text-xs text-gray-500 truncate">
-                Admin Panel
-              </p>
-            </div>
-          </div>
 
-          {/* Close button (mobile only) */}
-          <button
-            onClick={closeSidebar}
-            className="lg:hidden text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 transition-all duration-200"
-          >
-            <i className="fas fa-times text-lg"></i>
-          </button>
+            <button
+              onClick={closeSidebar}
+              className="rounded-xl p-2 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-700 lg:hidden"
+            >
+              <PanelLeftClose className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-1">
-          <ul className="space-y-1">
-            {renderNavItems({
-              role: "admin",
-              baseClassName:
-                "text-gray-600 flex items-center space-x-3 rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm",
-              activeClassName:
-                "bg-blue-100 text-blue-700 flex items-center space-x-3 rounded-lg px-4 py-2.5 font-semibold shadow-sm border-l-4 border-blue-600",
-            })}
+        <nav className="p-4">
+          <ul className="space-y-2">
+            {navItems.map(
+              ({ to, label, Icon, matchEnd, iconClassName, iconWrapperClassName }) => (
+                <li key={to}>
+                  <NavLink
+                    end={matchEnd}
+                    to={to}
+                    onClick={closeSidebar}
+                    className={({ isActive }) =>
+                      `group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300 ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/15"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 ${
+                            isActive
+                              ? "bg-white/15 text-white"
+                              : `${iconWrapperClassName} ${iconClassName}`
+                          }`}
+                        >
+                          <Icon className="h-5 w-5" strokeWidth={2} />
+                        </div>
+                        <span className="text-sm font-medium">{label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                </li>
+              )
+            )}
           </ul>
         </nav>
       </aside>
