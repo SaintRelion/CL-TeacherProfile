@@ -38,6 +38,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { sortByTime } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
 import type { User } from "@/models/user";
+import { AlertTriangle, Bell, ChevronDown, Menu } from "lucide-react";
 
 const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const user = useCurrentUser<User>();
@@ -51,6 +52,8 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [showDocumentAlert, setShowDocumentAlert] = useState(false);
+  const documentAlertSessionKey = `document-alert-shown:${user.id}`;
 
   const { useList: getInformation, useUpdate: updateInformation } =
     useResourceLocked<
@@ -82,13 +85,13 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
       filters: role === "admin" ? {} : { user: user.id },
     }).data ?? [];
 
-  const privateNotifications = useMemo(
-    () =>
-      role === "admin"
-        ? notifications
-        : notifications.filter((notification) => notification.user === user.id),
-    [notifications, role, user.id]
-  );
+  const privateNotifications = useMemo(() => {
+    if (role === "admin") {
+      return notifications;
+    }
+
+    return notifications.filter((notification) => notification.user === user.id);
+  }, [notifications, role, user.id]);
 
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
@@ -148,12 +151,47 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     [sortedNotifications]
   );
 
+  const documentAlerts = useMemo(
+    () =>
+      documents
+        .filter((doc) => !doc.is_archived)
+        .map((doc) => ({
+          doc,
+          status: getExpiryState(doc.expiry_date),
+        }))
+        .filter(({ status }) => status === "expiring" || status === "expired"),
+    [documents]
+  );
+
   const [notifMenuOpened, setNotifMenuOpened] = useState(false);
   const [localUnreadCount, setLocalUnreadCount] = useState(0);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     setLocalUnreadCount(unreadNotifications.length);
   }, [unreadNotifications]);
+
+  useEffect(() => {
+    if (role !== "instructor" || documentAlerts.length === 0) return;
+
+    const alreadyShown = sessionStorage.getItem(documentAlertSessionKey);
+
+    if (!alreadyShown) {
+      setShowDocumentAlert(true);
+      sessionStorage.setItem(documentAlertSessionKey, "true");
+    }
+  }, [documentAlertSessionKey, documentAlerts.length, role]);
+
+  const currentDateLabel = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }),
+    []
+  );
 
   const handleMarkAsRead = async (notification: Notification) => {
     if (role !== "admin" && notification.user !== user.id) {
@@ -272,27 +310,30 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg border-b-4 border-yellow-400">
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex min-h-20 items-center justify-between gap-4 py-3">
 
           {/* LEFT */}
-          <div className="flex items-center space-x-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               aria-label="Open menu"
               onClick={() => toggleSidebar?.()}
-              className="lg:hidden p-2 rounded-lg hover:bg-blue-500"
+              className="rounded-xl p-2 text-slate-500 transition-colors duration-200 hover:bg-slate-50 hover:text-slate-700 lg:hidden"
             >
-              <i className="fas fa-bars text-xl"></i>
+              <Menu className="h-5 w-5" />
             </button>
 
-            <h1 className="font-bold truncate max-w-[240px] text-sm sm:text-base md:text-lg lg:text-xl">
-              Katipunan Central School & SPED Center
-            </h1>
+            <div className="min-w-0">
+              <h1 className="max-w-[240px] truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base md:text-lg lg:max-w-none lg:text-xl">
+                Katipunan Central School & SPED Center
+              </h1>
+              <p className="mt-0.5 text-sm text-slate-400">{currentDateLabel}</p>
+            </div>
           </div>
 
           {/* RIGHT */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-2 sm:gap-3">
 
             {/* NOTIFICATIONS */}
             <DropdownMenu
@@ -301,25 +342,26 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Notifications"
-                  className="relative p-2 hover:bg-blue-500 rounded-lg"
+                  className="group relative rounded-xl p-2 text-slate-500 transition-all duration-300 hover:bg-slate-50 hover:text-slate-700"
                 >
-                  <i className="fas fa-bell text-lg"></i>
+                  <Bell className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
 
                   {localUnreadCount > 0 && !notifMenuOpened && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-yellow-500 text-xs font-bold">
-                      {localUnreadCount > 9 ? "9+" : localUnreadCount}
-                    </span>
+                    <>
+                      <span className="absolute right-0.5 top-0.5 h-3 w-3 animate-ping rounded-full bg-red-400/60" />
+                      <span className="absolute right-0.5 top-0.5 h-3 w-3 scale-110 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.45)]" />
+                    </>
                   )}
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-80 p-0">
-                <div className="border-b border-gray-100 p-4 font-bold">
+              <DropdownMenuContent align="end" className="w-80 rounded-2xl border border-slate-200/70 p-0 shadow-xl shadow-slate-200/60">
+                <div className="border-b border-slate-100 p-4 font-semibold text-slate-900">
                   Notifications
                 </div>
 
                 {sortedNotifications.length === 0 ? (
-                  <p className="p-4 text-sm text-gray-500">
+                  <p className="p-4 text-sm text-slate-500">
                     No Notifications
                   </p>
                 ) : (
@@ -328,7 +370,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                       <div
                         key={n.id}
                         onClick={() => handleNotificationClick(n)}
-                        className="cursor-pointer rounded-lg p-1 hover:bg-blue-50"
+                        className="cursor-pointer rounded-xl p-1 transition-colors duration-200 hover:bg-slate-50"
                       >
                         <NotificationCard
                           notification={n}
@@ -342,27 +384,38 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
             </DropdownMenu>
 
             {/* USER MENU */}
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={setUserMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <div
+                <button
+                  type="button"
                   aria-label="User menu"
-                  className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
+                  className="group flex items-center gap-2 rounded-[4px] px-2 py-1.5 transition-all duration-300 hover:bg-slate-50"
                 >
-                  <img
-                    src={resolveImageSource(profilePic)}
-                    alt="Profile"
-                    className="h-8 w-8 rounded-full border-2 border-yellow-400 object-cover"
-                  />
+                  {myInformation?.photo_base64 ? (
+                    <img
+                      src={resolveImageSource(profilePic)}
+                      alt="Profile"
+                      className="h-9 w-9 rounded-full object-cover shadow-sm shadow-blue-500/20 ring-1 ring-slate-200"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.28),inset_0_-2px_6px_rgba(15,23,42,0.18),0_8px_20px_rgba(59,130,246,0.2)] shadow-blue-500/20">
+                      {user.username?.charAt(0).toUpperCase() || "A"}
+                    </div>
+                  )}
 
-                  <span className="text-sm font-medium truncate max-w-[120px]">
-                    {user.username}
+                  <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">
+                    {role || user.username}
                   </span>
 
-                  <i className="fas fa-chevron-down text-xs"></i>
-                </div>
+                  <ChevronDown
+                    className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${
+                      userMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-52 rounded-2xl border border-slate-200/70 p-1 shadow-xl shadow-slate-200/60">
 
                 <DropdownMenuItem onClick={() => setShowUpdatePhoto(true)}>
                   Update Photo
@@ -373,8 +426,11 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => auth.logout()}
-                  className="text-red-600"
+                  onClick={() => {
+                    sessionStorage.removeItem(documentAlertSessionKey);
+                    auth.logout();
+                  }}
+                  variant="destructive"
                 >
                   Logout
                 </DropdownMenuItem>
@@ -452,6 +508,67 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               disabled={isUpdatingPassword}
             >
               {isUpdatingPassword ? "Updating..." : "Update"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDocumentAlert} onOpenChange={setShowDocumentAlert}>
+        <DialogContent className="rounded-2xl border border-slate-200/70 bg-white shadow-2xl sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/10">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+              </div>
+              Document Attention Needed
+            </DialogTitle>
+            <DialogDescription className="text-slate-500">
+              Some of your uploaded documents are expired or expiring soon.
+              Please review them after login.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
+            {documentAlerts.map(({ doc, status }) => (
+              <div
+                key={doc.id}
+                className={`rounded-2xl border p-4 ${
+                  status === "expired"
+                    ? "border-rose-200 bg-rose-50/70"
+                    : "border-amber-200 bg-amber-50/70"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">
+                      {doc.document_title}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {status === "expired"
+                        ? "This document has expired."
+                        : "This document is expiring soon."}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex rounded-xl px-2.5 py-1 text-xs font-semibold ${
+                      status === "expired"
+                        ? "bg-rose-100 text-rose-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {status === "expired" ? "Expired" : "Expiring Soon"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setShowDocumentAlert(false)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Dismiss
             </button>
           </DialogFooter>
         </DialogContent>
