@@ -75,7 +75,7 @@ const TeacherProfileInspectPage = () => {
         home_address: data.home_address,
         position: data.position,
         department: data.department,
-        employment_status: data.employementStatus,
+        employment_status: data.employment_status,
         date_hired: data.date_hired,
         salary_grade: data.salary_grade,
         tin: data.tin,
