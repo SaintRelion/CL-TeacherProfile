@@ -18,6 +18,7 @@ import type { User } from "@/models/user";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useState, useEffect } from "react";
+import { toast } from "@saintrelion/notifications";
 
 function createFallbackTeacher(user: User): PersonalInformation {
   return {
@@ -44,9 +45,16 @@ function createFallbackTeacher(user: User): PersonalInformation {
 }
 
 const TeacherDirectoryPage = () => {
-  const { useList: getUsers } = useResourceLocked<User>("user");
-  const { useList: getTeacherInformation } =
-    useResourceLocked<PersonalInformation>("personalinformation");
+  const { useList: getUsers, useDelete: deleteUser } = useResourceLocked<User>(
+    "user",
+    { showToast: false },
+  );
+  const {
+    useList: getTeacherInformation,
+    useDelete: deletePersonalInformation,
+  } = useResourceLocked<PersonalInformation>("personalinformation", {
+    showToast: false,
+  });
   const { useList: getTeacherPerformance } =
     useResourceLocked<TeacherPerformance>("teacherperformance");
   const { useList: getDocuments } =
@@ -81,9 +89,7 @@ const TeacherDirectoryPage = () => {
 
       if (!info.photo_base64) info.photo_base64 = NO_FACE_IMAGE;
 
-      const performance = teacherPerformances.find(
-        (p) => p.user === user.id,
-      );
+      const performance = teacherPerformances.find((p) => p.user === user.id);
       if (!performance) return null;
 
       const name =
@@ -96,13 +102,18 @@ const TeacherDirectoryPage = () => {
 
       // SEARCH
       const s = search.toLowerCase();
-      if (s && !(name.includes(s) || department.includes(s) || employeeID.includes(s)))
+      if (
+        s &&
+        !(name.includes(s) || department.includes(s) || employeeID.includes(s))
+      )
         return null;
 
       // FILTERS
       if (
         filters.department &&
-        !department.includes(filters.department.toLowerCase().replaceAll("-", " "))
+        !department.includes(
+          filters.department.toLowerCase().replaceAll("-", " "),
+        )
       )
         return null;
 
@@ -121,7 +132,7 @@ const TeacherDirectoryPage = () => {
       if (
         filters.performanceRating &&
         performance.rating.toLowerCase() !==
-        filters.performanceRating.toLowerCase()
+          filters.performanceRating.toLowerCase()
       )
         return null;
 
@@ -145,7 +156,6 @@ const TeacherDirectoryPage = () => {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       {/* ADD TEACHER BUTTON */}
 
-
       {/* FILTERS */}
       <Filters
         dataCount={filteredTeachers.length.toString()}
@@ -158,25 +168,87 @@ const TeacherDirectoryPage = () => {
       />
       <Dialog>
         <DialogTrigger asChild>
-          <button className="mb-6 rounded-xl bg-green-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700 ">
+          <button className="mb-6 rounded-xl bg-green-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700">
             Add Teacher
           </button>
         </DialogTrigger>
-        <DialogContent className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"> <DialogHeader> <DialogTitle className="flex items-center gap-3 text-xl"> <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600"> <i className="fas fa-user-plus text-white"></i> </div> Add New Teacher </DialogTitle> <DialogDescription className="text-slate-500"> Register a new faculty member to the system. </DialogDescription> </DialogHeader> <AddTeacherForm /> </DialogContent>
+        <DialogContent className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          {" "}
+          <DialogHeader>
+            {" "}
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              {" "}
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                {" "}
+                <i className="fas fa-user-plus text-white"></i>{" "}
+              </div>{" "}
+              Add New Teacher{" "}
+            </DialogTitle>{" "}
+            <DialogDescription className="text-slate-500">
+              {" "}
+              Register a new faculty member to the system.{" "}
+            </DialogDescription>{" "}
+          </DialogHeader>{" "}
+          <AddTeacherForm />{" "}
+        </DialogContent>
       </Dialog>
 
       {selectedTeachersId.length > 0 && (
         <BulkActions
           teacherIds={selectedTeachersId}
           onClear={() => setSelectedTeachers([])}
-          onDeleteSuccess={(ids) =>
-            setSelectedTeachers((prev) => prev.filter((id) => !ids.includes(id)))
-          }
+          onDelete={async (selectedIds: string[]) => {
+            if (selectedIds.length === 0) return;
+
+            if (
+              !window.confirm(
+                `Delete ${selectedIds.length} selected teacher(s) and their information?`,
+              )
+            )
+              return;
+
+            let successCount: number = 0;
+
+            for (const userId of selectedIds) {
+              try {
+                // 1. Find the personal information record associated with this user
+                // Assuming your list hook provides the data in a 'data' property
+                const infoRecord = teachersInformation.find(
+                  (info: PersonalInformation) => info.user === userId,
+                );
+
+                // 2. Delete Personal Information first if it exists
+                if (infoRecord?.id) {
+                  await deletePersonalInformation.run(infoRecord.id);
+                }
+
+                // 3. Delete the User record
+                await deleteUser.run(userId);
+
+                successCount++;
+              } catch (err: unknown) {
+                console.error(
+                  `Failed to delete teacher with ID: ${userId}`,
+                  err,
+                );
+              }
+            }
+
+            if (successCount > 0) {
+              toast.success(
+                `${successCount} teacher(s) and their records deleted`,
+              );
+              setSelectedTeachers((prev: string[]) =>
+                prev.filter((id: string) => !selectedIds.includes(id)),
+              );
+            } else {
+              toast.error("Failed to delete selected teacher(s)");
+            }
+          }}
         />
       )}
 
       {/* TEACHERS GRID */}
-
 
       <div
         className={
@@ -202,14 +274,14 @@ const TeacherDirectoryPage = () => {
               ),
           )
         ) : (
-          <div className="col-span-full text-center py-16 text-slate-500">
+          <div className="col-span-full py-16 text-center text-slate-500">
             No teachers found
           </div>
         )}
       </div>
 
       {/* PAGINATION */}
-      <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-between bg-white p-4 rounded-xl border">
+      <div className="mt-8 flex flex-col items-center gap-4 rounded-xl border bg-white p-4 sm:flex-row sm:justify-between">
         {/* Showing text */}
         <p className="text-sm text-slate-600">
           Showing{" "}
@@ -220,8 +292,7 @@ const TeacherDirectoryPage = () => {
           <span className="font-semibold">
             {Math.min(endIndex, totalItems)}
           </span>{" "}
-          of{" "}
-          <span className="font-semibold">{totalItems}</span> teachers
+          of <span className="font-semibold">{totalItems}</span> teachers
         </p>
 
         {/* Controls */}
@@ -242,10 +313,11 @@ const TeacherDirectoryPage = () => {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`h-9 w-9 rounded-lg font-medium ${currentPage === page
-                  ? "bg-blue-600 text-white"
-                  : "border hover:bg-slate-50"
-                  }`}
+                className={`h-9 w-9 rounded-lg font-medium ${
+                  currentPage === page
+                    ? "bg-blue-600 text-white"
+                    : "border hover:bg-slate-50"
+                }`}
               >
                 {page}
               </button>
@@ -253,9 +325,7 @@ const TeacherDirectoryPage = () => {
 
           {/* Next */}
           <button
-            onClick={() =>
-              setCurrentPage((p) => Math.min(p + 1, totalPages))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
             className="h-9 w-9 rounded-lg border hover:bg-slate-50 disabled:opacity-50"
           >
