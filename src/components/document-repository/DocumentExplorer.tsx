@@ -105,9 +105,9 @@ const DocumentExplorer = ({
             },
     }).data ?? [];
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, filters, selectedFolderId]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [search, filters, selectedFolderId]);
 
   const nonSubmittingTeachers = useMemo(() => {
     if (!selectedFolderId || !documents.length) return [];
