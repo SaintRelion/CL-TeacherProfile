@@ -13,6 +13,17 @@ import type { DocumentFolder } from "@/models/DocumentFolder";
 import { getExpiryState } from "@/lib/utils";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import type { User } from "@/models/user";
+import {
+  BadgeCheck,
+  Bolt,
+  ChartColumnBig,
+  ChevronRight,
+  FolderUp,
+  Search,
+  ServerCog,
+  UserPlus,
+  UserRoundPen,
+} from "lucide-react";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,6 +31,8 @@ import {
   createImpersonationToken,
   useCurrentUser,
 } from "@saintrelion/auth-lib";
+
+const COMPLIANCE_PAGE_SIZE = 5;
 
 const DashboardPage = () => {
   const user = useCurrentUser();
@@ -35,6 +48,7 @@ const DashboardPage = () => {
   const [teacherSearch, setTeacherSearch] = useState("");
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>( null,);
   const [filteredTeachers, setFilteredTeachers] = useState<User[]>([]);
+  const [compliancePage, setCompliancePage] = useState(1);
 
   useEffect(() => {
     if (showWelcome) {
@@ -68,6 +82,10 @@ const DashboardPage = () => {
     setFilteredTeachers(filtered);
   }, [teachers, teacherSearch]);
 
+  useEffect(() => {
+    setCompliancePage(1);
+  }, [teacherSearch]);
+
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
   const activeDocuments = getDocuments({filters: {is_archived: "False"}}).data;
@@ -84,6 +102,7 @@ const DashboardPage = () => {
         expired: number;
         expiring: number;
         valid: number;
+        submittedTeachers: Set<string>;
         compliantTeachers: Set<string>;
       }
     >();
@@ -96,6 +115,7 @@ const DashboardPage = () => {
           expired: 0,
           expiring: 0,
           valid: 0,
+          submittedTeachers: new Set<string>(),
           compliantTeachers: new Set<string>(),
         });
       });
@@ -114,6 +134,7 @@ const DashboardPage = () => {
             expired: 0,
             expiring: 0,
             valid: 0,
+            submittedTeachers: new Set<string>(),
             compliantTeachers: new Set<string>(),
           });
         }
@@ -122,6 +143,7 @@ const DashboardPage = () => {
         const bucket = map.get(folderName)!;
 
         bucket.total++;
+        bucket.submittedTeachers.add(doc.user);
         const key =
           state === "expired"
             ? "expired"
@@ -141,35 +163,27 @@ const DashboardPage = () => {
   }, [activeDocuments, documentFolders]);
 
   const complianceStatus = React.useMemo(() => {
-    const totalTeachers = teacherSearch.length
+    const totalTeachers = filteredTeachers.length || teachers.length || 0;
     return Array.from(complianceMapping.entries()).map(([title, bucket]) => {
-      const { expired, expiring, compliantTeachers } = bucket;
+      const { expired, expiring, submittedTeachers, compliantTeachers } = bucket;
 
       const compliantCount = compliantTeachers ? compliantTeachers.size : 0;
       const compliancePercent =
         totalTeachers === 0
-          ? 100
-          : Math.round((compliantCount / totalTeachers) * 100);
+          ? 0
+          : Math.round((submittedTeachers.size / totalTeachers) * 100);
 
-      let wrapperColor = "";
-      let iconClassName = "";
-      let valueClassName = "";
       let description = "";
+      let tone: "danger" | "warning" | "success" = "success";
 
       if (expired > 0) {
-        wrapperColor = "bg-error-50";
-        iconClassName = "fas fa-times-circle text-white";
-        valueClassName = "text-error-600 font-semibold";
+        tone = "danger";
         description = `${expired} expired documents`;
       } else if (expiring > 0) {
-        wrapperColor = "bg-warning-50";
-        iconClassName = "fas fa-exclamation-triangle text-white";
-        valueClassName = "text-warning-600 font-semibold";
+        tone = "warning";
         description = `${expiring} expiring within 30 days`;
       } else {
-        wrapperColor = "bg-success-50";
-        iconClassName = "fas fa-check text-white";
-        valueClassName = "text-success-600 font-semibold";
+        tone = "success";
         description = ` ${compliantCount} of ${totalTeachers} teachers compliant`;
       }
 
@@ -177,16 +191,31 @@ const DashboardPage = () => {
       const folderId = documentFolders?.find((f) => f.name === title)?.id;
 
       return {
-        wrapperColor,
-        iconClassName,
         title,
         description,
         value: `${compliancePercent}%`,
-        valueClassName,
+        tone,
         redirectPath: `/admin/documentrepository?folder=${folderId}`,
       };
     });
-  }, [complianceMapping, teacherSearch.length, documentFolders]);
+  }, [complianceMapping, documentFolders, filteredTeachers.length, teachers.length]);
+
+  const complianceTotalPages = Math.max(
+    1,
+    Math.ceil(complianceStatus.length / COMPLIANCE_PAGE_SIZE),
+  );
+  const paginatedComplianceStatus = complianceStatus.slice(
+    (compliancePage - 1) * COMPLIANCE_PAGE_SIZE,
+    compliancePage * COMPLIANCE_PAGE_SIZE,
+  );
+  const complianceStart =
+    complianceStatus.length === 0
+      ? 0
+      : (compliancePage - 1) * COMPLIANCE_PAGE_SIZE + 1;
+  const complianceEnd = Math.min(
+    compliancePage * COMPLIANCE_PAGE_SIZE,
+    complianceStatus.length,
+  );
 
   const handleNavigateToTeacherProfile = async () => {
     if (!selectedTeacherId) {
@@ -232,7 +261,7 @@ const DashboardPage = () => {
   ];
 
   return (
-    <main className="min-h-screen flex-1 bg-white p-4 md:p-6 lg:p-8">
+    <main className="min-h-screen flex-1 bg-slate-50 p-4 md:p-6 lg:p-8">
       {/* Dashboard Header */}
       {/* <div className="mb-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -264,26 +293,26 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Compliance Status - Takes 2 columns */}
         <div className="lg:col-span-2">
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15">
             {/* Card Header */}
-            <div className="border-b border-gray-100 bg-white px-6 py-5">
+            <div className="border-b border-slate-200/70 bg-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30">
-                    <i className="fas fa-clipboard-check text-xl text-white"></i>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10">
+                    <BadgeCheck className="h-6 w-6 text-blue-600" strokeWidth={2} />
                   </div>
                   <div>
-                    <h3 className="text-gray-900 text-lg font-semibold">
+                    <h3 className="text-lg font-semibold text-slate-900">
                       Compliance Status
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                       Document compliance by folder
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1">
-                  <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
-                  <span className="text-xs font-semibold text-yellow-700">
+                <div className="flex items-center gap-2 rounded-xl bg-blue-500/10 px-3 py-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                  <span className="text-xs font-semibold text-blue-700">
                     {complianceStatus.length} Categories
                   </span>
                 </div>
@@ -294,29 +323,65 @@ const DashboardPage = () => {
             {/* Card Content */}
             <div className="p-6">
               <div className="space-y-3">
-                {complianceStatus.map((card) => (
+                {paginatedComplianceStatus.map((card) => (
                   <ComplianceStatusCard
                     key={card.title}
-                    wrapperColor={card.wrapperColor}
-                    iconClassName={card.iconClassName}
                     title={card.title}
                     description={card.description}
                     value={card.value}
-                    valueClassName={card.valueClassName}
+                    tone={card.tone}
                     redirectPath={card.redirectPath}
                   />
                 ))}
               </div>
 
+              {complianceStatus.length > COMPLIANCE_PAGE_SIZE && (
+                <div className="mt-5 flex flex-col gap-3 border-t border-slate-200/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-slate-500">
+                    Showing {complianceStart}-{complianceEnd} of {complianceStatus.length} folders
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCompliancePage((page) => Math.max(1, page - 1))
+                      }
+                      disabled={compliancePage === 1}
+                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700">
+                      {compliancePage} / {complianceTotalPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCompliancePage((page) =>
+                          Math.min(complianceTotalPages, page + 1),
+                        )
+                      }
+                      disabled={compliancePage === complianceTotalPages}
+                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* View Report Button */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:shadow-blue-600/40 active:translate-y-0">
-                    <i className="fas fa-chart-bar"></i>
+                  <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15">
+                    <ChartColumnBig className="h-4 w-4" />
                     View Expiry Document Reports
                   </button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200/70 bg-white shadow-2xl sm:max-w-4xl">
                   {activeDocuments && teachers && (
                     <ViewComplianceReport
                       documents={activeDocuments}
@@ -331,52 +396,54 @@ const DashboardPage = () => {
 
         {/* Quick Actions Sidebar */}
         <div className="lg:col-span-1">
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl">
-            <div className="border-b border-gray-100 bg-white px-6 py-5">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/15">
+            <div className="border-b border-slate-200/70 bg-white px-6 py-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg shadow-yellow-500/30">
-                  <i className="fas fa-bolt text-xl text-white"></i>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10">
+                  <Bolt className="h-6 w-6 text-amber-600" strokeWidth={2} />
                 </div>
                 <div>
-                  <h3 className="text-gray-900 text-lg font-semibold">
+                  <h3 className="text-lg font-semibold text-slate-900">
                     Quick Actions
                   </h3>
-                  <p className="text-sm text-gray-500">Common tasks</p>
+                  <p className="text-sm text-slate-500">Common tasks</p>
                 </div>
               </div>
             </div>   
             <div className="space-y-2 p-4">
               <Link
                 to="/admin/teacherdirectory"
-                className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-blue-50 hover:shadow-md"
+                className="group flex items-center gap-3 rounded-2xl border border-slate-200/50 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-blue-500/15"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
-                  <i className="fas fa-user-plus"></i>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+                  <UserPlus className="h-5 w-5" strokeWidth={2} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className="text-sm font-semibold text-slate-900">
                     Add New Teacher
                   </p>
-                  <p className="truncate text-xs text-gray-500">
+                  <p className="truncate text-xs text-slate-500">
                     Register faculty
                   </p>
                 </div>
+                <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-slate-500" />
               </Link>
               <Link
                 to="/admin/documentrepository"
-                className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-yellow-50 hover:shadow-md"
+                className="group flex items-center gap-3 rounded-2xl border border-slate-200/50 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-amber-500/15"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-yellow-600 group-hover:text-white">
-                  <i className="fas fa-folder-plus"></i>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                  <FolderUp className="h-5 w-5" strokeWidth={2} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className="text-sm font-semibold text-slate-900">
                     Upload Documents
                   </p>
-                  <p className="truncate text-xs text-gray-500">
+                  <p className="truncate text-xs text-slate-500">
                     Add teacher docs
                   </p>
                 </div>
+                <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-slate-500" />
               </Link>
     
               <Dialog
@@ -385,24 +452,24 @@ const DashboardPage = () => {
               >
          
                 <DialogTrigger asChild>
-                  <button className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-blue-50 hover:shadow-md">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
-                      <i className="fas fa-user-edit"></i>
+                  <button className="group flex items-center gap-3 rounded-2xl border border-slate-200/50 p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-sky-500/15">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
+                      <UserRoundPen className="h-5 w-5" strokeWidth={2} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-gray-800">
+                      <p className="text-sm font-semibold text-slate-900">
                         Update Profile
                       </p>
-                      <p className="truncate text-xs text-gray-500">
+                      <p className="truncate text-xs text-slate-500">
                         Edit teacher profile
                       </p>
                     </div>
-                    
+                    <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-slate-500" />
                   </button>
                 </DialogTrigger>
-              
+               
 
-                <DialogContent className="bg-white sm:max-w-md">
+                <DialogContent className="rounded-2xl border border-slate-200/70 bg-white shadow-2xl sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Select Teacher to Update</DialogTitle>
                     <DialogDescription>
@@ -413,13 +480,14 @@ const DashboardPage = () => {
 
                   <div className="space-y-4">
                     {/* Search Input */}
-                    <div>
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
                         placeholder="Search by name or email..."
                         value={teacherSearch}
                         onChange={(e) => setTeacherSearch(e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-200 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
                       />
                     </div>
 
@@ -430,18 +498,18 @@ const DashboardPage = () => {
                           <button
                             key={teacher.id}
                             onClick={() => setSelectedTeacherId(teacher.id)}
-                            className={`w-full rounded-lg border-2 p-3 text-left transition-all duration-200 ${
+                            className={`w-full rounded-2xl border p-3 text-left transition-all duration-300 ${
                               selectedTeacherId === teacher.id
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                                ? "border-blue-300 bg-blue-50/80 shadow-sm shadow-blue-500/10"
+                                : "border-slate-200/70 bg-white hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10"
                             }`}
                           >
-                            <p className="font-semibold text-gray-800">
+                            <p className="font-semibold text-slate-900">
                               {teacher.username}
                             </p>
                             {selectedTeacherId === teacher.id && (
                               <div className="mt-2 flex items-center gap-1 text-blue-600">
-                                <i className="fas fa-check text-sm"></i>
+                                <BadgeCheck className="h-4 w-4" />
                                 <span className="text-xs font-medium">
                                   Selected
                                 </span>
@@ -466,14 +534,14 @@ const DashboardPage = () => {
                           setSelectedTeacherId(null);
                           setTeacherSearch("");
                         }}
-                        className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-50"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleNavigateToTeacherProfile}
                         disabled={!selectedTeacherId}
-                        className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Update Profile
                       </button>
@@ -485,11 +553,11 @@ const DashboardPage = () => {
           </div>
 
           {/* System Status Card */}
-          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/15">
             <div className="p-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-500">
-                  <i className="fas fa-server text-white"></i>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+                  <ServerCog className="h-5 w-5 text-emerald-600" strokeWidth={2} />
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-800">
@@ -504,17 +572,17 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-2xl font-bold text-slate-800">
+                <div className="rounded-2xl border border-slate-200/50 bg-slate-50 p-3">
+                  <p className="text-2xl font-semibold text-slate-800">
                     {teachers.length}
                   </p>
-                  <p className="text-xs text-slate-500">Active Users</p>
+                  <p className="text-xs font-medium text-slate-500">Active Users</p>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-2xl font-bold text-slate-800">
+                <div className="rounded-2xl border border-slate-200/50 bg-slate-50 p-3">
+                  <p className="text-2xl font-semibold text-slate-800">
                     {activeDocuments?.length || 0}
                   </p>
-                  <p className="text-xs text-slate-500">Total Docs</p>
+                  <p className="text-xs font-medium text-slate-500">Total Docs</p>
                 </div>
               </div>
             </div>

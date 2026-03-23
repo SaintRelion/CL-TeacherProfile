@@ -1,18 +1,35 @@
 import FileCard from "@/components/document-repository/FileCard";
 import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
+import {
+  buildDepartmentOptions,
+  defaultDocumentRepositoryFilters,
+  filterAndSortDocuments,
+  getSearchSuggestions,
+  type DocumentRepositoryFilters,
+} from "@/components/document-repository/search-utils";
+import formatFolderName from "@/hooks/useFolderNameFormat";
+import type { DocumentFolder } from "@/models/DocumentFolder";
+import type { PersonalInformation } from "@/models/PersonalInformation";
 import type {
   TeacherDocument,
   UpdateTeacherDocument,
 } from "@/models/TeacherDocument";
-import { useResourceLocked } from "@saintrelion/data-access-layer";
-import { toDate } from "@saintrelion/time-functions";
-import React, { useEffect } from "react";
-import { useState } from "react";
-import type { DocumentFolder } from "@/models/DocumentFolder";
-import type { PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
-import formatFolderName from "@/hooks/useFolderNameFormat";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArchiveRestore,
+  ChevronRight,
+  FileSearch,
+  FileStack,
+  FolderArchive,
+  Home,
+  SearchX,
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+
+const PAGE_SIZE = 8;
 
 const DocumentExplorer = ({
   user,
@@ -24,16 +41,13 @@ const DocumentExplorer = ({
   initialFolder?: string;
 }) => {
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
-
   const [search, setSearch] = useState(initialSearch ?? "");
-  const [filters, setFilters] = useState<Record<string, string>>({
-    category: "",
-    sort: "",
-    quickTag: "",
-    department: "",
+  const [filters, setFilters] = useState<DocumentRepositoryFilters>({
+    ...defaultDocumentRepositoryFilters,
+    status: "archived",
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Set selected folder when initialFolder prop changes
   useEffect(() => {
     if (initialFolder) {
       setSelectedFolderId(initialFolder);
@@ -53,19 +67,20 @@ const DocumentExplorer = ({
   );
 
   const role = user.roles ? user.roles[0] : "";
+  const personalInfos = getPersonalInfo().data ?? [];
+  const documentFolders = getFolders().data ?? [];
+  const documents =
+    getDocuments({
+      filters: {
+        is_archived: "True",
+      },
+    }).data ?? [];
 
-  const personalInfos = getPersonalInfo().data;
-  const documentFolders = getFolders().data;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filters, selectedFolderId]);
 
-  const documents = getDocuments({
-    filters: {
-      is_archived: "True",
-    },
-  }).data;
-
-  const foldersWithDocs = React.useMemo(() => {
-    if (documentFolders == undefined) return [];
-
+  const foldersWithDocs = useMemo(() => {
     const map = new Map<
       string,
       { folder: string; folder_name: string; count: number }
@@ -79,199 +94,339 @@ const DocumentExplorer = ({
       });
     });
 
-    documents?.forEach((doc) => {
+    documents.forEach((doc) => {
       if (!doc.folder) return;
-
       const entry = map.get(doc.folder);
-      if (entry) {
-        entry.count += 1;
-      }
+      if (entry) entry.count += 1;
     });
 
-    return Array.from(map.values()).map((f) => ({
-      folder_name: f.folder_name,
-      files_count: String(f.count),
-      folder: f.folder,
+    return Array.from(map.values()).map((folder) => ({
+      folder_name: folder.folder_name,
+      files_count: String(folder.count),
+      folder: folder.folder,
     }));
   }, [documentFolders, documents]);
 
   const folderName =
-    foldersWithDocs.find((f) => f.folder == selectedFolderId)?.folder_name ??
+    foldersWithDocs.find((folder) => folder.folder === selectedFolderId)?.folder_name ??
     "";
 
-  const filteredDocuments = documents.filter((document) => {
-    const searchTerm = search.toLowerCase();
+  const searchResults = useMemo(
+    () =>
+      filterAndSortDocuments({
+        documents,
+        search,
+        filters,
+        selectedFolderId,
+        personalInfos,
+        documentFolders,
+      }),
+    [documents, search, filters, selectedFolderId, personalInfos, documentFolders],
+  );
 
-    // Search by fileName, fileType
-    if (
-      searchTerm &&
-      !document.document_title.toLowerCase().includes(searchTerm)
-    ) {
-      return false;
+  const totalPages = Math.max(1, Math.ceil(searchResults.length / PAGE_SIZE));
+  const paginatedResults = searchResults.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+  const paginationStart = searchResults.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const paginationEnd = Math.min(currentPage * PAGE_SIZE, searchResults.length);
+  const pageNumbers = Array.from(
+    { length: totalPages },
+    (_, index) => index + 1,
+  ).slice(
+    Math.max(0, currentPage - 2),
+    Math.min(totalPages, currentPage + 1),
+  );
+  const departmentOptions = useMemo(
+    () => buildDepartmentOptions(personalInfos),
+    [personalInfos],
+  );
+  const searchSuggestions = useMemo(
+    () =>
+      getSearchSuggestions({
+        documents,
+        personalInfos,
+        folders: documentFolders,
+      }),
+    [documents, personalInfos, documentFolders],
+  );
+
+  const totalArchivedDocuments = documents.length;
+  const archivedFoldersCount = foldersWithDocs.filter(
+    (folder) => Number(folder.files_count) > 0,
+  ).length;
+  const selectedFolderDocumentCount = selectedFolderId
+    ? documents.filter((document) => document.folder === selectedFolderId).length
+    : totalArchivedDocuments;
+
+  const handleFilterChange = (filterType: string, value: string) => {
+    if (filterType === "reset") {
+      setFilters({
+        ...defaultDocumentRepositoryFilters,
+        status: "archived",
+      });
+      return;
     }
 
-    // Folder filter
-    if (selectedFolderId != "" && document.folder != selectedFolderId) {
-      return false;
+    if (filterType === "status" && value !== "" && value !== "archived") {
+      return;
     }
 
-    // Quick tag filters
-    if (filters.quickTag) {
-      switch (filters.quickTag) {
-        case "none":
-          // e.g., last 3 files
-          if (
-            new Date(document.created_at) <
-            new Date(
-              Math.max(
-                ...documents.map((f) => new Date(f.created_at).getTime()),
-              ),
-            )
-          )
-            return true;
-          break;
-        case "recent":
-          // e.g., last 3 files
-          if (
-            new Date(document.created_at) <
-            new Date(
-              Math.max(
-                ...documents.map((f) => new Date(f.created_at).getTime()),
-              ),
-            )
-          )
-            return false;
-          break;
-        //   case "expiring":
-        //     if (!document.status.toLowerCase().includes("expires")) return false;
-        //     break;
-        case "large":
-          if (parseFloat(document.file_size_in_mb) < 2) return false;
-          break;
-      }
-    }
-
-    // Department filter: compare document owner department
-    if (filters.department) {
-      const ownerInfo = personalInfos?.find((p) => p.user === document.user);
-      const dept = (ownerInfo?.department ?? "").toLowerCase();
-      const filterDept = filters.department.toLowerCase().replaceAll("-", " ");
-
-      if (!dept.includes(filterDept)) return false;
-    }
-
-    return true;
-  });
-
-  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
-    switch (filters.sort) {
-      case "created": {
-        const aDate = toDate(a.created_at);
-        const bDate = toDate(b.created_at);
-
-        if (aDate != null && bDate != null)
-          return aDate.getTime() - bDate.getTime();
-        else return -1;
-      }
-      case "modified": {
-        const aDate = toDate(a.updated_at);
-        const bDate = toDate(b.updated_at);
-
-        if (aDate != null && bDate != null)
-          return aDate.getTime() - bDate.getTime();
-        else return -1;
-      }
-      case "name":
-        return a.document_title.localeCompare(b.document_title);
-      case "size":
-        return parseFloat(a.file_size_in_mb) - parseFloat(b.file_size_in_mb);
-      default:
-        return 0;
-    }
-  });
+    setFilters((prev) => ({
+      ...prev,
+      [filterType]: filterType === "status" && value === "" ? "archived" : value,
+    }));
+  };
 
   return (
     <>
       <Filters
         filters={filters}
-        onSearchChange={(value) => setSearch(value)}
-        onFilterChange={(filterType, value) => {
-          if (filterType === "reset") {
-            setFilters({
-              category: "",
-              sort: "",
-              quickTag: "",
-            });
-            return;
-          }
-
-          setFilters((prev) => ({ ...prev, [filterType]: value }));
-        }}
+        searchValue={search}
+        onSearchChange={setSearch}
+        onFilterChange={handleFilterChange}
+        suggestionItems={searchSuggestions}
+        departmentOptions={departmentOptions}
+        statusOptions={[{ label: "Archived", value: "archived" }]}
       />
 
-      <div className="mb-6 flex items-center space-x-2 text-sm text-gray-600">
-        <i className="fas fa-home text-blue-600"></i>
+      <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
+        <Home className="h-4 w-4 text-blue-600" />
         <span
-          className="cursor-pointer hover:opacity-60"
-          onClick={() => {
-            setSelectedFolderId("");
-          }}
+          className="cursor-pointer font-medium transition-opacity hover:opacity-60"
+          onClick={() => setSelectedFolderId("")}
         >
-          Repository
+          Archived Repository
         </span>
-        {selectedFolderId != "" && (
+        {selectedFolderId !== "" && (
           <>
-            <i className="fas fa-chevron-right text-xs"></i>
-            <span>{folderName}</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <span className="font-medium text-slate-700">{folderName}</span>
           </>
         )}
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-md">
-        <div className="border-b border-gray-100 p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Folders</h3>
-          </div>
+      <div className="overflow-hidden rounded-3xl border border-slate-200/60 bg-white/80 shadow-[0_24px_80px_-42px_rgba(15,23,42,0.35)] backdrop-blur-sm">
+        <div className="border-b border-slate-200/70 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-slate-200">
+                <ArchiveRestore className="h-3.5 w-3.5" />
+                Archive Control Center
+              </div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Keep archived records organized and easy to restore
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Search archived files by metadata, folder, owner, or date range,
+                then restore records back into the live repository when needed.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
-            {foldersWithDocs.map((value) => {
-              return (
-                <FolderCard
-                  key={value.folder}
-                  userRole={role}
-                  folderInfo={value}
-                  selectedFolderId={selectedFolderId}
-                  onFolderClicked={(value) => setSelectedFolderId(value)}
-                />
-              );
-            })}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+                  <FileStack className="h-3.5 w-3.5" />
+                  Archived Files
+                </div>
+                <p className="mt-3 text-2xl font-semibold text-white">
+                  {totalArchivedDocuments}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+                  <FolderArchive className="h-3.5 w-3.5" />
+                  Active Folders
+                </div>
+                <p className="mt-3 text-2xl font-semibold text-white">
+                  {archivedFoldersCount}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+                  <ArchiveRestore className="h-3.5 w-3.5" />
+                  Current Scope
+                </div>
+                <p className="mt-3 text-2xl font-semibold text-white">
+                  {selectedFolderDocumentCount}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="border-b border-slate-200/70 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {selectedFolderId == "" ? "Recent Documents" : folderName}
-            </h3>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Folders</h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Browse archive volumes by repository folder.
+              </p>
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sortedDocuments.map((doc, index) => (
-              <FileCard
-                key={index}
-                doc={doc}
-                onRestore={() => {
-                  if (!updateDocument.isLocked)
-                    updateDocument.run({
-                      id: doc.id,
-                      payload: { is_archived: false },
-                    });
+
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.06,
+                },
+              },
+            }}
+            className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-5"
+          >
+            {foldersWithDocs.map((value) => (
+              <motion.div
+                key={value.folder}
+                variants={{
+                  hidden: { opacity: 0, y: 16, scale: 0.97 },
+                  show: { opacity: 1, y: 0, scale: 1 },
                 }}
-              />
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <FolderCard
+                  userRole={role}
+                  folderInfo={value}
+                  selectedFolderId={selectedFolderId}
+                  onFolderClicked={(folderValue) =>
+                    setSelectedFolderId((current) =>
+                      current === folderValue ? "" : folderValue,
+                    )
+                  }
+                />
+              </motion.div>
             ))}
+          </motion.div>
+        </div>
+
+        <div className="p-6">
+          <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">
+                {selectedFolderId === "" ? "Archived Documents" : folderName}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                {searchResults.length} archived item{searchResults.length === 1 ? "" : "s"} ready for review or restoration.
+              </p>
+            </div>
+
+            <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              <FileSearch className="h-4 w-4 text-blue-600" />
+              Live search, metadata filtering, and safe restore actions
+            </div>
           </div>
+
+          {searchResults.length === 0 ? (
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-12 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-slate-400 shadow-sm">
+                <SearchX className="h-7 w-7" />
+              </div>
+              <h4 className="mt-5 text-lg font-semibold text-slate-900">
+                No documents found
+              </h4>
+              <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+                Try adjusting your keywords, narrowing the date range differently,
+                or clearing the current filters to expand the archive results.
+              </p>
+            </div>
+          ) : (
+            <>
+              <AnimatePresence mode="popLayout">
+                <motion.div
+                  initial="hidden"
+                  animate="show"
+                  variants={{
+                    hidden: {},
+                    show: {
+                      transition: {
+                        staggerChildren: 0.05,
+                      },
+                    },
+                  }}
+                  className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                >
+                  {paginatedResults.map((result) => (
+                    <motion.div
+                      key={result.doc.id}
+                      layout
+                      variants={{
+                        hidden: { opacity: 0, y: 18 },
+                        show: { opacity: 1, y: 0 },
+                      }}
+                      transition={{ duration: 0.28, ease: "easeOut" }}
+                    >
+                      <FileCard
+                        doc={result.doc}
+                        highlightTerms={result.searchTerms}
+                        matchContext={result.matchContext}
+                        onRestore={() => {
+                          if (!updateDocument.isLocked) {
+                            updateDocument.run({
+                              id: result.doc.id,
+                              payload: { is_archived: false },
+                            });
+                          }
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+
+              {totalPages > 1 && (
+                <div className="mt-6 flex flex-col gap-3 border-t border-slate-200/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-slate-500">
+                    Showing {paginationStart}-{paginationEnd} of {searchResults.length}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+
+                    {pageNumbers.map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-medium transition ${
+                          currentPage === page
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage((page) => Math.min(totalPages, page + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>
   );
 };
+
 export default DocumentExplorer;
