@@ -105,9 +105,20 @@ const DocumentExplorer = ({
             },
     }).data ?? [];
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, filters, selectedFolderId]);
+  const personalInfos = getPersonalInfo({
+    filters: { is_archived: "False" },
+  }).data;
+  const documentFolders = getFolders().data;
+
+  const documents = getDocuments({
+    filters:
+      role === "admin"
+        ? { is_archived: "False" }
+        : {
+            user: user.id,
+            is_archived: "False",
+          },
+  }).data;
 
   const nonSubmittingTeachers = useMemo(() => {
     if (!selectedFolderId || !documents.length) return [];
