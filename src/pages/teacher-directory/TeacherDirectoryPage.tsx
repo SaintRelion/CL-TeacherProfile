@@ -17,8 +17,8 @@ import { type PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
-import { toast } from "@saintrelion/notifications";
 import { useState, useEffect } from "react";
+import { toast } from "@saintrelion/notifications";
 
 function createFallbackTeacher(user: User): PersonalInformation {
   return {
@@ -197,7 +197,7 @@ const TeacherDirectoryPage = () => {
         <BulkActions
           teacherIds={selectedTeachersId}
           onClear={() => setSelectedTeachers([])}
-          onDelete={async (ids: string[]) => {
+          onDeleteSuccess={async (ids: string[]) => {
             if (ids.length === 0) return;
 
             if (

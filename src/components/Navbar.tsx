@@ -34,7 +34,7 @@ import type {
 } from "@/models/Notification";
 import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { sortByTime } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
 import type { User } from "@/models/user";
@@ -43,7 +43,6 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const user = useCurrentUser<User>();
   const auth = useAuth();
 
-  // State for dialogs
   const [showUpdatePhoto, setShowUpdatePhoto] = useState(false);
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -60,12 +59,13 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
       CreatePersonalInformation
     >("personalinformation", { showToast: false });
 
-  const role = user.roles ? user.roles[0] : "";
+  const role = user.roles?.[0] ?? "";
+
   const { data: informations } = getInformation({
-    filters: { user: user.id }
+    filters: { user: user.id },
   });
 
-  const myInformation = informations != null ? informations[0] : undefined;
+  const myInformation = informations?.[0];
 
   const {
     useList: getNotifications,
@@ -77,48 +77,52 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     UpdateNotification
   >("notification", { showToast: false });
 
-  const notifications = getNotifications({
-    filters:
-      role == "admin"
-        ? {}
-        : {
-          user: user.id,
-        },
-  }).data;
+  const notifications =
+    getNotifications({
+      filters: role === "admin" ? {} : { user: user.id },
+    }).data ?? [];
+
+  const privateNotifications = useMemo(
+    () =>
+      role === "admin"
+        ? notifications
+        : notifications.filter((notification) => notification.user === user.id),
+    [notifications, role, user.id]
+  );
 
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
 
-  const documents = getDocuments({
-    filters: {
-      user: user.id,
-    },
-  }).data;
+  const documents =
+    getDocuments({
+      filters: { user: user.id },
+    }).data ?? [];
 
-  const sortedNotifications = sortByTime(notifications, "created_at");
+  const sortedNotifications = useMemo(
+    () => sortByTime(privateNotifications, "created_at") ?? [],
+    [privateNotifications]
+  );
 
-  const existingDescriptions = useRef(new Set());
+  const existingDescriptions = useRef(new Set<string>());
+
   useEffect(() => {
-    if (sortedNotifications?.length > 0) {
-      existingDescriptions.current = new Set(sortedNotifications.map(n => n.description));
-    }
+    existingDescriptions.current = new Set(
+      sortedNotifications.map((n) => n.description)
+    );
   }, [sortedNotifications]);
 
   useEffect(() => {
-    if (!myInformation || documents.length === 0 || role === "admin") return;
+    if (!myInformation || !documents.length || role === "admin") return;
 
     const run = async () => {
       for (const doc of documents) {
         const status = getExpiryState(doc.expiry_date);
-
         if (status !== "expiring" && status !== "expired") continue;
 
         const description = `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name} - ${doc.document_title}`;
 
-        // 🔒 DUPLICATE CHECK
         if (existingDescriptions.current.has(description)) continue;
 
-        // Immediately mark as existing to prevent duplicates in this render
         existingDescriptions.current.add(description);
 
         await insertNotifications.run({
@@ -126,459 +130,328 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           type: status,
           title: `${doc.document_title} ${status}`,
           description,
-          is_read: false
+          is_read: false,
         });
       }
     };
 
     run();
-  }, [documents, myInformation, role, user.id]);
+  }, [documents, myInformation, role, user.id, insertNotifications]);
 
-  const profilePic =
-    myInformation != undefined ? myInformation.photo_base64 : NO_FACE_IMAGE;
+  const profilePic = useMemo(
+    () => myInformation?.photo_base64 ?? NO_FACE_IMAGE,
+    [myInformation]
+  );
 
-  // Count only unread notifications
-  const unreadNotifications = useMemo(() => {
-    return sortedNotifications.length == 0 ? [] : sortedNotifications.filter((n) => !n.is_read);
-  }, [sortedNotifications]);
+  const unreadNotifications = useMemo(
+    () => sortedNotifications.filter((n) => !n.is_read),
+    [sortedNotifications]
+  );
 
-  // Track if notification menu has been opened
   const [notifMenuOpened, setNotifMenuOpened] = useState(false);
+  const [localUnreadCount, setLocalUnreadCount] = useState(0);
 
-  // Local unread count to allow optimistic UI updates when marking as read
-  const [localUnreadCount, setLocalUnreadCount] = useState<number>(0);
-
-  // Keep local unread count in sync with fetched notifications
   useEffect(() => {
     setLocalUnreadCount(unreadNotifications.length);
   }, [unreadNotifications]);
 
   const handleMarkAsRead = async (notification: Notification) => {
+    if (role !== "admin" && notification.user !== user.id) {
+      return;
+    }
+
     if (!notification.is_read) {
       await updateNotifications.run({
         id: notification.id,
         payload: { is_read: true },
       });
-      // Optimistically update local unread count
       setLocalUnreadCount((c) => Math.max(0, c - 1));
     }
   };
 
-  // Open detailed compliance report dialog for a notification
-  const [showComplianceDialog, setShowComplianceDialog] = useState(false);
-  const [selectedNotification, setSelectedNotification] =
-    useState<Notification | null>(null);
-  const navigate = useNavigate();
+  // const [showComplianceDialog, setShowComplianceDialog] = useState(false);
+  // const [selectedNotification, setSelectedNotification] =
+  //   useState<Notification | null>(null);
+
+  // const navigate = useNavigate();
 
   const handleNotificationClick = async (notification: Notification) => {
-    // mark as read
+    if (role !== "admin" && notification.user !== user.id) {
+      toast.error("You can only access notifications for your own account.");
+      return;
+    }
+
     await handleMarkAsRead(notification);
-    // open dialog
-    setSelectedNotification(notification);
-    setShowComplianceDialog(true);
+    // setSelectedNotification(notification);
+    // setShowComplianceDialog(true);
   };
 
-  // Handle photo file selection
-  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPhotoPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) =>
+      setPhotoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
   };
 
-  // Handle photo update
   const handleUpdatePhoto = async () => {
-    if (!photoPreview) {
-      toast.error("Please select a photo");
-      return;
-    }
-
-    if (!myInformation) {
-      toast.error("No Personal information for this user");
-      return;
-    }
+    if (!photoPreview || !myInformation) return;
 
     setIsUpdatingPhoto(true);
+
     try {
       await updateInformation.run({
         id: myInformation.id,
-        payload: {
-          photo_base64: photoPreview,
-        } as Partial<PersonalInformation>,
+        payload: { photo_base64: photoPreview },
       });
-      toast.success("Profile photo updated successfully");
+
+      toast.success("Profile photo updated");
       setShowUpdatePhoto(false);
       setPhotoPreview("");
-    } catch (error) {
-      console.error("Failed to update photo:", error);
+    } catch {
       toast.error("Failed to update photo");
     } finally {
       setIsUpdatingPhoto(false);
     }
   };
 
-  // Handle password update
   const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("Please fill in all password fields");
+      toast.error("Fill all fields");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("New passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("Password too short");
       return;
     }
 
     setIsUpdatingPassword(true);
+
     try {
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
+      const authInstance = getAuth();
+      const currentUser = authInstance.currentUser;
 
-      if (!currentUser || !currentUser.email) {
-        toast.error("User not authenticated");
-        return;
-      }
+      if (!currentUser?.email) throw new Error();
 
-      // Reauthenticate user with current password
       const credential = EmailAuthProvider.credential(
         currentUser.email,
-        currentPassword,
+        currentPassword
       );
-      await reauthenticateWithCredential(currentUser, credential);
 
-      // Update password
+      await reauthenticateWithCredential(currentUser, credential);
       await updatePassword(currentUser, newPassword);
 
-      toast.success("Password updated successfully");
+      toast.success("Password updated");
       setShowUpdatePassword(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: unknown) {
-      const error = err as Record<string, string>;
-
-      console.error("Failed to update password:", error);
-      if (error.code === "auth/wrong-password") {
-        toast.error("Current password is incorrect");
-      } else if (error.code === "auth/weak-password") {
-        toast.error("New password is too weak");
-      } else {
-        toast.error(error.message || "Failed to update password");
-      }
+    } catch (err: any) {
+      toast.error(err?.message ?? "Update failed");
     } finally {
       setIsUpdatingPassword(false);
     }
   };
 
   return (
-    <header className="bg-gradient-to-r from-blue-600 to-blue-700 sticky top-0 z-50 text-white shadow-lg border-b-4 border-yellow-400">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg border-b-4 border-yellow-400">
+      <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
+
+          {/* LEFT */}
           <div className="flex items-center space-x-3">
             <button
+              aria-label="Open menu"
               onClick={() => toggleSidebar?.()}
-              className="lg:hidden text-white hover:bg-blue-500 rounded-lg p-2 transition-all duration-200 mr-3"
+              className="lg:hidden p-2 rounded-lg hover:bg-blue-500"
             >
-              {/* menu bars for mobile */}
               <i className="fas fa-bars text-xl"></i>
             </button>
 
-
-            <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-tight">
+            <h1 className="font-bold truncate max-w-[240px] text-sm sm:text-base md:text-lg lg:text-xl">
               Katipunan Central School & SPED Center
             </h1>
-
           </div>
 
+          {/* RIGHT */}
           <div className="flex items-center space-x-4">
+
+            {/* NOTIFICATIONS */}
             <DropdownMenu
-              onOpenChange={(open) => {
-                setNotifMenuOpened(open);
-                if (open) setLocalUnreadCount(0);
-              }}
+              onOpenChange={(open) => setNotifMenuOpened(open)}
             >
               <DropdownMenuTrigger asChild>
-                <button className="text-blue-100 relative p-2 transition-all duration-200 hover:text-white hover:bg-blue-500 rounded-lg">
+                <button
+                  aria-label="Notifications"
+                  className="relative p-2 hover:bg-blue-500 rounded-lg"
+                >
                   <i className="fas fa-bell text-lg"></i>
+
                   {localUnreadCount > 0 && !notifMenuOpened && (
-                    <span className="bg-yellow-500 absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white">
+                    <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-yellow-500 text-xs font-bold">
                       {localUnreadCount > 9 ? "9+" : localUnreadCount}
                     </span>
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="max-h-112.5 min-w-87.5 bg-white shadow-lg border border-gray-200"
-              >
-                <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white p-4">
-                  <h3 className="text-gray-900 text-lg font-bold">
-                    Notifications
-                  </h3>
+
+              <DropdownMenuContent align="end" className="w-80 p-0">
+                <div className="border-b border-gray-100 p-4 font-bold">
+                  Notifications
                 </div>
-                <div className="p-4">
-                  {sortedNotifications == undefined ||
-                    sortedNotifications.length == 0 ? (
-                    <p className="text-sm text-gray-500"> No Notifications </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {sortedNotifications.map((value, index) => (
-                        <div
-                          key={index}
-                          onClick={() => handleNotificationClick(value)}
-                          className="cursor-pointer rounded-lg p-3 transition-all duration-200 hover:bg-blue-50 border border-transparent hover:border-blue-200"
-                        >
-                          <NotificationCard
-                            notification={value}
-                            isRead={value.is_read}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {/* <button className="text-blue-600 hover:text-blue-700 mt-4 w-full text-sm font-medium">
-                    View all activity
-                  </button> */}
-                </div>
+
+                {sortedNotifications.length === 0 ? (
+                  <p className="p-4 text-sm text-gray-500">
+                    No Notifications
+                  </p>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto p-2">
+                    {sortedNotifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => handleNotificationClick(n)}
+                        className="cursor-pointer rounded-lg p-1 hover:bg-blue-50"
+                      >
+                        <NotificationCard
+                          notification={n}
+                          isRead={n.is_read}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* USER MENU */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="group flex cursor-pointer items-center space-x-2 hover:opacity-80 transition-opacity duration-200">
+                <div
+                  aria-label="User menu"
+                  className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
+                >
                   <img
                     src={resolveImageSource(profilePic)}
-                    alt="Admin Profile"
-                    className="h-8 w-8 rounded-full object-cover border-2 border-yellow-400 shadow-md"
+                    alt="Profile"
+                    className="h-8 w-8 rounded-full border-2 border-yellow-400 object-cover"
                   />
-                  <span className="text-sm font-medium text-blue-100 transition-colors duration-150 group-hover:text-white">
+
+                  <span className="text-sm font-medium truncate max-w-[120px]">
                     {user.username}
                   </span>
-                  <i className="fas fa-chevron-down text-blue-200 group-hover:text-white text-xs transition-colors duration-150"></i>
+
+                  <i className="fas fa-chevron-down text-xs"></i>
                 </div>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent
-                align="end"
-                className="mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-700 shadow-lg"
-              >
-                <DropdownMenuItem
-                  onClick={() => setShowUpdatePhoto(true)}
-                  className="flex items-center space-x-3 px-4 py-2.5 font-medium transition-all duration-150 hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
-                >
-                  <i className="fas fa-camera text-blue-600"></i>
-                  <span>Update Photo</span>
+              <DropdownMenuContent align="end" className="w-48">
+
+                <DropdownMenuItem onClick={() => setShowUpdatePhoto(true)}>
+                  Update Photo
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => setShowUpdatePassword(true)}>
+                  Update Password
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => setShowUpdatePassword(true)}
-                  className="flex items-center space-x-3 px-4 py-2.5 font-medium transition-all duration-150 hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
+                  onClick={() => auth.logout()}
+                  className="text-red-600"
                 >
-                  <i className="fas fa-key text-blue-600"></i>
-                  <span>Update Password</span>
+                  Logout
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  onClick={async () => await auth.logout()}
-                  className="flex items-center space-x-3 px-4 py-2.5 font-medium text-red-600 transition-all duration-150 hover:bg-red-50 hover:text-red-700 cursor-pointer"
-                >
-                  <i className="fas fa-sign-out-alt text-red-600"></i>
-                  <span>Logout</span>
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
       </div>
 
-      {/* Update Photo Dialog */}
+      {/* PHOTO DIALOG */}
       <Dialog open={showUpdatePhoto} onOpenChange={setShowUpdatePhoto}>
-        <DialogContent className="bg-white sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <i className="fas fa-camera text-primary-600"></i>
-              Update Profile Photo
-            </DialogTitle>
+            <DialogTitle>Update Profile Photo</DialogTitle>
             <DialogDescription>
-              Upload a new profile photo. Supported formats: JPG, PNG, GIF
+              Upload JPG/PNG/GIF (max 5MB)
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Photo Preview */}
-            <div className="flex justify-center">
-              <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-100">
-                {photoPreview ? (
-                  <img
-                    src={photoPreview}
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <i className="fas fa-user text-4xl text-slate-400"></i>
-                )}
-              </div>
-            </div>
-
-            {/* File Input */}
-            <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoSelect}
-                className="file:bg-blue-500 hover:file:bg-primary-600 block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
-              />
-            </div>
-          </div>
+          <input type="file" accept="image/*" onChange={handlePhotoSelect} />
 
           <DialogFooter>
-            <button
-              onClick={() => {
-                setShowUpdatePhoto(false);
-                setPhotoPreview("");
-              }}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
+            <button onClick={() => setShowUpdatePhoto(false)}>
               Cancel
             </button>
+
             <button
               onClick={handleUpdatePhoto}
               disabled={!photoPreview || isUpdatingPhoto}
-              className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isUpdatingPhoto ? "Updating..." : "Update Photo"}
+              {isUpdatingPhoto ? "Updating..." : "Update"}
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Detailed Compliance Report Dialog */}
-      <Dialog
-        open={showComplianceDialog}
-        onOpenChange={setShowComplianceDialog}
-      >
-        <DialogContent className="bg-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <i className="fas fa-file-alt text-primary-600"></i>
-              View Expiring Documents
-            </DialogTitle>
-            <DialogDescription><p className="text-sm text-gray-700">
-              {selectedNotification?.description}
-            </p></DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="flex justify-center">
-            <button
-              onClick={() => setShowComplianceDialog(false)}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Close
-            </button>
-            {role == "admin" && <button
-              onClick={() => {
-                setShowComplianceDialog(false);
-                let searchValue = selectedNotification?.description ?? "";
-                const lastIdx = searchValue.lastIndexOf(" - ");
-                if (lastIdx !== -1)
-                  searchValue = searchValue.substring(lastIdx + 3);
-                navigate(
-                  "/admin/documentrepository?q=" +
-                  encodeURIComponent(searchValue),
-                );
-              }}
-              className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white"
-            >
-              View Detailed Compliance Report
-            </button>}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Update Password Dialog */}
+      {/* PASSWORD DIALOG */}
       <Dialog open={showUpdatePassword} onOpenChange={setShowUpdatePassword}>
-        <DialogContent className="bg-white sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <i className="fas fa-key text-primary-600"></i>
-              Update Password
-            </DialogTitle>
-            <DialogDescription>
-              Change your account password. Must be at least 6 characters.
-            </DialogDescription>
+            <DialogTitle>Update Password</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Current Password */}
-            <div>
-              <label className="text-sm font-medium text-slate-700">
-                Current Password
-              </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2"
-              />
-            </div>
+          <div className="space-y-2">
+            <input
+              type="password"
+              placeholder="Current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
 
-            {/* New Password */}
-            <div>
-              <label className="text-sm font-medium text-slate-700">
-                New Password
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2"
-              />
-            </div>
+            <input
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
 
-            {/* Confirm Password */}
-            <div>
-              <label className="text-sm font-medium text-slate-700">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-transparent focus:ring-2"
-              />
-            </div>
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
           </div>
 
           <DialogFooter>
-            <button
-              onClick={() => {
-                setShowUpdatePassword(false);
-                setCurrentPassword("");
-                setNewPassword("");
-                setConfirmPassword("");
-              }}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
+            <button onClick={() => setShowUpdatePassword(false)}>
               Cancel
             </button>
+
             <button
               onClick={handleUpdatePassword}
               disabled={isUpdatingPassword}
-              className="bg-primary-600 hover:bg-primary-700 rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isUpdatingPassword ? "Updating..." : "Update Password"}
+              {isUpdatingPassword ? "Updating..." : "Update"}
             </button>
           </DialogFooter>
         </DialogContent>
@@ -586,4 +459,5 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     </header>
   );
 };
+
 export default Navbar;
