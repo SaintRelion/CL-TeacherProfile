@@ -197,19 +197,19 @@ const TeacherDirectoryPage = () => {
         <BulkActions
           teacherIds={selectedTeachersId}
           onClear={() => setSelectedTeachers([])}
-          onDeleteSuccess={async (ids: string[]) => {
-            if (ids.length === 0) return;
+          onDelete={async (selectedIds: string[]) => {
+            if (selectedIds.length === 0) return;
 
             if (
               !window.confirm(
-                `Delete ${ids.length} selected teacher(s) and their information?`,
+                `Delete ${selectedIds.length} selected teacher(s) and their information?`,
               )
             )
               return;
 
             let successCount: number = 0;
 
-            for (const userId of ids) {
+            for (const userId of selectedIds) {
               try {
                 // 1. Find the personal information record associated with this user
                 // Assuming your list hook provides the data in a 'data' property
@@ -239,7 +239,7 @@ const TeacherDirectoryPage = () => {
                 `${successCount} teacher(s) and their records deleted`,
               );
               setSelectedTeachers((prev: string[]) =>
-                prev.filter((id: string) => !ids.includes(id)),
+                prev.filter((id: string) => !selectedIds.includes(id)),
               );
             } else {
               toast.error("Failed to delete selected teacher(s)");
