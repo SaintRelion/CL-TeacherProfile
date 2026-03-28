@@ -3,9 +3,13 @@ import type { PersonalInformation } from "@/models/PersonalInformation";
 
 interface PDSPrintViewProps {
   myInformation: PersonalInformation | null;
+  mode?: "print" | "screen";
 }
 
-const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
+const PDSPrintView = ({
+  myInformation,
+  mode = "print",
+}: PDSPrintViewProps) => {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -17,7 +21,9 @@ const PDSPrintView = ({ myInformation }: PDSPrintViewProps) => {
   };
 
   return (
-    <div className="pds-print-view hidden print:block">
+    <div
+      className={`pds-print-view ${mode === "print" ? "hidden print:block" : "block print:hidden"}`}
+    >
       {/* PDS Header */}
       <div className="pds-header">
         <div className="pds-header-top">

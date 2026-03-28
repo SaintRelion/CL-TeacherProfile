@@ -227,9 +227,14 @@
     transition: all var(--transition-default);
   }
 
-  .transition-slow {
+.transition-slow {
     transition: all var(--transition-slow);
   }
+}
+
+.avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 /* ===================================
@@ -308,12 +313,33 @@
 /* PDS Print View Container */
 .pds-print-view {
   font-family: Arial, sans-serif;
-  font-size: 9pt;
+  font-size: 10pt;
   line-height: 1.3;
   color: #000;
   background: white;
-  padding: 0;
+  padding: 0.5in;
   max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.pds-paper-a4 {
+  width: 210mm;
+  min-height: 297mm;
+}
+
+.pds-paper-letter {
+  width: 8.5in;
+  min-height: 11in;
+}
+
+.pds-paper-legal {
+  width: 8.5in;
+  min-height: 14in;
+}
+
+.pds-preview-section {
+  margin-bottom: 8px;
 }
 
 /* PDS Header */
@@ -345,7 +371,7 @@
 }
 
 .pds-title {
-  font-size: 16pt;
+  font-size: 14pt;
   font-weight: bold;
   letter-spacing: 2px;
   margin: 0;
@@ -353,7 +379,7 @@
 }
 
 .pds-subtitle {
-  font-size: 9pt;
+  font-size: 10pt;
   margin: 2px 0 0 0;
   color: #333;
 }
@@ -385,7 +411,7 @@
   color: white;
   padding: 4px 8px;
   font-weight: bold;
-  font-size: 9pt;
+  font-size: 12pt;
   display: flex;
   gap: 8px;
 }
@@ -402,7 +428,7 @@
 .pds-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 8pt;
+  font-size: 10pt;
 }
 
 .pds-table td {
@@ -414,7 +440,7 @@
 .pds-label-cell {
   background-color: #e8e8e8;
   font-weight: normal;
-  font-size: 7pt;
+  font-size: 10pt;
   width: 18%;
   text-transform: uppercase;
 }
@@ -429,7 +455,7 @@
 .pds-value-cell {
   background-color: white;
   font-weight: bold;
-  font-size: 9pt;
+  font-size: 10pt;
   min-height: 20px;
 }
 
@@ -579,10 +605,137 @@
   margin: 0;
 }
 
+.pds-page-footer {
+  margin-top: 16px;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10pt;
+  color: #475569;
+}
+
+.pds-sheet {
+  width: 100%;
+  min-height: auto;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  color: #111827;
+}
+
+.pds-sheet-header {
+  text-align: center;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.pds-sheet-title {
+  font-size: 20pt;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.pds-sheet-meta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: left;
+  font-size: 8pt;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.pds-sheet-meta p {
+  margin: 0;
+}
+
+.pds-sheet-warning {
+  margin: 0 0 6px 0;
+  font-size: 10pt;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.pds-sheet-note {
+  margin: 0;
+  font-size: 9pt;
+  text-transform: uppercase;
+}
+
+.pds-sheet-section {
+  border: 1px solid #222;
+  margin-bottom: 10px;
+  page-break-inside: avoid;
+}
+
+.pds-sheet-section-title {
+  background: #e5e7eb;
+  border-bottom: 1px solid #222;
+  font-size: 10.5pt;
+  font-weight: 700;
+  font-style: italic;
+  padding: 6px 8px;
+  text-transform: uppercase;
+}
+
+.pds-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.pds-grid-table th,
+.pds-grid-table td {
+  border: 1px solid #222;
+  padding: 0;
+  vertical-align: top;
+}
+
+.pds-grid-table th {
+  background: #f3f4f6;
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 5px 6px;
+}
+
+.pds-grid-cell {
+  min-height: 44px;
+}
+
+.pds-grid-label {
+  font-size: 6.5pt;
+  color: #6b7280;
+  padding: 4px 4px 0 4px;
+  text-transform: uppercase;
+}
+
+.pds-grid-value {
+  font-size: 10pt;
+  color: #111827;
+  min-height: 24px;
+  padding: 2px 4px 5px 4px;
+}
+
+.pds-grid-empty {
+  background: #fff;
+}
+
 /* Print-specific overrides for PDS */
 @media print {
+  @page {
+    margin: 0.5in;
+  }
+
+  @page :first {
+    margin: 0.5in;
+  }
+
   .pds-print-view {
     display: block !important;
+    padding: 0 !important;
+    width: auto !important;
+    min-height: auto !important;
   }
 
   .pds-section-header {
@@ -624,5 +777,48 @@
   .mb-6.overflow-hidden.rounded-2xl.border,
   .overflow-hidden.rounded-2xl.border {
     display: none !important;
+  }
+
+  .pds-paper-a4 {
+    page: a4;
+  }
+
+  .pds-paper-letter {
+    page: letter;
+  }
+
+  .pds-paper-legal {
+    page: legal;
+  }
+
+  .pds-sheet-section-title,
+  .pds-grid-table th {
+    background: #e5e7eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+@media print {
+  body.pds-printing * {
+    visibility: hidden !important;
+  }
+
+  body.pds-printing .pds-print-root,
+  body.pds-printing .pds-print-root * {
+    visibility: visible !important;
+  }
+
+  body.pds-printing .pds-print-root {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body.pds-printing .pds-print-root > div {
+    margin: 0 auto !important;
   }
 }

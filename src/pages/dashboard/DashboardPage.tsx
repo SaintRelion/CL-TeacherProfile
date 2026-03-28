@@ -225,7 +225,11 @@ const DashboardPage = () => {
 
     const token = await createImpersonationToken(user.id, selectedTeacherId);
     // Navigate to teacher profile inspect page with the selected teacher ID
-    navigate(`/teacherprofileinspect?token=${token}`);
+    const query = new URLSearchParams({
+      teacher: selectedTeacherId,
+      token,
+    }).toString();
+    navigate(`/admin/teacherprofileinspect?${query}`);
     setShowTeacherSelection(false);
     setSelectedTeacherId(null);
     setTeacherSearch("");
