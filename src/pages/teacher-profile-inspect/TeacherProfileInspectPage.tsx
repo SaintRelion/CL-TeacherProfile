@@ -1,6 +1,7 @@
 import BasicInformationCard from "@/components/teacher-profile/BasicInformationCard";
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
+import PDSWorkspace from "@/components/teacher-profile/PDSWorkspace";
 import { NO_FACE_IMAGE } from "@/constants";
 import {
   type CreatePersonalInformation,
@@ -17,9 +18,9 @@ const TeacherProfileInspectPage = () => {
   const [searchParams] = useSearchParams();
   const teacher = searchParams.get("teacher");
 
-  const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
-    "personal",
-  );
+  const [tabSelected, setTabSelected] = useState<
+    "personal" | "documents" | "pds"
+  >("personal");
 
   const { useUpdate: updateUser } = useResourceLocked<never, never, UpdateUser>(
     "user",
@@ -143,6 +144,7 @@ const TeacherProfileInspectPage = () => {
               <nav className="flex gap-1 px-4" aria-label="Tabs">
                 {/* Personal Tab */}
                 <button
+                  type="button"
                   onClick={() => setTabSelected("personal")}
                   className={`flex items-center gap-2 border-b-2 px-4 py-4 text-sm font-medium transition-all ${
                     tabSelected === "personal"
@@ -158,17 +160,33 @@ const TeacherProfileInspectPage = () => {
 
                 {/* Documents Tab */}
                 <button
+                  type="button"
                   onClick={() => setTabSelected("documents")}
                   className={`flex items-center gap-2 border-b-2 px-4 py-4 text-sm font-medium transition-all ${
                     tabSelected === "documents"
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
+                  >
+                    <i
+                      className={`fas fa-folder ${tabSelected === "documents" ? "text-blue-500" : "text-slate-400"}`}
+                    ></i>
+                    Documents
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTabSelected("pds")}
+                  className={`flex items-center gap-2 border-b-2 px-4 py-4 text-sm font-medium transition-all ${
+                    tabSelected === "pds"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                  }`}
                 >
                   <i
-                    className={`fas fa-folder ${tabSelected === "documents" ? "text-blue-500" : "text-slate-400"}`}
+                    className={`fas fa-id-card-alt ${tabSelected === "pds" ? "text-blue-500" : "text-slate-400"}`}
                   ></i>
-                  Documents
+                  PDS
                 </button>
               </nav>
             </div>
@@ -182,6 +200,14 @@ const TeacherProfileInspectPage = () => {
               {/* DOCUMENTS */}
               {tabSelected == "documents" && teacher != null && (
                 <DocumentsTab userId={teacher} />
+              )}
+
+              {/* PDS */}
+              {tabSelected == "pds" && (
+                <PDSWorkspace
+                  myInformation={myInformation}
+                  userId={teacher ?? "inspect"}
+                />
               )}
             </div>
           </div>

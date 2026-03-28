@@ -1,7 +1,7 @@
 import BasicInformationCard from "@/components/teacher-profile/BasicInformationCard";
 import DocumentsTab from "@/components/teacher-profile/DocumentsTab";
 import PersonalInformationForm from "@/components/teacher-profile/PersonalInformationForm";
-import PDSPrintView from "@/components/teacher-profile/PDSPrintView";
+import PDSWorkspace from "@/components/teacher-profile/PDSWorkspace";
 import {
   Drawer,
   DrawerTrigger,
@@ -36,9 +36,9 @@ const TeacherProfilePage = () => {
   const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [tabSelected, setTabSelected] = useState<"personal" | "documents">(
-    "personal",
-  );
+  const [tabSelected, setTabSelected] = useState<
+    "personal" | "documents" | "pds"
+  >("personal");
 
   const { useUpdate: updateUser } = useResourceLocked<never, never, UpdateUser>(
     "user",
@@ -171,6 +171,7 @@ const TeacherProfilePage = () => {
                 <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                   <DrawerTrigger asChild>
                     <button
+                      type="button"
                       className="group relative flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md"
                       title="Quick View Profile"
                     >
@@ -313,6 +314,7 @@ const TeacherProfilePage = () => {
                             Quick Actions
                           </h4>
                           <button
+                            type="button"
                             onClick={() => {
                               setTabSelected("personal");
                               setDrawerOpen(false);
@@ -333,6 +335,7 @@ const TeacherProfilePage = () => {
                             <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
                           </button>
                           <button
+                            type="button"
                             onClick={() => {
                               setTabSelected("documents");
                               setDrawerOpen(false);
@@ -352,17 +355,38 @@ const TeacherProfilePage = () => {
                             </div>
                             <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTabSelected("pds");
+                              setDrawerOpen(false);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-slate-50"
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                              <i className="fas fa-id-card-alt"></i>
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-800">View PDS</p>
+                              <p className="text-xs text-slate-500">
+                                Preview personal data sheet
+                              </p>
+                            </div>
+                            <i className="fas fa-chevron-right ml-auto text-slate-300"></i>
+                          </button>
                         </div>
                       </div>
                     </DrawerBody>
                     <DrawerFooter>
                       <button
+                        type="button"
                         onClick={() => setDrawerOpen(false)}
                         className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
                       >
                         Close
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           handlePrint();
                           setDrawerOpen(false);
@@ -378,6 +402,7 @@ const TeacherProfilePage = () => {
 
                 {/* Print Button */}
                 <button
+                  type="button"
                   onClick={handlePrint}
                   className="group relative flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md"
                   title="Print Teacher Profile"
@@ -420,6 +445,7 @@ const TeacherProfilePage = () => {
                 <nav className="flex gap-1 px-4 pt-2" aria-label="Tabs">
                   {/* Personal Tab */}
                   <button
+                    type="button"
                     onClick={() => setTabSelected("personal")}
                     className={`group relative flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-medium transition-all duration-200 ${
                       tabSelected === "personal"
@@ -444,6 +470,7 @@ const TeacherProfilePage = () => {
 
                   {/* Documents Tab */}
                   <button
+                    type="button"
                     onClick={() => setTabSelected("documents")}
                     className={`group relative flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-medium transition-all duration-200 ${
                       tabSelected === "documents"
@@ -465,6 +492,30 @@ const TeacherProfilePage = () => {
                       <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-blue-500"></div>
                     )}
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTabSelected("pds")}
+                    className={`group relative flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-medium transition-all duration-200 ${
+                      tabSelected === "pds"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-slate-500 hover:bg-white/50 hover:text-slate-700"
+                    }`}
+                  >
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                        tabSelected === "pds"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500"
+                      }`}
+                    >
+                      <i className="fas fa-id-card-alt text-sm"></i>
+                    </div>
+                    <span>PDS</span>
+                    {tabSelected === "pds" && (
+                      <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-blue-500"></div>
+                    )}
+                  </button>
                 </nav>
               </div>
 
@@ -479,12 +530,14 @@ const TeacherProfilePage = () => {
                 {tabSelected == "documents" && (
                   <DocumentsTab userId={user.id} />
                 )}
+
+                {/* PDS */}
+                {tabSelected == "pds" && (
+                  <PDSWorkspace myInformation={myInformation} userId={user.id} />
+                )}
               </div>
             </div>
           </div>
-
-          {/* PDS Print View - Only visible when printing */}
-          <PDSPrintView myInformation={myInformation} />
         </div>
       </div>
     </RenderForm>
