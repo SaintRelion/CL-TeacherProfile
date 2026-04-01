@@ -19,14 +19,34 @@ export interface PDSFormData {
     children: PDSDataNode[];
   };
   educationalBackground: PDSDataNode;
-  civilServiceEligibility: PDSDataNode[];
-  workExperience: PDSDataNode[];
-  voluntaryWork: PDSDataNode[];
-  training: PDSDataNode[];
+  civilServiceEligibility: {
+    eligibilityEntries: PDSDataNode[];
+  };
+  workExperience: {
+    workEntries: PDSDataNode[];
+  };
+  voluntaryWork: {
+    voluntaryWorkEntries: PDSDataNode[];
+  };
+  training: {
+    trainingEntries: PDSDataNode[];
+  };
   otherInformation: PDSDataNode;
   additionalInformation: PDSDataNode;
   [key: string]: PDSDataNode | PDSDataNode[] | undefined;
 }
+
+const blankPDS: PDSFormData = {
+  personalInfo: {},
+  familyBackground: { children: [] },
+  civilServiceEligibility: { eligibilityEntries: [] },
+  workExperience: { workEntries: [] },
+  voluntaryWork: { voluntaryWorkEntries: [] },
+  training: { trainingEntries: [] },
+  educationalBackground: {},
+  otherInformation: { awards: [], skills: [], memberships: [] },
+  additionalInformation: { references: [] },
+};
 
 export const PDSWorkspace = ({ user }: { user: User }) => {
   const [printOpen, setPrintOpen] = useState(false);
@@ -37,16 +57,13 @@ export const PDSWorkspace = ({ user }: { user: User }) => {
   );
 
   const methods = useForm<PDSFormData>({
-    defaultValues: user.pds || {
-      personalInfo: {},
-      familyBackground: { children: [] },
-      workExperience: [],
-    },
+    defaultValues: user.pds || blankPDS,
     mode: "onChange",
   });
 
   const onPDSSubmit: SubmitHandler<PDSFormData> = async (data) => {
     try {
+      console.log(data);
       await updateUser.run({
         id: user.id,
         payload: { pds: data },

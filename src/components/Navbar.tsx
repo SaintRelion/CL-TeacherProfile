@@ -32,7 +32,10 @@ import type {
   Notification,
   UpdateNotification,
 } from "@/models/Notification";
-import type { TeacherDocument } from "@/models/TeacherDocument";
+import type {
+  TeacherDocument,
+  UpdateTeacherDocument,
+} from "@/models/TeacherDocument";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { sortByTime } from "@saintrelion/time-functions";
@@ -93,13 +96,19 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     );
   }, [notifications, role, user.id]);
 
-  const { useList: getDocuments } =
-    useResourceLocked<TeacherDocument>("teacherdocument");
+  const { useList: getDocuments, useUpdate: updateDocument } =
+    useResourceLocked<TeacherDocument, never, UpdateTeacherDocument>(
+      "teacherdocument",
+      { showToast: false },
+    );
 
-  const documents =
-    getDocuments({
-      filters: { user: user.id },
-    }).data ?? [];
+  const documents = getDocuments(
+    role == "admin"
+      ? {}
+      : {
+          filters: { user: user.id },
+        },
+  ).data;
 
   const sortedNotifications = useMemo(
     () => sortByTime(privateNotifications, "created_at") ?? [],
@@ -115,31 +124,54 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   }, [sortedNotifications]);
 
   useEffect(() => {
-    if (!myInformation || !documents.length || role === "admin") return;
+    // Guard: We need documents and info to proceed at all
+    // if (!myInformation) return;
 
     const run = async () => {
       for (const doc of documents) {
         const status = getExpiryState(doc.expiry_date);
+        console.log(status);
+        // SKIP if valid
         if (status !== "expiring" && status !== "expired") continue;
 
-        const description = `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name} - ${doc.document_title}`;
+        // --- 1. AUTO-ARCHIVE (For Everyone, including Admin) ---
+        if (status === "expired" && !doc.is_archived) {
+          if (!updateDocument.isLocked) {
+            await updateDocument.run({
+              id: doc.id,
+              payload: { is_archived: true },
+            });
+          }
+        }
 
-        if (existingDescriptions.current.has(description)) continue;
+        // --- 2. NOTIFICATIONS (User Only) ---
+        if (role !== "admin") {
+          const description = `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name} - ${doc.document_title}`;
 
-        existingDescriptions.current.add(description);
+          if (!existingDescriptions.current.has(description)) {
+            existingDescriptions.current.add(description);
 
-        await insertNotifications.run({
-          user: user.id,
-          type: status,
-          title: `${doc.document_title} ${status}`,
-          description,
-          is_read: false,
-        });
+            await insertNotifications.run({
+              user: user.id,
+              type: status,
+              title: `${doc.document_title} ${status}`,
+              description,
+              is_read: false,
+            });
+          }
+        }
       }
     };
 
     run();
-  }, [documents, myInformation, role, user.id, insertNotifications]);
+  }, [
+    documents,
+    myInformation,
+    role,
+    user.id,
+    insertNotifications,
+    updateDocument,
+  ]);
 
   const profilePic = useMemo(
     () => myInformation?.photo_base64 ?? NO_FACE_IMAGE,
