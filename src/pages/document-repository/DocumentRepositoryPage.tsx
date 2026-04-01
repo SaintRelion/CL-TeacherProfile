@@ -12,7 +12,9 @@ const DocumentRepositoryPage = () => {
   const user = useCurrentUser<User>();
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
-  const liveDocuments = getDocuments({filters: {is_archived: "False"}}).data;
+  const liveDocuments = getDocuments({
+    filters: { is_archived: "False" },
+  }).data;
 
   const totalStorageGB = React.useMemo(() => {
     if (liveDocuments.length === 0) return 0;
@@ -30,8 +32,7 @@ const DocumentRepositoryPage = () => {
     {
       title: "Total Documents",
       value: liveDocuments.length.toString(),
-      iconClassName:
-        "fas fa-file-alt text-blue-600 bg-blue-100 rounded-lg p-2",
+      iconClassName: "fas fa-file-alt text-blue-600 bg-blue-100 rounded-lg p-2",
     },
     {
       title: "Storage Used",
@@ -41,8 +42,7 @@ const DocumentRepositoryPage = () => {
     {
       title: "Recent Uploads",
       value: liveDocuments.length.toString(),
-      iconClassName:
-        "fas fa-upload text-blue-600 bg-blue-100 rounded-lg p-2",
+      iconClassName: "fas fa-upload text-blue-600 bg-blue-100 rounded-lg p-2",
     },
   ];
 
@@ -52,17 +52,17 @@ const DocumentRepositoryPage = () => {
   const folder = params.get("folder") ?? "";
 
   return (
-    <RenderForm wrapperClassName="flex-1 p-6">
+    <RenderForm wrapperClassName="flex-1 bg-slate-50  p-4 md:p-6 lg:p-8">
       {/* <div className="mb-8"> */}
-        {/* <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+      {/* <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="mt-4 flex items-center space-x-3 md:mt-0"></div>
         </div> */}
 
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {kpi.map((value, index) => (
-            <KpiCard key={index} kvp={value} />
-          ))}
-        </div>
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        {kpi.map((value, index) => (
+          <KpiCard key={index} kvp={value} />
+        ))}
+      </div>
       {/* </div> */}
 
       <DocumentExplorer user={user} initialSearch={q} initialFolder={folder} />

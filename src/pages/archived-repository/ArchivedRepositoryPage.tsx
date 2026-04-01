@@ -13,7 +13,7 @@ const ArchivedRepositoryPage = () => {
   const folder = params.get("folder") ?? "";
 
   return (
-    <RenderForm wrapperClassName="flex-1 p-6">
+    <RenderForm wrapperClassName="flex-1 p-6 bg-slate-50 ">
       <DocumentExplorer user={user} initialSearch={q} initialFolder={folder} />
     </RenderForm>
   );

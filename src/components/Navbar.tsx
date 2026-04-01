@@ -74,23 +74,23 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     useList: getNotifications,
     useInsert: insertNotifications,
     useUpdate: updateNotifications,
-  } = useResourceLocked<
-    Notification,
-    CreateNotification,
-    UpdateNotification
-  >("notification", { showToast: false });
+  } = useResourceLocked<Notification, CreateNotification, UpdateNotification>(
+    "notification",
+    { showToast: false },
+  );
 
-  const notifications =
-    getNotifications({
-      filters: role === "admin" ? {} : { user: user.id },
-    }).data ?? [];
+  const notifications = getNotifications({
+    filters: role === "admin" ? {} : { user: user.id },
+  }).data;
 
   const privateNotifications = useMemo(() => {
     if (role === "admin") {
       return notifications;
     }
 
-    return notifications.filter((notification) => notification.user === user.id);
+    return notifications.filter(
+      (notification) => notification.user === user.id,
+    );
   }, [notifications, role, user.id]);
 
   const { useList: getDocuments } =
@@ -103,14 +103,14 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
   const sortedNotifications = useMemo(
     () => sortByTime(privateNotifications, "created_at") ?? [],
-    [privateNotifications]
+    [privateNotifications],
   );
 
   const existingDescriptions = useRef(new Set<string>());
 
   useEffect(() => {
     existingDescriptions.current = new Set(
-      sortedNotifications.map((n) => n.description)
+      sortedNotifications.map((n) => n.description),
     );
   }, [sortedNotifications]);
 
@@ -143,12 +143,12 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
   const profilePic = useMemo(
     () => myInformation?.photo_base64 ?? NO_FACE_IMAGE,
-    [myInformation]
+    [myInformation],
   );
 
   const unreadNotifications = useMemo(
     () => sortedNotifications.filter((n) => !n.is_read),
-    [sortedNotifications]
+    [sortedNotifications],
   );
 
   const documentAlerts = useMemo(
@@ -160,7 +160,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           status: getExpiryState(doc.expiry_date),
         }))
         .filter(({ status }) => status === "expiring" || status === "expired"),
-    [documents]
+    [documents],
   );
 
   const [notifMenuOpened, setNotifMenuOpened] = useState(false);
@@ -190,7 +190,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         day: "numeric",
         year: "numeric",
       }),
-    []
+    [],
   );
 
   const handleMarkAsRead = async (notification: Notification) => {
@@ -239,8 +239,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     }
 
     const reader = new FileReader();
-    reader.onload = (ev) =>
-      setPhotoPreview(ev.target?.result as string);
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -291,7 +290,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
       const credential = EmailAuthProvider.credential(
         currentUser.email,
-        currentPassword
+        currentPassword,
       );
 
       await reauthenticateWithCredential(currentUser, credential);
@@ -302,18 +301,18 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Update failed");
+    } catch (err) {
+      const error = err as Record<string, string>;
+      toast.error(error.message ?? "Update failed");
     } finally {
       setIsUpdatingPassword(false);
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto max-w-7xl px-4">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto max-w-full sm:px-6 lg:px-8">
         <div className="flex min-h-20 items-center justify-between gap-4 py-3">
-
           {/* LEFT */}
           <div className="flex min-w-0 items-center gap-3">
             <button
@@ -328,17 +327,16 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               <h1 className="max-w-[240px] truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base md:text-lg lg:max-w-none lg:text-xl">
                 Katipunan Central School & SPED Center
               </h1>
-              <p className="mt-0.5 text-sm text-slate-400">{currentDateLabel}</p>
+              <p className="mt-0.5 text-sm text-slate-400">
+                {currentDateLabel}
+              </p>
             </div>
           </div>
 
           {/* RIGHT */}
           <div className="flex items-center gap-2 sm:gap-3">
-
             {/* NOTIFICATIONS */}
-            <DropdownMenu
-              onOpenChange={(open) => setNotifMenuOpened(open)}
-            >
+            <DropdownMenu onOpenChange={(open) => setNotifMenuOpened(open)}>
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Notifications"
@@ -348,22 +346,23 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
                   {localUnreadCount > 0 && !notifMenuOpened && (
                     <>
-                      <span className="absolute right-0.5 top-0.5 h-3 w-3 animate-ping rounded-full bg-red-400/60" />
-                      <span className="absolute right-0.5 top-0.5 h-3 w-3 scale-110 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.45)]" />
+                      <span className="absolute top-0.5 right-0.5 h-3 w-3 animate-ping rounded-full bg-red-400/60" />
+                      <span className="absolute top-0.5 right-0.5 h-3 w-3 scale-110 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.45)]" />
                     </>
                   )}
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-80 rounded-2xl border border-slate-200/70 p-0 shadow-xl shadow-slate-200/60">
+              <DropdownMenuContent
+                align="end"
+                className="w-80 rounded-2xl border border-slate-200/70 p-0 shadow-xl shadow-slate-200/60"
+              >
                 <div className="border-b border-slate-100 p-4 font-semibold text-slate-900">
                   Notifications
                 </div>
 
                 {sortedNotifications.length === 0 ? (
-                  <p className="p-4 text-sm text-slate-500">
-                    No Notifications
-                  </p>
+                  <p className="p-4 text-sm text-slate-500">No Notifications</p>
                 ) : (
                   <div className="max-h-96 overflow-y-auto p-2">
                     {sortedNotifications.map((n) => (
@@ -372,10 +371,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                         onClick={() => handleNotificationClick(n)}
                         className="cursor-pointer rounded-xl p-1 transition-colors duration-200 hover:bg-slate-50"
                       >
-                        <NotificationCard
-                          notification={n}
-                          isRead={n.is_read}
-                        />
+                        <NotificationCard notification={n} isRead={n.is_read} />
                       </div>
                     ))}
                   </div>
@@ -395,7 +391,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                     <img
                       src={resolveImageSource(profilePic)}
                       alt="Profile"
-                      className="h-9 w-9 rounded-full object-cover shadow-sm shadow-blue-500/20 ring-1 ring-slate-200"
+                      className="h-9 w-9 rounded-full object-cover shadow-sm ring-1 shadow-blue-500/20 ring-slate-200"
                     />
                   ) : (
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.28),inset_0_-2px_6px_rgba(15,23,42,0.18),0_8px_20px_rgba(59,130,246,0.2)] shadow-blue-500/20">
@@ -415,8 +411,10 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-52 rounded-2xl border border-slate-200/70 p-1 shadow-xl shadow-slate-200/60">
-
+              <DropdownMenuContent
+                align="end"
+                className="w-52 rounded-2xl border border-slate-200/70 p-1 shadow-xl shadow-slate-200/60"
+              >
                 <DropdownMenuItem onClick={() => setShowUpdatePhoto(true)}>
                   Update Photo
                 </DropdownMenuItem>
@@ -434,7 +432,6 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                 >
                   Logout
                 </DropdownMenuItem>
-
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -446,17 +443,13 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Update Profile Photo</DialogTitle>
-            <DialogDescription>
-              Upload JPG/PNG/GIF (max 5MB)
-            </DialogDescription>
+            <DialogDescription>Upload JPG/PNG/GIF (max 5MB)</DialogDescription>
           </DialogHeader>
 
           <input type="file" accept="image/*" onChange={handlePhotoSelect} />
 
           <DialogFooter>
-            <button onClick={() => setShowUpdatePhoto(false)}>
-              Cancel
-            </button>
+            <button onClick={() => setShowUpdatePhoto(false)}>Cancel</button>
 
             <button
               onClick={handleUpdatePhoto}
@@ -499,9 +492,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           </div>
 
           <DialogFooter>
-            <button onClick={() => setShowUpdatePassword(false)}>
-              Cancel
-            </button>
+            <button onClick={() => setShowUpdatePassword(false)}>Cancel</button>
 
             <button
               onClick={handleUpdatePassword}
