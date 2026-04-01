@@ -38,7 +38,6 @@ const TeacherProfileInspectPage = () => {
     CreatePersonalInformation
   >("inspect_personalinformation");
 
-  const teacherInstance = teacher ? getUser(teacher).data : undefined;
   const informations = getInformation({
     filters: {
       user: teacher,
@@ -47,13 +46,16 @@ const TeacherProfileInspectPage = () => {
 
   const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
 
-  const myInformation = informations.length > 0 ? informations[0] : null;
-  if (myInformation != null) {
+  const teacherInformation = informations.length > 0 ? informations[0] : null;
+  if (teacherInformation != null) {
     if (selectedProfilePic != "")
-      myInformation.photo_base64 = selectedProfilePic;
-    else if (myInformation.photo_base64 == "")
-      myInformation.photo_base64 = NO_FACE_IMAGE;
+      teacherInformation.photo_base64 = selectedProfilePic;
+    else if (teacherInformation.photo_base64 == "")
+      teacherInformation.photo_base64 = NO_FACE_IMAGE;
   }
+
+  const teacherInstance =
+    informations.length > 0 ? getUser(informations[0].user).data : undefined;
 
   const handleInformationSaveChanges = (data: Record<string, string>) => {
     if (teacher == null) return;
@@ -61,7 +63,7 @@ const TeacherProfileInspectPage = () => {
     data.userId = teacher;
     if (selectedProfilePic != "") data.photo_base64 = selectedProfilePic;
 
-    if (myInformation == undefined) {
+    if (teacherInformation == undefined) {
       if (selectedProfilePic == "") data.photo_base64 = "";
 
       insertInformation.run({
@@ -86,7 +88,7 @@ const TeacherProfileInspectPage = () => {
       });
     } else {
       updateInformation.run({
-        id: myInformation.id,
+        id: teacherInformation.id,
         payload: data,
       });
     }
@@ -124,7 +126,7 @@ const TeacherProfileInspectPage = () => {
         {/* Main Content */}
         <div className="print:hidden">
           <BasicInformationCard
-            myInformation={myInformation}
+            myInformation={teacherInformation}
             onProfilePicChanged={(value) => setSelectedProfilePic(value)}
           />
 
@@ -217,7 +219,9 @@ const TeacherProfileInspectPage = () => {
                 <RenderForm>
                   {tabSelected === "personal" && (
                     <>
-                      <PersonalInformationForm myInformation={myInformation} />
+                      <PersonalInformationForm
+                        myInformation={teacherInformation}
+                      />
                       <div className="fixed right-8 bottom-8 z-50 flex flex-col items-end print:hidden">
                         <div className="group relative flex w-fit items-center justify-end">
                           {/* 1. THE TOOLTIP (Visual Only) */}
