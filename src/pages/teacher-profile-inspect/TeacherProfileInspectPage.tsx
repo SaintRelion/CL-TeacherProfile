@@ -38,6 +38,7 @@ const TeacherProfileInspectPage = () => {
     CreatePersonalInformation
   >("inspect_personalinformation");
 
+  const teacherInstance = teacher ? getUser(teacher).data : undefined;
   const informations = getInformation({
     filters: {
       user: teacher,
@@ -53,9 +54,6 @@ const TeacherProfileInspectPage = () => {
     else if (teacherInformation.photo_base64 == "")
       teacherInformation.photo_base64 = NO_FACE_IMAGE;
   }
-
-  const teacherInstance =
-    informations.length > 0 ? getUser(informations[0].user).data : undefined;
 
   const handleInformationSaveChanges = (data: Record<string, string>) => {
     if (teacher == null) return;
