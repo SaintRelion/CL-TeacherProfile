@@ -92,18 +92,17 @@ const DocumentExplorer = ({
   );
 
   const role = user.roles ? user.roles[0] : "";
-  const personalInfos = getPersonalInfo().data ?? [];
-  const documentFolders = getFolders().data ?? [];
-  const documents =
-    getDocuments({
-      filters:
-        role === "admin"
-          ? { is_archived: "False" }
-          : {
-              user: user.id,
-              is_archived: "False",
-            },
-    }).data ?? [];
+  const personalInfos = getPersonalInfo().data;
+  const documentFolders = getFolders().data;
+  const documents = getDocuments({
+    filters:
+      role === "admin"
+        ? { is_archived: "False" }
+        : {
+            user: user.id,
+            is_archived: "False",
+          },
+  }).data;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -156,8 +155,8 @@ const DocumentExplorer = ({
   }, [documentFolders, documents]);
 
   const folderName =
-    foldersWithDocs.find((folder) => folder.folder === selectedFolderId)?.folder_name ??
-    "";
+    foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
+      ?.folder_name ?? "";
 
   const searchResults = useMemo(
     () =>
@@ -169,7 +168,14 @@ const DocumentExplorer = ({
         personalInfos,
         documentFolders,
       }),
-    [documents, search, filters, selectedFolderId, personalInfos, documentFolders],
+    [
+      documents,
+      search,
+      filters,
+      selectedFolderId,
+      personalInfos,
+      documentFolders,
+    ],
   );
 
   const totalPages = Math.max(1, Math.ceil(searchResults.length / PAGE_SIZE));
@@ -177,15 +183,13 @@ const DocumentExplorer = ({
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
-  const paginationStart = searchResults.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const paginationStart =
+    searchResults.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const paginationEnd = Math.min(currentPage * PAGE_SIZE, searchResults.length);
   const pageNumbers = Array.from(
     { length: totalPages },
     (_, index) => index + 1,
-  ).slice(
-    Math.max(0, currentPage - 2),
-    Math.min(totalPages, currentPage + 1),
-  );
+  ).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1));
   const departmentOptions = useMemo(
     () => buildDepartmentOptions(personalInfos),
     [personalInfos],
@@ -325,7 +329,9 @@ const DocumentExplorer = ({
 
                 <DialogContent className="rounded-2xl border border-slate-200/70 bg-white shadow-2xl sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-slate-900">Create Folder</DialogTitle>
+                    <DialogTitle className="text-slate-900">
+                      Create Folder
+                    </DialogTitle>
                   </DialogHeader>
 
                   <div className="space-y-2">
@@ -399,7 +405,9 @@ const DocumentExplorer = ({
           >
             <DialogContent className="rounded-2xl border border-slate-200/70 bg-white shadow-2xl sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-slate-900">Rename Folder</DialogTitle>
+                <DialogTitle className="text-slate-900">
+                  Rename Folder
+                </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-2">
@@ -435,7 +443,8 @@ const DocumentExplorer = ({
                 {selectedFolderId === "" ? "Document Results" : folderName}
               </h3>
               <p className="mt-1 text-sm text-slate-400">
-                {searchResults.length} matching item{searchResults.length === 1 ? "" : "s"} | Updated{" "}
+                {searchResults.length} matching item
+                {searchResults.length === 1 ? "" : "s"} | Updated{" "}
                 {formatReadableDate(new Date().toISOString())}
               </p>
             </div>
@@ -447,7 +456,8 @@ const DocumentExplorer = ({
               </div>
               <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                 <Layers3 className="h-4 w-4 text-blue-600" />
-                Access scoped to {role === "admin" ? "admin visibility" : "your documents"}
+                Access scoped to{" "}
+                {role === "admin" ? "admin visibility" : "your documents"}
               </div>
             </div>
           </div>
@@ -520,13 +530,16 @@ const DocumentExplorer = ({
               {totalPages > 1 && (
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
-                    Showing {paginationStart}-{paginationEnd} of {searchResults.length}
+                    Showing {paginationStart}-{paginationEnd} of{" "}
+                    {searchResults.length}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      onClick={() =>
+                        setCurrentPage((page) => Math.max(1, page - 1))
+                      }
                       disabled={currentPage === 1}
                       className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -575,7 +588,8 @@ const DocumentExplorer = ({
                 </span>
               </div>
               <p className="mb-4 text-sm text-slate-500">
-                The following teachers have not submitted documents to this folder.
+                The following teachers have not submitted documents to this
+                folder.
               </p>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

@@ -5,3 +5,9 @@ registerResource({
   endpoint: "teacherdocument/",
   store: "TeacherDocument",
 });
+
+registerResource({
+  name: "teacherdocumentfile",
+  endpoint: "teacherdocumentfile/",
+  store: "TeacherDocument",
+});

@@ -67,14 +67,13 @@ const DocumentExplorer = ({
   );
 
   const role = user.roles ? user.roles[0] : "";
-  const personalInfos = getPersonalInfo().data ?? [];
-  const documentFolders = getFolders().data ?? [];
-  const documents =
-    getDocuments({
-      filters: {
-        is_archived: "True",
-      },
-    }).data ?? [];
+  const personalInfos = getPersonalInfo().data;
+  const documentFolders = getFolders().data;
+  const documents = getDocuments({
+    filters: {
+      is_archived: "True",
+    },
+  }).data;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -108,8 +107,8 @@ const DocumentExplorer = ({
   }, [documentFolders, documents]);
 
   const folderName =
-    foldersWithDocs.find((folder) => folder.folder === selectedFolderId)?.folder_name ??
-    "";
+    foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
+      ?.folder_name ?? "";
 
   const searchResults = useMemo(
     () =>
@@ -121,7 +120,14 @@ const DocumentExplorer = ({
         personalInfos,
         documentFolders,
       }),
-    [documents, search, filters, selectedFolderId, personalInfos, documentFolders],
+    [
+      documents,
+      search,
+      filters,
+      selectedFolderId,
+      personalInfos,
+      documentFolders,
+    ],
   );
 
   const totalPages = Math.max(1, Math.ceil(searchResults.length / PAGE_SIZE));
@@ -129,15 +135,13 @@ const DocumentExplorer = ({
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
-  const paginationStart = searchResults.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const paginationStart =
+    searchResults.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const paginationEnd = Math.min(currentPage * PAGE_SIZE, searchResults.length);
   const pageNumbers = Array.from(
     { length: totalPages },
     (_, index) => index + 1,
-  ).slice(
-    Math.max(0, currentPage - 2),
-    Math.min(totalPages, currentPage + 1),
-  );
+  ).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1));
   const departmentOptions = useMemo(
     () => buildDepartmentOptions(personalInfos),
     [personalInfos],
@@ -157,7 +161,8 @@ const DocumentExplorer = ({
     (folder) => Number(folder.files_count) > 0,
   ).length;
   const selectedFolderDocumentCount = selectedFolderId
-    ? documents.filter((document) => document.folder === selectedFolderId).length
+    ? documents.filter((document) => document.folder === selectedFolderId)
+        .length
     : totalArchivedDocuments;
 
   const handleFilterChange = (filterType: string, value: string) => {
@@ -175,7 +180,8 @@ const DocumentExplorer = ({
 
     setFilters((prev) => ({
       ...prev,
-      [filterType]: filterType === "status" && value === "" ? "archived" : value,
+      [filterType]:
+        filterType === "status" && value === "" ? "archived" : value,
     }));
   };
 
@@ -211,7 +217,7 @@ const DocumentExplorer = ({
         <div className="border-b border-slate-200/70 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-slate-200">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium tracking-[0.24em] text-slate-200 uppercase">
                 <ArchiveRestore className="h-3.5 w-3.5" />
                 Archive Control Center
               </div>
@@ -226,7 +232,7 @@ const DocumentExplorer = ({
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+                <div className="flex items-center gap-2 text-xs tracking-[0.18em] text-slate-300 uppercase">
                   <FileStack className="h-3.5 w-3.5" />
                   Archived Files
                 </div>
@@ -235,7 +241,7 @@ const DocumentExplorer = ({
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+                <div className="flex items-center gap-2 text-xs tracking-[0.18em] text-slate-300 uppercase">
                   <FolderArchive className="h-3.5 w-3.5" />
                   Active Folders
                 </div>
@@ -244,7 +250,7 @@ const DocumentExplorer = ({
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+                <div className="flex items-center gap-2 text-xs tracking-[0.18em] text-slate-300 uppercase">
                   <ArchiveRestore className="h-3.5 w-3.5" />
                   Current Scope
                 </div>
@@ -310,7 +316,9 @@ const DocumentExplorer = ({
                 {selectedFolderId === "" ? "Archived Documents" : folderName}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                {searchResults.length} archived item{searchResults.length === 1 ? "" : "s"} ready for review or restoration.
+                {searchResults.length} archived item
+                {searchResults.length === 1 ? "" : "s"} ready for review or
+                restoration.
               </p>
             </div>
 
@@ -329,8 +337,9 @@ const DocumentExplorer = ({
                 No documents found
               </h4>
               <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Try adjusting your keywords, narrowing the date range differently,
-                or clearing the current filters to expand the archive results.
+                Try adjusting your keywords, narrowing the date range
+                differently, or clearing the current filters to expand the
+                archive results.
               </p>
             </div>
           ) : (
@@ -380,13 +389,16 @@ const DocumentExplorer = ({
               {totalPages > 1 && (
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
-                    Showing {paginationStart}-{paginationEnd} of {searchResults.length}
+                    Showing {paginationStart}-{paginationEnd} of{" "}
+                    {searchResults.length}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      onClick={() =>
+                        setCurrentPage((page) => Math.max(1, page - 1))
+                      }
                       disabled={currentPage === 1}
                       className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
