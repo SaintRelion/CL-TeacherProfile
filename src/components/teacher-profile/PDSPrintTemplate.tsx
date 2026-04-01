@@ -134,8 +134,10 @@ const padRows = <T,>(rows: T[], minLength: number, factory: () => T) => {
   return next;
 };
 
-const toValue = (value?: string | number) =>
-  value == null ? "" : String(value);
+const toValue = (value?: string | number | null): string => {
+  if (value === undefined || value === null) return "";
+  return String(value);
+};
 
 const AddressTable = ({
   title,
@@ -276,10 +278,10 @@ const QuestionRow = ({
     </div>
     <div className="space-y-1 border-l border-black p-2">
       <div className="flex items-center gap-4">
-        <AnswerCheckbox label="YES" checked={value.answer === "Yes"} />
-        <AnswerCheckbox label="NO" checked={value.answer === "No"} />
+        <AnswerCheckbox label="YES" checked={value?.answer === "Yes"} />
+        <AnswerCheckbox label="NO" checked={value?.answer === "No"} />
       </div>
-      <div>If YES, give details: {toValue(value.details)}</div>
+      <div>If YES, give details: {toValue(value?.details)}</div>
       {extra.filter(Boolean).map((item) => (
         <div key={item}>{item}</div>
       ))}
@@ -842,8 +844,8 @@ export const PDSPrintTemplate = ({
               question="Have you been criminally charged before any court?"
               value={data.additionalInformation.legalQuestions.criminalCharge}
               extra={[
-                `Date Filed: ${toValue(data.additionalInformation.legalQuestions.criminalCharge.dateFiled)}`,
-                `Status: ${toValue(data.additionalInformation.legalQuestions.criminalCharge.statusOfCase)}`,
+                `Date Filed: ${toValue(toValue(data?.additionalInformation?.legalQuestions?.criminalCharge?.dateFiled))}`,
+                `Status: ${toValue(toValue(data?.additionalInformation?.legalQuestions?.criminalCharge?.statusOfCase))}`,
               ]}
             />
             <QuestionRow
@@ -858,7 +860,7 @@ export const PDSPrintTemplate = ({
               question="Are you a person with disability?"
               value={data.additionalInformation.specialLegalStatus.disability}
               extra={[
-                `ID No.: ${toValue(data.additionalInformation.specialLegalStatus.disability.idNumber)}`,
+                `ID No.: ${toValue(data?.additionalInformation?.specialLegalStatus?.disability?.idNumber)}`,
               ]}
             />
 
