@@ -18,12 +18,6 @@ import InstructorLayout from "./layout/InstructorLayout";
 import ResetPasswordPage from "./pages/authentication/ResetPasswordPage";
 import LandingPage from "./pages/authentication/LandingPage";
 import ArchivedRepositoryPage from "./pages/archived-repository/ArchivedRepositoryPage";
-import { Navigate, useLocation } from "react-router-dom";
-
-const LegacyTeacherProfileInspectRedirect = () => {
-  const location = useLocation();
-  return <Navigate to={`/admin/teacherprofileinspect${location.search}`} replace />;
-};
 
 roleLayoutMap[""] = {
   redirect: "/",
@@ -88,20 +82,6 @@ registerGroupAppRoutes({
     {
       path: "teacherprofileinspect",
       element: <TeacherProfileInspectPage />,
-      allowedRoles: ["admin"],
-    },
-  ],
-});
-
-// Backward-compatible alias for old direct links/bookmarks.
-registerGroupAppRoutes({
-  path: "/teacherprofileinspect",
-  layout: createRoleLayout("admin"),
-  errorElement: <NotFound />,
-  children: [
-    {
-      index: true,
-      element: <LegacyTeacherProfileInspectRedirect />,
       allowedRoles: ["admin"],
     },
   ],

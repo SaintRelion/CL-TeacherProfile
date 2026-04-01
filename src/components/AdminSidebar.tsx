@@ -9,6 +9,7 @@ import { NavLink } from "react-router-dom";
 
 interface Props {
   isOpen: boolean;
+  isSmallScreen: boolean;
   closeSidebar: () => void;
 }
 
@@ -44,23 +45,18 @@ const navItems = [
   },
 ];
 
-const AdminSidebar = ({ isOpen, closeSidebar }: Props) => {
+const AdminSidebar = ({ isOpen, isSmallScreen, closeSidebar }: Props) => {
   return (
     <>
       <div
         onClick={closeSidebar}
-        className={`fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[1px] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-slate-100/20 backdrop-blur-sm lg:hidden ${
           isOpen ? "visible opacity-100" : "invisible opacity-0"
         }`}
       />
 
       <aside
-        className={`
-          fixed left-0 top-0 z-50 h-full w-72 border-r border-slate-200/60 bg-slate-50
-          shadow-xl shadow-slate-200/60 transition-transform duration-300 ease-in-out
-          lg:translate-x-0
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
+        className={`relative z-50 transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-72 ${isOpen ? "w-72" : "pointer-events-none z-10 w-0 opacity-0 lg:w-72"} `}
       >
         <div className="border-b border-slate-200/70 px-6 py-6">
           <div className="flex items-center justify-between">
@@ -90,12 +86,19 @@ const AdminSidebar = ({ isOpen, closeSidebar }: Props) => {
         <nav className="p-4">
           <ul className="space-y-2">
             {navItems.map(
-              ({ to, label, Icon, matchEnd, iconClassName, iconWrapperClassName }) => (
+              ({
+                to,
+                label,
+                Icon,
+                matchEnd,
+                iconClassName,
+                iconWrapperClassName,
+              }) => (
                 <li key={to}>
                   <NavLink
                     end={matchEnd}
                     to={to}
-                    onClick={closeSidebar}
+                    onClick={isSmallScreen ? closeSidebar : () => {}}
                     className={({ isActive }) =>
                       `group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300 ${
                         isActive
@@ -120,7 +123,7 @@ const AdminSidebar = ({ isOpen, closeSidebar }: Props) => {
                     )}
                   </NavLink>
                 </li>
-              )
+              ),
             )}
           </ul>
         </nav>

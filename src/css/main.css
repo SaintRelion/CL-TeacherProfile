@@ -1,6 +1,61 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap");
 
+/* main.css */
+
+/* Use this to hide things on screen but keep them for the printer */
+.only-print {
+  display: none !important;
+}
+
+@media print {
+  /* 1. Hide the entire App root and any Dialogs/Overlays */
+  #root,
+  [role="dialog"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* 2. Show only the Portal content */
+  .only-print {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: white !important;
+  }
+
+  /* 3. Clear all browser margins */
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  /* 4. Force colors (official PDS gray headers) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 5. Target your PDS root specifically */
+  #pds-printable-root {
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    visibility: visible !important;
+  }
+}
+
 *,
 ::before,
 ::after {

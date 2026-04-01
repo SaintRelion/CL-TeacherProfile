@@ -1,27 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = (): void => {
+      if (window.innerWidth >= 800) {
+        setSidebarOpen(true);
+        setIsSmallScreen(false);
+        console.log("resize");
+      } else {
+        setIsSmallScreen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-slate-100">
-      
-      <Navbar toggleSidebar={() => setSidebarOpen(true)} />
-
-      <div className="flex">
-        
-        {/* Sidebar */}
+      <div className="flex w-full">
+        {" "}
         <AdminSidebar
           isOpen={sidebarOpen}
+          isSmallScreen={isSmallScreen}
           closeSidebar={() => setSidebarOpen(false)}
         />
-        {/* Content */}
-        <main className="flex-1 p-4 lg:ml-64 transition-all duration-300">
-          <Outlet />
-        </main>
+        <div className="flex w-full min-w-0 flex-1 flex-col transition-all duration-300">
+          <Navbar toggleSidebar={() => setSidebarOpen(true)} />
+
+          <main className="z-0 flex-1">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );

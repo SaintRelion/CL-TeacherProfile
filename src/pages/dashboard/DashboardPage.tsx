@@ -7,7 +7,6 @@ import {
   DialogTrigger,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import type { DocumentFolder } from "@/models/DocumentFolder";
 import { getExpiryState } from "@/lib/utils";
@@ -27,15 +26,10 @@ import {
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  createImpersonationToken,
-  useCurrentUser,
-} from "@saintrelion/auth-lib";
 
 const COMPLIANCE_PAGE_SIZE = 5;
 
 const DashboardPage = () => {
-  const user = useCurrentUser();
   const navigate = useNavigate();
   // Welcome message state - shows on login, fades after 3 seconds
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -46,7 +40,9 @@ const DashboardPage = () => {
   // Teacher selection state
   const [showTeacherSelection, setShowTeacherSelection] = useState(false);
   const [teacherSearch, setTeacherSearch] = useState("");
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>( null,);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
+    null,
+  );
   const [filteredTeachers, setFilteredTeachers] = useState<User[]>([]);
   const [compliancePage, setCompliancePage] = useState(1);
 
@@ -67,9 +63,11 @@ const DashboardPage = () => {
   }, [showWelcome]);
 
   const { useList: getUsers } = useResourceLocked<User>("user");
-  const teachers = getUsers({filters: {
-    groups: 2
-  }}).data;
+  const teachers = getUsers({
+    filters: {
+      groups: 2,
+    },
+  }).data;
 
   // Filter teachers based on search
   useEffect(() => {
@@ -88,8 +86,10 @@ const DashboardPage = () => {
 
   const { useList: getDocuments } =
     useResourceLocked<TeacherDocument>("teacherdocument");
-  const activeDocuments = getDocuments({filters: {is_archived: "False"}}).data;
-  
+  const activeDocuments = getDocuments({
+    filters: { is_archived: "False" },
+  }).data;
+
   const { useList: getDocumentFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
   const documentFolders = getDocumentFolders().data;
@@ -119,9 +119,9 @@ const DashboardPage = () => {
           compliantTeachers: new Set<string>(),
         });
       });
-    } 
+    }
 
-    if ( activeDocuments.length > 0) {
+    if (activeDocuments.length > 0) {
       activeDocuments.forEach((doc) => {
         const folderName =
           (documentFolders &&
@@ -150,7 +150,7 @@ const DashboardPage = () => {
             : state === "expiring"
               ? "expiring"
               : "valid";
-        (bucket)[key]++;
+        bucket[key]++;
 
         // Count teacher as compliant for this folder only when they have at least one VALID document
         if (state === "valid") {
@@ -165,7 +165,8 @@ const DashboardPage = () => {
   const complianceStatus = React.useMemo(() => {
     const totalTeachers = filteredTeachers.length || teachers.length || 0;
     return Array.from(complianceMapping.entries()).map(([title, bucket]) => {
-      const { expired, expiring, submittedTeachers, compliantTeachers } = bucket;
+      const { expired, expiring, submittedTeachers, compliantTeachers } =
+        bucket;
 
       const compliantCount = compliantTeachers ? compliantTeachers.size : 0;
       const compliancePercent =
@@ -198,7 +199,12 @@ const DashboardPage = () => {
         redirectPath: `/admin/documentrepository?folder=${folderId}`,
       };
     });
-  }, [complianceMapping, documentFolders, filteredTeachers.length, teachers.length]);
+  }, [
+    complianceMapping,
+    documentFolders,
+    filteredTeachers.length,
+    teachers.length,
+  ]);
 
   const complianceTotalPages = Math.max(
     1,
@@ -217,19 +223,11 @@ const DashboardPage = () => {
     complianceStatus.length,
   );
 
-  const handleNavigateToTeacherProfile = async () => {
-    if (!selectedTeacherId) {
-      alert("Please select a teacher");
-      return;
-    }
+  const handleNavigateToTeacherProfile = (): void => {
+    if (!selectedTeacherId) return;
 
-    const token = await createImpersonationToken(user.id, selectedTeacherId);
-    // Navigate to teacher profile inspect page with the selected teacher ID
-    const query = new URLSearchParams({
-      teacher: selectedTeacherId,
-      token,
-    }).toString();
-    navigate(`/admin/teacherprofileinspect?${query}`);
+    navigate(`/admin/teacherprofileinspect?teacher=${selectedTeacherId}`);
+
     setShowTeacherSelection(false);
     setSelectedTeacherId(null);
     setTeacherSearch("");
@@ -238,15 +236,15 @@ const DashboardPage = () => {
   const kpi = [
     {
       title: "Total Teachers",
-      value:
-        teachers.length.toString(),
+      value: teachers.length.toString(),
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
       path: "/admin/teacherdirectory",
     },
     {
       title: "Documents Processed",
-      value: activeDocuments == undefined ? "0" : activeDocuments.length.toString(),
+      value:
+        activeDocuments == undefined ? "0" : activeDocuments.length.toString(),
       kpiIcon:
         "fas fa-file-alt text-accent-600 text-xl bg-accent-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
@@ -303,7 +301,10 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10">
-                    <BadgeCheck className="h-6 w-6 text-blue-600" strokeWidth={2} />
+                    <BadgeCheck
+                      className="h-6 w-6 text-blue-600"
+                      strokeWidth={2}
+                    />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900">
@@ -323,7 +324,6 @@ const DashboardPage = () => {
               </div>
             </div>
 
-
             {/* Card Content */}
             <div className="p-6">
               <div className="space-y-3">
@@ -342,7 +342,8 @@ const DashboardPage = () => {
               {complianceStatus.length > COMPLIANCE_PAGE_SIZE && (
                 <div className="mt-5 flex flex-col gap-3 border-t border-slate-200/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
-                    Showing {complianceStart}-{complianceEnd} of {complianceStatus.length} folders
+                    Showing {complianceStart}-{complianceEnd} of{" "}
+                    {complianceStatus.length} folders
                   </p>
 
                   <div className="flex items-center gap-2">
@@ -397,7 +398,6 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>{" "}
-
         {/* Quick Actions Sidebar */}
         <div className="lg:col-span-1">
           <div className="overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/15">
@@ -413,7 +413,7 @@ const DashboardPage = () => {
                   <p className="text-sm text-slate-500">Common tasks</p>
                 </div>
               </div>
-            </div>   
+            </div>
             <div className="space-y-2 p-4">
               <Link
                 to="/admin/teacherdirectory"
@@ -449,14 +449,13 @@ const DashboardPage = () => {
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-slate-500" />
               </Link>
-    
+
               <Dialog
                 open={showTeacherSelection}
                 onOpenChange={setShowTeacherSelection}
               >
-         
                 <DialogTrigger asChild>
-                  <button className="group flex items-center gap-3 rounded-2xl border border-slate-200/50 p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-sky-500/15">
+                  <button className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200/50 p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-sky-500/15">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
                       <UserRoundPen className="h-5 w-5" strokeWidth={2} />
                     </div>
@@ -471,62 +470,56 @@ const DashboardPage = () => {
                     <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-slate-500" />
                   </button>
                 </DialogTrigger>
-               
 
                 <DialogContent className="rounded-2xl border border-slate-200/70 bg-white shadow-2xl sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Select Teacher to Update</DialogTitle>
-                    <DialogDescription>
-                      Search and select a teacher whose profile you want to
-                      update.
-                    </DialogDescription>
                   </DialogHeader>
 
                   <div className="space-y-4">
                     {/* Search Input */}
                     <div className="relative">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
-                        placeholder="Search by name or email..."
+                        placeholder="Search by name..."
                         value={teacherSearch}
-                        onChange={(e) => setTeacherSearch(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-200 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setTeacherSearch(e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 text-sm outline-none focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
                       />
                     </div>
 
                     {/* Teacher List */}
-                    <div className="max-h-64 space-y-2 overflow-y-auto">
+                    <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
                       {filteredTeachers.length > 0 ? (
                         filteredTeachers.map((teacher) => (
                           <button
                             key={teacher.id}
                             onClick={() => setSelectedTeacherId(teacher.id)}
-                            className={`w-full rounded-2xl border p-3 text-left transition-all duration-300 ${
+                            className={`flex w-full items-center justify-between rounded-xl border p-3 transition-all duration-200 ${
                               selectedTeacherId === teacher.id
-                                ? "border-blue-300 bg-blue-50/80 shadow-sm shadow-blue-500/10"
-                                : "border-slate-200/70 bg-white hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10"
+                                ? "border-blue-300 bg-blue-50/80 shadow-sm"
+                                : "border-transparent bg-white hover:bg-slate-50"
                             }`}
                           >
-                            <p className="font-semibold text-slate-900">
-                              {teacher.username}
-                            </p>
-                            {selectedTeacherId === teacher.id && (
-                              <div className="mt-2 flex items-center gap-1 text-blue-600">
-                                <BadgeCheck className="h-4 w-4" />
-                                <span className="text-xs font-medium">
-                                  Selected
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`text-sm font-medium ${selectedTeacherId === teacher.id ? "text-blue-700" : "text-slate-700"}`}
+                              >
+                                {teacher.username}
+                              </span>
+                              {selectedTeacherId === teacher.id && (
+                                <BadgeCheck className="h-4 w-4 text-blue-600" />
+                              )}
+                            </div>
                           </button>
                         ))
                       ) : (
-                        <div className="py-4 text-center">
-                          <p className="text-sm text-slate-500">
-                            No teachers found
-                          </p>
-                        </div>
+                        <p className="py-4 text-center text-sm text-slate-500">
+                          No teachers found
+                        </p>
                       )}
                     </div>
 
@@ -536,16 +529,15 @@ const DashboardPage = () => {
                         onClick={() => {
                           setShowTeacherSelection(false);
                           setSelectedTeacherId(null);
-                          setTeacherSearch("");
                         }}
-                        className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-50"
+                        className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleNavigateToTeacherProfile}
                         disabled={!selectedTeacherId}
-                        className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white shadow-sm transition-opacity hover:bg-blue-700 disabled:opacity-50"
                       >
                         Update Profile
                       </button>
@@ -561,7 +553,10 @@ const DashboardPage = () => {
             <div className="p-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-                  <ServerCog className="h-5 w-5 text-emerald-600" strokeWidth={2} />
+                  <ServerCog
+                    className="h-5 w-5 text-emerald-600"
+                    strokeWidth={2}
+                  />
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-800">
@@ -580,13 +575,17 @@ const DashboardPage = () => {
                   <p className="text-2xl font-semibold text-slate-800">
                     {teachers.length}
                   </p>
-                  <p className="text-xs font-medium text-slate-500">Active Users</p>
+                  <p className="text-xs font-medium text-slate-500">
+                    Active Users
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200/50 bg-slate-50 p-3">
                   <p className="text-2xl font-semibold text-slate-800">
                     {activeDocuments?.length || 0}
                   </p>
-                  <p className="text-xs font-medium text-slate-500">Total Docs</p>
+                  <p className="text-xs font-medium text-slate-500">
+                    Total Docs
+                  </p>
                 </div>
               </div>
             </div>

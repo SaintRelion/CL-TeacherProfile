@@ -16,15 +16,15 @@ const LibraryIcon = () => (
     <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" />
   </svg>
 );
-const CheckIcon = () => (
-  <svg
-    className="mt-0.5 h-4 w-4 flex-shrink-0 text-yellow-400"
-    fill="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-  </svg>
-);
+// const CheckIcon = () => (
+//   <svg
+//     className="mt-0.5 h-4 w-4 flex-shrink-0 text-yellow-400"
+//     fill="currentColor"
+//     viewBox="0 0 24 24"
+//   >
+//     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+//   </svg>
+// );
 
 /* ─── Feature card data ──────────────────────────────────────────────── */
 const FEATURES = [
@@ -86,34 +86,31 @@ const LandingPage = () => {
             "linear-gradient(to right, rgba(10,18,50,0.92) 45%, rgba(10,18,50,0.55) 75%, transparent 100%)",
         }}
       >
-     
-
         {/* overlay tint */}
         <div className="absolute inset-0 -z-10 bg-[#0a1232]/70" />
 
         {/* content wrapper - Added 'grid' and 'items-center' */}
-        <div className="relative z-10 mx-auto max-w-7xl px-8 py-24 md:px-16 grid md:grid-cols-2 gap-8 items-center w-full">
-
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-8 px-8 py-24 md:grid-cols-2 md:px-16">
           {/* LEFT SIDE: Text Content */}
           <div className="max-w-xl">
             <h1 className="mb-5 text-4xl leading-tight font-black text-white md:text-5xl">
-              Teacher Profiling System  
+              Teacher Profiling System
               <br />
               Katipunan Central School and SPED Center
             </h1>
-            <p className="mb-8 max-w-md text-base leading-relaxed text-gray-300">
+            {/* <p className="mb-8 max-w-md text-base leading-relaxed text-gray-300">
               A modern platform to manage, track, and update teacher profiles
               securely — designed for Philippine public schools and division
               offices.
-            </p>
+            </p> */}
           </div>
 
           {/* RIGHT SIDE: Floating Logo */}
-          <div className="flex justify-center md:justify-end animate-pulse-slow">
+          <div className="animate-pulse-slow flex justify-center md:justify-end">
             <img
               src="background_logo.png"
               alt="Katipunan Central School Logo"
-              className="w-84 h-84 md:w-80 md:h-80 object-contain animate-pulse drop-shadow-[0_0_25px_rgba(59,130,246,0.8)]"
+              className="h-84 w-84 animate-pulse object-contain drop-shadow-[0_0_25px_rgba(59,130,246,0.8)] md:h-80 md:w-80"
             />
           </div>
         </div>
@@ -150,7 +147,7 @@ const LandingPage = () => {
             <br />
             Teacher Profiling System
           </h2>
-          <p className="mb-4 text-sm leading-relaxed font-semibold text-gray-700">
+          {/* <p className="mb-4 text-sm leading-relaxed font-semibold text-gray-700">
             A centralized profiling system built to support school
             administrators, HR officers, and principals across the Philippines.
           </p>
@@ -158,9 +155,8 @@ const LandingPage = () => {
             Easily manage teacher qualifications, designations, seminar records,
             awards, and DepEd compliance documents in a secure and accessible
             digital workspace — available anytime, from any device.
-          </p>
-
-          {/* checklist */}
+          </p> */}
+          {/* 
           <ul className="mb-10 space-y-2">
             {[
               "Centralized teacher record management",
@@ -175,7 +171,7 @@ const LandingPage = () => {
                 <CheckIcon /> {item}
               </li>
             ))}
-          </ul>
+          </ul> */}
 
           <button
             onClick={() => setShowLoginModal(true)}
