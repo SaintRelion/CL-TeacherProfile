@@ -14,9 +14,12 @@ import {
   Printer,
   RotateCcw,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { BASE_API } from "@/sr-config";
 
+import { toast } from "@saintrelion/notifications";
 import { formatReadableDate } from "@saintrelion/time-functions";
 
 const escapeRegExp = (value: string) =>
@@ -24,7 +27,9 @@ const escapeRegExp = (value: string) =>
 
 const highlightText = (value: string, terms: string[]) => {
   const cleanTerms = Array.from(
-    new Set(terms.map((term) => term.trim()).filter((term) => term.length >= 2)),
+    new Set(
+      terms.map((term) => term.trim()).filter((term) => term.length >= 2),
+    ),
   );
 
   if (!value || cleanTerms.length === 0) return value;
@@ -141,11 +146,16 @@ const FileCard = ({
   highlightTerms?: string[];
   matchContext?: string[];
 }) => {
-  const { Icon, wrapperClassName, iconClassName } = getDocumentIcon(doc.extension);
+  const { Icon, wrapperClassName, iconClassName } = getDocumentIcon(
+    doc.extension,
+  );
   const statusClassName = getDocumentStatusClassName(doc.expiry_date);
 
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [fullDoc, setFullDoc] = useState<TeacherDocument | null>(null);
+
   const menuRef = useRef<HTMLDivElement | null>(null);
   const previewSupported = ["pdf", "png", "jpg", "jpeg", "webp"].includes(
     doc.extension.toLowerCase(),
@@ -162,90 +172,83 @@ const FileCard = ({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  const handleDownload = () => {
-    try {
-      const byteCharacters = atob(doc.file_base64.split(",")[1] || doc.file_base64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], {
-        type: `application/${doc.extension}`,
-      });
+  const getBlob = (data: string, ext: string): string => {
+    const base64 = data.split(",")[1] || data;
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const blob = new Blob([new Uint8Array(byteNumbers)], {
+      type: `application/${ext}`,
+    });
+    return window.URL.createObjectURL(blob);
+  };
 
-      const url = window.URL.createObjectURL(blob);
+  const fetchFileData = async (): Promise<TeacherDocument | null> => {
+    if (fullDoc?.file_base64) return fullDoc;
+
+    setIsFetching(true);
+    try {
+      const response = await fetch(
+        `${BASE_API}api/teacher-document-file/${doc.id}/`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        const updatedDoc = { ...doc, file_base64: result.file_base64 };
+        setFullDoc(updatedDoc);
+        return updatedDoc;
+      } else {
+        toast.error(result.detail || "Failed to load document data.");
+        return null;
+      }
+    } catch (err) {
+      const error = err as Record<string, string>;
+      toast.error("Network error. Please try again. ", error);
+      return null;
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const handleAction = async (type: "download" | "print") => {
+    setIsContextOpen(false);
+    const data = await fetchFileData();
+    if (!data?.file_base64) return;
+
+    const url = getBlob(data.file_base64, doc.extension);
+
+    if (type === "download") {
       const link = document.createElement("a");
       link.href = url;
       link.download = `${doc.document_title}.${doc.extension}`;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-      alert("Failed to download the file");
-    }
-    setIsContextOpen(false);
-  };
-
-  const handlePrint = async () => {
-    try {
-      const byteCharacters = atob(doc.file_base64.split(",")[1] || doc.file_base64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], {
-        type: `application/${doc.extension}`,
-      });
-
-      const url = window.URL.createObjectURL(blob);
-
-      if (doc.extension === "pdf") {
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) throw new Error("Popup blocked");
-        printWindow.document.write(
-          `<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0"><iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe><script>const f = document.querySelector('iframe'); f.onload = function(){ setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); },300); };</script></body></html>`,
+      link.remove();
+    } else if (type === "print") {
+      const printWin = window.open("", "_blank");
+      if (printWin) {
+        const content =
+          doc.extension === "pdf"
+            ? `<iframe src="${url}" style="border:0;width:100%;height:100vh"></iframe>`
+            : `<img src="${url}" style="max-width:100%" onload="window.print()"/>`;
+        printWin.document.write(
+          `<html><body style="margin:0">${content}</body></html>`,
         );
-        printWindow.document.close();
-      } else if (["png", "jpg", "jpeg", "webp"].includes(doc.extension)) {
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) throw new Error("Popup blocked");
-        printWindow.document.write(
-          `<!doctype html><html><head><title>${doc.document_title}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center"><img src="${url}" style="max-width:100%;max-height:100vh" onload="window.print();"/></body></html>`,
-        );
-        printWindow.document.close();
-      } else {
-        const w = window.open(url, "_blank");
-        if (!w) throw new Error("Popup blocked");
+        printWin.document.close();
       }
-
-      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-    } catch (error) {
-      console.error("Print failed:", error);
-      alert("Failed to print the file");
     }
-
-    setIsContextOpen(false);
+    setTimeout(() => window.URL.revokeObjectURL(url), 5000);
   };
 
-  const handleArchive = () => {
-    if (!onArchive) return;
-
-    if (window.confirm(`Are you sure you want to archive "${doc.document_title}"?`)) {
-      setIsContextOpen(false);
-      onArchive();
-    }
-  };
-
-  const handleRestore = () => {
-    if (!onRestore) return;
-    if (window.confirm(`Are you sure you want to restore "${doc.document_title}"?`)) {
-      setIsContextOpen(false);
-      onRestore();
-    }
+  const handleOpenPreview = async () => {
+    setIsPreviewOpen(true);
+    await fetchFileData();
   };
 
   const actionButtonClassName =
@@ -255,127 +258,133 @@ const FileCard = ({
     <>
       <div
         role="button"
-        tabIndex={0}
-        onClick={() => setIsPreviewOpen(true)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setIsPreviewOpen(true);
-          }
-        }}
-        className={`group relative w-full cursor-pointer rounded-2xl border border-white/20 bg-white/70 p-4 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-300/40 ${doc.is_archived ? "opacity-70" : ""}`}
+        onClick={handleOpenPreview}
+        className="group relative w-full cursor-pointer rounded-2xl border border-white/20 bg-white/70 p-4 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-1"
       >
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${wrapperClassName}`}
-        >
-          <Icon className={`h-6 w-6 ${iconClassName}`} strokeWidth={2} />
-        </div>
+        {isFetching && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-[1px]">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+          </div>
+        )}
 
-        <div
-          ref={menuRef}
-          className="relative opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        >
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setIsContextOpen((prev) => !prev);
-            }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/80 text-slate-400 shadow-sm transition-all duration-200 hover:bg-white hover:text-slate-700"
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${wrapperClassName}`}
           >
-            <Ellipsis className="h-4 w-4" />
-          </button>
+            <Icon className={`h-6 w-6 ${iconClassName}`} strokeWidth={2} />
+          </div>
 
-          {isContextOpen && (
-            <div
-              className="absolute right-0 top-11 z-10 w-44 rounded-2xl border border-slate-200/70 bg-white/95 p-2 shadow-xl shadow-slate-200/60 backdrop-blur-sm"
-              onClick={(event) => event.stopPropagation()}
+          <div
+            ref={menuRef}
+            className="relative opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          >
+            <button
+              type="button"
+              onClick={(e): void => {
+                e.stopPropagation();
+                setIsContextOpen(!isContextOpen);
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm hover:bg-slate-50"
             >
-              {!doc.is_archived ? (
-                <>
-                  <button type="button" onClick={handleDownload} className={actionButtonClassName}>
-                    <Download className="h-4 w-4 text-slate-500" />
-                    Download
-                  </button>
-                  <button type="button" onClick={handlePrint} className={actionButtonClassName}>
-                    <Printer className="h-4 w-4 text-slate-500" />
-                    Print
-                  </button>
+              <Ellipsis className="h-4 w-4 text-slate-400" />
+            </button>
+
+            {isContextOpen && (
+              <div
+                className="absolute top-11 right-0 z-50 w-44 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {!doc.is_archived && (
+                  <>
+                    <button
+                      onClick={() => handleAction("download")}
+                      className={actionButtonClassName}
+                    >
+                      <Download className="h-4 w-4 text-slate-400" /> Download
+                    </button>
+                    <button
+                      onClick={() => handleAction("print")}
+                      className={actionButtonClassName}
+                    >
+                      <Printer className="h-4 w-4 text-slate-400" /> Print
+                    </button>
+                  </>
+                )}
+                {onArchive && !doc.is_archived && (
                   <button
-                    type="button"
-                    onClick={handleArchive}
+                    onClick={() => {
+                      if (window.confirm(`Archive "${doc.document_title}"?`))
+                        onArchive();
+                    }}
                     className={`${actionButtonClassName} text-red-600 hover:bg-red-50`}
                   >
-                    <Trash2 className="h-4 w-4" />
-                    Archive
+                    <Trash2 className="h-4 w-4" /> Archive
                   </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleRestore}
-                  className={`${actionButtonClassName} text-emerald-600 hover:bg-emerald-50`}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Restore
-                </button>
-              )}
-            </div>
-          )}
+                )}
+                {onRestore && doc.is_archived && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`Restore "${doc.document_title}"?`))
+                        onRestore();
+                    }}
+                    className={`${actionButtonClassName} text-emerald-600 hover:bg-emerald-50`}
+                  >
+                    <RotateCcw className="h-4 w-4" /> Restore
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="min-w-0">
-        <h4 className="mb-1 truncate text-sm font-semibold text-slate-900">
-          {highlightText(doc.document_title, highlightTerms)}
-        </h4>
-        <p className="mb-3 text-xs text-slate-400">
-          {highlightText(
-            `${doc.document_title}.${doc.extension.toLowerCase()} | ${doc.file_size_in_mb} MB`,
-            highlightTerms,
-          )}
-        </p>
-      </div>
-
-      {matchContext.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {matchContext.slice(0, 3).map((item) => (
-            <span
-              key={item}
-              className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600"
-            >
-              <span className="truncate">{highlightText(item, highlightTerms)}</span>
-            </span>
-          ))}
+        <div className="min-w-0">
+          <h4 className="mb-1 truncate text-sm font-semibold text-slate-900">
+            {highlightText(doc.document_title, highlightTerms)}
+          </h4>
+          <p className="mb-3 text-xs text-slate-400">
+            {doc.extension.toUpperCase()} • {doc.file_size_in_mb} MB
+          </p>
         </div>
-      )}
 
-      <div className="flex items-center justify-between text-xs text-slate-500">
-        <span>{formatReadableDate(doc.issue_date)}</span>
-        <span>{formatReadableDate(doc.expiry_date)}</span>
-      </div>
+        {/* --- matchContext implemented here --- */}
+        {matchContext.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {matchContext.slice(0, 3).map((item, i) => (
+              <span
+                key={`${item}-${i}`}
+                className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+              >
+                <span className="truncate">
+                  {highlightText(item, highlightTerms)}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
 
-      <div className="mt-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <span>{formatReadableDate(doc.issue_date)}</span>
+          <span>{formatReadableDate(doc.expiry_date)}</span>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
           <span
-            className={`${statusClassName.className} inline-flex rounded-full px-3 py-1 text-xs font-medium`}
+            className={`${statusClassName.className} inline-flex rounded-full px-3 py-1 text-[10px] font-bold tracking-tight uppercase`}
           >
             {statusClassName.label}
           </span>
-
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">
             <Eye className="h-3.5 w-3.5" />
             {previewSupported ? "Preview" : "Open"}
           </span>
         </div>
       </div>
-      </div>
 
       <DocumentPreview
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
-        doc={doc}
+        doc={fullDoc || doc}
+        isFetching={isFetching}
       />
     </>
   );

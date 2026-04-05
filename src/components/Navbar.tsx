@@ -87,6 +87,8 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   }).data;
 
   const privateNotifications = useMemo(() => {
+    if (!notifications) return [];
+
     if (role === "admin") {
       return notifications;
     }
@@ -128,6 +130,8 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     // if (!myInformation) return;
 
     const run = async () => {
+      if (!documents || !myInformation) return;
+
       for (const doc of documents) {
         const status = getExpiryState(doc.expiry_date);
         console.log(status);
@@ -185,13 +189,17 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
   const documentAlerts = useMemo(
     () =>
-      documents
-        .filter((doc) => !doc.is_archived)
-        .map((doc) => ({
-          doc,
-          status: getExpiryState(doc.expiry_date),
-        }))
-        .filter(({ status }) => status === "expiring" || status === "expired"),
+      !documents
+        ? []
+        : documents
+            .filter((doc) => !doc.is_archived)
+            .map((doc) => ({
+              doc,
+              status: getExpiryState(doc.expiry_date),
+            }))
+            .filter(
+              ({ status }) => status === "expiring" || status === "expired",
+            ),
     [documents],
   );
 

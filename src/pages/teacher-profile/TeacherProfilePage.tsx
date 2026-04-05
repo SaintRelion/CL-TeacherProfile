@@ -59,7 +59,8 @@ const TeacherProfilePage = () => {
     filters: { user: user.id },
   }).data;
 
-  const myInformation = informations.length > 0 ? informations[0] : null;
+  const myInformation =
+    informations && informations.length > 0 ? informations[0] : null;
   if (myInformation != null) {
     if (selectedProfilePic != "")
       myInformation.photo_base64 = selectedProfilePic;

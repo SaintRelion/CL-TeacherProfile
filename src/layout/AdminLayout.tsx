@@ -5,16 +5,11 @@ import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
     const handleResize = (): void => {
       if (window.innerWidth >= 800) {
         setSidebarOpen(true);
-        setIsSmallScreen(false);
-        console.log("resize");
-      } else {
-        setIsSmallScreen(true);
       }
     };
 
@@ -29,7 +24,6 @@ const AdminLayout = () => {
         {" "}
         <AdminSidebar
           isOpen={sidebarOpen}
-          isSmallScreen={isSmallScreen}
           closeSidebar={() => setSidebarOpen(false)}
         />
         <div className="flex w-full min-w-0 flex-1 flex-col transition-all duration-300">

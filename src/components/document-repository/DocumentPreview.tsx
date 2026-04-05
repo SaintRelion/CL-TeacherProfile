@@ -6,7 +6,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { Expand, ExternalLink, Minimize2, Loader2 } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -15,26 +14,18 @@ export function DocumentPreview({
   open,
   onOpenChange,
   doc,
+  isFetching,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  doc: TeacherDocument | null;
+  doc: TeacherDocument;
+  isFetching?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [customSize, setCustomSize] = useState<{
     width: number;
     height: number;
   } | null>(null);
-
-  // 1. Hook into the "Heavy" file resource
-  const { useRetrieve: getFile } = useResourceLocked<TeacherDocument>(
-    "teacherdocumentfile",
-  );
-
-  // 2. Fetch data based on the doc ID.
-  // In most resource hooks, passing the ID directly to the retrieve hook
-  // handles the GET /api/teacherdocumentfile/{id} call.
-  const fetchedData = getFile(doc?.id || "").data;
 
   const resizeState = useRef<{
     startX: number;
@@ -52,8 +43,7 @@ export function DocumentPreview({
 
   if (!doc) return null;
 
-  // 3. Extract the Base64 from the lazy-loaded result
-  const base64Data = fetchedData?.file_base64;
+  const base64Data: string | undefined = doc.file_base64;
 
   const previewSupported = ["pdf", "png", "jpg", "jpeg", "webp"].includes(
     doc.extension.toLowerCase(),
@@ -174,12 +164,12 @@ export function DocumentPreview({
         </DialogHeader>
 
         <div className="relative min-h-0 flex-1 bg-slate-100">
-          {/* Loading State Overlay while Base64 is fetching */}
-          {!base64Data && previewSupported && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[2px]">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-              <p className="mt-2 text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">
-                Loading Document Data...
+          {/* Show loader if the parent is still fetching the Base64 */}
+          {(isFetching || !base64Data) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <p className="mt-2 text-xs font-medium text-slate-400">
+                Loading Preview...
               </p>
             </div>
           )}

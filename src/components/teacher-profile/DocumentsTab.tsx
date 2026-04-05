@@ -18,7 +18,7 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
   const users = getUsers({
     filters: { id: userId },
   }).data;
-  const user = users.length > 0 ? users[0] : null;
+  const user = users && users.length > 0 ? users[0] : null;
 
   const { useList: getInformation } = useResourceLocked<PersonalInformation>(
     "personalinformation",
@@ -29,27 +29,28 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
     },
   }).data;
 
-  const myInformation = informations.length > 0 ? informations[0] : undefined;
+  const myInformation =
+    informations && informations.length > 0 ? informations[0] : undefined;
 
   return (
     <div>
-      <h4 className="text-gray-900 mb-6 text-lg font-semibold">
+      <h4 className="mb-6 text-lg font-semibold text-gray-900">
         Document Repository
       </h4>
 
       <Dialog>
         <DialogTrigger className="w-full">
-          <div className="hover:border-blue-400 hover:bg-blue-50 mb-6 cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors">
+          <div className="mb-6 cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50">
             <div className="space-y-3">
-              <div className="bg-blue-100 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-                <i className="fas fa-cloud-upload-alt text-blue-600 text-2xl"></i>
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                <i className="fas fa-cloud-upload-alt text-2xl text-blue-600"></i>
               </div>
               <div>
-                <p className="text-gray-900 text-lg font-medium">
+                <p className="text-lg font-medium text-gray-900">
                   Click to upload files
                 </p>
               </div>
-              <p className="text-gray-500 text-sm">
+              <p className="text-sm text-gray-500">
                 Supports PDF, DOC, DOCX, JPG, PNG (Max 10MB)
               </p>
             </div>
