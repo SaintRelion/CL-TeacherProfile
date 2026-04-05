@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { TeacherDocument } from "@/models/TeacherDocument";
-import { Expand, ExternalLink, Minimize2, Loader2 } from "lucide-react";
+import { Expand, ExternalLink, Minimize2, Loader2, X } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,10 +18,12 @@ export function DocumentPreview({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  doc: TeacherDocument;
+  doc: TeacherDocument | null;
   isFetching?: boolean;
 }) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [blobUrl, setBlobUrl] = useState<string | null>();
+
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [customSize, setCustomSize] = useState<{
     width: number;
     height: number;
@@ -41,26 +43,53 @@ export function DocumentPreview({
     }
   }, [open]);
 
+  useEffect(() => {
+    // Only create the Blob if the modal is open and we have the data
+    if (open && doc?.file_base64) {
+      try {
+        const base64Clean = doc.file_base64.split(",")[1] || doc.file_base64;
+        const byteCharacters = atob(base64Clean);
+        const byteNumbers = new Array(byteCharacters.length);
+
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+
+        const mimeType =
+          doc.extension.toLowerCase() === "pdf"
+            ? "application/pdf"
+            : `image/${doc.extension.toLowerCase()}`;
+
+        const blob = new Blob([new Uint8Array(byteNumbers)], {
+          type: mimeType,
+        });
+        const url = URL.createObjectURL(blob);
+
+        setBlobUrl(url);
+
+        // Cleanup: Revoke the URL when the modal closes or doc changes
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch (error) {
+        console.error("Blob conversion failed:", error);
+      }
+    } else {
+      setBlobUrl(null);
+    }
+  }, [open, doc?.file_base64, doc?.extension]);
+
   if (!doc) return null;
 
-  const base64Data: string | undefined = doc.file_base64;
-
-  const previewSupported = ["pdf", "png", "jpg", "jpeg", "webp"].includes(
-    doc.extension.toLowerCase(),
-  );
-
-  const handleOpenInNewTab = () => {
-    if (!base64Data) return;
-    const link = document.createElement("a");
-    link.href = base64Data;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleOpenInNewTab = (): void => {
+    if (!blobUrl) return;
+    // This will now work perfectly because it's a blob: url, not a 2MB string
+    window.open(blobUrl, "_blank");
   };
 
-  const handleResizeStart = (event: ReactMouseEvent<HTMLButtonElement>) => {
+  const handleResizeStart = (
+    event: ReactMouseEvent<HTMLButtonElement>,
+  ): void => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -79,22 +108,16 @@ export function DocumentPreview({
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!resizeState.current) return;
-
       const deltaX = moveEvent.clientX - resizeState.current.startX;
       const deltaY = moveEvent.clientY - resizeState.current.startY;
-      const minWidth = 720;
-      const minHeight = 520;
-      const maxWidth = window.innerWidth - 16;
-      const maxHeight = window.innerHeight - 16;
-
       setCustomSize({
         width: Math.min(
-          Math.max(minWidth, resizeState.current.startWidth + deltaX),
-          maxWidth,
+          Math.max(720, resizeState.current.startWidth + deltaX),
+          window.innerWidth - 16,
         ),
         height: Math.min(
-          Math.max(minHeight, resizeState.current.startHeight + deltaY),
-          maxHeight,
+          Math.max(520, resizeState.current.startHeight + deltaY),
+          window.innerHeight - 16,
         ),
       });
     };
@@ -109,30 +132,31 @@ export function DocumentPreview({
     window.addEventListener("mouseup", handleMouseUp);
   };
 
-  const dialogStyle = customSize
-    ? {
-        width: `${customSize.width}px`,
-        height: `${customSize.height}px`,
-        maxWidth: `${customSize.width}px`,
-      }
-    : undefined;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`flex flex-col overflow-hidden border-none bg-white p-0 shadow-2xl ${
+        /* [&>button]:hidden removes the default floating close button that overlays your actions */
+        className={`flex flex-col overflow-hidden border-none bg-white p-0 shadow-2xl [&>button]:hidden ${
           isExpanded
             ? "h-[98vh] max-w-[99vw] rounded-xl"
             : "h-[90vh] max-w-6xl rounded-2xl"
         }`}
-        style={dialogStyle}
+        style={
+          customSize
+            ? {
+                width: `${customSize.width}px`,
+                height: `${customSize.height}px`,
+                maxWidth: `${customSize.width}px`,
+              }
+            : undefined
+        }
       >
         <DialogHeader className="flex-row items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 text-left">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <DialogTitle className="truncate text-base font-semibold text-slate-900">
               {doc.document_title}
             </DialogTitle>
-            <DialogDescription className="mt-1 text-xs text-slate-500">
+            <DialogDescription className="mt-0.5 text-xs text-slate-500">
               {doc.extension.toUpperCase()} • {doc.file_size_in_mb}MB
             </DialogDescription>
           </div>
@@ -140,7 +164,7 @@ export function DocumentPreview({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setIsExpanded((value) => !value)}
+              onClick={() => setIsExpanded(!isExpanded)}
               className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
             >
               {isExpanded ? (
@@ -148,25 +172,36 @@ export function DocumentPreview({
               ) : (
                 <Expand className="h-4 w-4" />
               )}
-              {isExpanded ? "Minimize" : "Expand"}
+              <span className="hidden sm:inline">
+                {isExpanded ? "Minimize" : "Expand"}
+              </span>
             </button>
 
             <button
               type="button"
-              disabled={!base64Data}
               onClick={handleOpenInNewTab}
               className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
             >
               <ExternalLink className="h-4 w-4" />
-              View in New Tab
+              <span className="hidden sm:inline">New Tab</span>
+            </button>
+
+            <div className="mx-1 h-6 w-px bg-slate-200" />
+
+            {/* Manually placed close button to prevent overlay issues */}
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
+            >
+              <X className="h-5 w-5" />
             </button>
           </div>
         </DialogHeader>
 
         <div className="relative min-h-0 flex-1 bg-slate-100">
-          {/* Show loader if the parent is still fetching the Base64 */}
-          {(isFetching || !base64Data) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80">
+          {(isFetching || !blobUrl) && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
               <p className="mt-2 text-xs font-medium text-slate-400">
                 Loading Preview...
@@ -174,48 +209,40 @@ export function DocumentPreview({
             </div>
           )}
 
-          {base64Data && (
-            <>
-              {doc.extension.toLowerCase() === "pdf" && (
+          {blobUrl ? (
+            <div className="h-full w-full">
+              {doc.extension.toLowerCase() === "pdf" ? (
                 <iframe
-                  src={base64Data}
+                  src={blobUrl}
                   className="h-full w-full bg-white"
                   title={doc.document_title}
                 />
-              )}
-
-              {["png", "jpg", "jpeg", "webp"].includes(
-                doc.extension.toLowerCase(),
-              ) && (
+              ) : (
                 <div className="flex h-full items-center justify-center p-6">
                   <img
-                    src={base64Data}
+                    src={blobUrl}
                     className="max-h-full max-w-full rounded-xl bg-white object-contain shadow-lg"
                     alt={doc.document_title}
                   />
                 </div>
               )}
-            </>
-          )}
-
-          {!previewSupported && (
-            <div className="flex h-full items-center justify-center p-4 text-sm font-semibold text-slate-400">
-              Preview not supported for {doc.extension.toUpperCase()} files.
             </div>
+          ) : (
+            !isFetching && (
+              <div className="flex h-full items-center justify-center p-4 text-sm font-semibold text-slate-400">
+                Preview not supported for {doc.extension.toUpperCase()} files.
+              </div>
+            )
           )}
         </div>
 
         <button
           type="button"
           onMouseDown={handleResizeStart}
-          className="absolute right-1 bottom-1 h-5 w-5 cursor-se-resize rounded-sm text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-          title="Resize preview"
+          className="absolute right-1 bottom-1 flex h-6 w-6 cursor-se-resize items-center justify-center rounded-sm text-slate-300 transition hover:text-slate-600"
         >
-          <svg viewBox="0 0 16 16" className="h-4 w-4">
-            <path
-              d="M5 11h1v1H5zm3 0h1v1H8zm3 0h1v1h-1zM8 8h1v1H8zm3 0h1v1h-1zm3 0h1v1h-1zm-3-3h1v1h-1zm3 0h1v1h-1z"
-              fill="currentColor"
-            />
+          <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor">
+            <path d="M5 11h1v1H5zm3 0h1v1H8zm3 0h1v1h-1zM8 8h1v1H8zm3 0h1v1h-1zm3 0h1v1h-1zm-3-3h1v1h-1zm3 0h1v1h-1z" />
           </svg>
         </button>
       </DialogContent>

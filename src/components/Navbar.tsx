@@ -43,7 +43,7 @@ import { toast } from "@saintrelion/notifications";
 import type { User } from "@/models/user";
 import { AlertTriangle, Bell, ChevronDown, Menu } from "lucide-react";
 
-const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
+const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const user = useCurrentUser<User>();
   const auth = useAuth();
 
@@ -350,131 +350,127 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto max-w-full sm:px-6 lg:px-8">
-        <div className="flex min-h-20 items-center justify-between gap-4 py-3">
-          {/* LEFT */}
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              aria-label="Open menu"
-              onClick={() => toggleSidebar?.()}
-              className="rounded-xl p-2 text-slate-500 transition-colors duration-200 hover:bg-slate-50 hover:text-slate-700 lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
+    <header className="sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200 bg-white px-4 lg:px-8">
+      <div className="flex h-full items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleSidebar}
+            className="flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 transition-colors hover:bg-slate-50"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
 
-            <div className="min-w-0">
-              <h1 className="max-w-[240px] truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base md:text-lg lg:max-w-none lg:text-xl">
-                Katipunan Central School & SPED Center
-              </h1>
-              <p className="mt-0.5 text-sm text-slate-400">
-                {currentDateLabel}
-              </p>
-            </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-bold text-slate-900 sm:text-base md:text-lg">
+              Katipunan Central School & SPED Center
+            </h1>
+            <p className="text-[11px] font-medium tracking-tighter text-slate-400 uppercase">
+              {currentDateLabel}
+            </p>
           </div>
+        </div>
 
-          {/* RIGHT */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* NOTIFICATIONS */}
-            <DropdownMenu onOpenChange={(open) => setNotifMenuOpened(open)}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="Notifications"
-                  className="group relative rounded-xl p-2 text-slate-500 transition-all duration-300 hover:bg-slate-50 hover:text-slate-700"
-                >
-                  <Bell className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
-
-                  {localUnreadCount > 0 && !notifMenuOpened && (
-                    <>
-                      <span className="absolute top-0.5 right-0.5 h-3 w-3 animate-ping rounded-full bg-red-400/60" />
-                      <span className="absolute top-0.5 right-0.5 h-3 w-3 scale-110 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.45)]" />
-                    </>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                align="end"
-                className="w-80 rounded-2xl border border-slate-200/70 p-0 shadow-xl shadow-slate-200/60"
+        {/* RIGHT */}
+        <div className="flex items-center gap-2">
+          {/* NOTIFICATIONS */}
+          <DropdownMenu onOpenChange={(open) => setNotifMenuOpened(open)}>
+            <DropdownMenuTrigger asChild>
+              <button
+                aria-label="Notifications"
+                className="group relative rounded-xl p-2 text-slate-500 transition-all duration-300 hover:bg-slate-50 hover:text-slate-700"
               >
-                <div className="border-b border-slate-100 p-4 font-semibold text-slate-900">
-                  Notifications
-                </div>
+                <Bell className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
 
-                {sortedNotifications.length === 0 ? (
-                  <p className="p-4 text-sm text-slate-500">No Notifications</p>
+                {localUnreadCount > 0 && !notifMenuOpened && (
+                  <>
+                    <span className="absolute top-0.5 right-0.5 h-3 w-3 animate-ping rounded-full bg-red-400/60" />
+                    <span className="absolute top-0.5 right-0.5 h-3 w-3 scale-110 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.45)]" />
+                  </>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="end"
+              className="w-80 rounded-2xl border border-slate-200/70 p-0 shadow-xl shadow-slate-200/60"
+            >
+              <div className="border-b border-slate-100 p-4 font-semibold text-slate-900">
+                Notifications
+              </div>
+
+              {sortedNotifications.length === 0 ? (
+                <p className="p-4 text-sm text-slate-500">No Notifications</p>
+              ) : (
+                <div className="max-h-96 overflow-y-auto p-2">
+                  {sortedNotifications.map((n) => (
+                    <div
+                      key={n.id}
+                      onClick={() => handleNotificationClick(n)}
+                      className="cursor-pointer rounded-xl p-1 transition-colors duration-200 hover:bg-slate-50"
+                    >
+                      <NotificationCard notification={n} isRead={n.is_read} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* USER MENU */}
+          <DropdownMenu onOpenChange={setUserMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="User menu"
+                className="group flex items-center gap-2 rounded-[4px] px-2 py-1.5 transition-all duration-300 hover:bg-slate-50"
+              >
+                {myInformation?.photo_base64 ? (
+                  <img
+                    src={resolveImageSource(profilePic)}
+                    alt="Profile"
+                    className="h-9 w-9 rounded-full object-cover shadow-sm ring-1 shadow-blue-500/20 ring-slate-200"
+                  />
                 ) : (
-                  <div className="max-h-96 overflow-y-auto p-2">
-                    {sortedNotifications.map((n) => (
-                      <div
-                        key={n.id}
-                        onClick={() => handleNotificationClick(n)}
-                        className="cursor-pointer rounded-xl p-1 transition-colors duration-200 hover:bg-slate-50"
-                      >
-                        <NotificationCard notification={n} isRead={n.is_read} />
-                      </div>
-                    ))}
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.28),inset_0_-2px_6px_rgba(15,23,42,0.18),0_8px_20px_rgba(59,130,246,0.2)] shadow-blue-500/20">
+                    {user.username?.charAt(0).toUpperCase() || "A"}
                   </div>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
 
-            {/* USER MENU */}
-            <DropdownMenu onOpenChange={setUserMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="User menu"
-                  className="group flex items-center gap-2 rounded-[4px] px-2 py-1.5 transition-all duration-300 hover:bg-slate-50"
-                >
-                  {myInformation?.photo_base64 ? (
-                    <img
-                      src={resolveImageSource(profilePic)}
-                      alt="Profile"
-                      className="h-9 w-9 rounded-full object-cover shadow-sm ring-1 shadow-blue-500/20 ring-slate-200"
-                    />
-                  ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.28),inset_0_-2px_6px_rgba(15,23,42,0.18),0_8px_20px_rgba(59,130,246,0.2)] shadow-blue-500/20">
-                      {user.username?.charAt(0).toUpperCase() || "A"}
-                    </div>
-                  )}
+                <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">
+                  {role || user.username}
+                </span>
 
-                  <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">
-                    {role || user.username}
-                  </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${
+                    userMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            </DropdownMenuTrigger>
 
-                  <ChevronDown
-                    className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${
-                      userMenuOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-              </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-52 rounded-2xl border border-slate-200/70 p-1 shadow-xl shadow-slate-200/60"
+            >
+              <DropdownMenuItem onClick={() => setShowUpdatePhoto(true)}>
+                Update Photo
+              </DropdownMenuItem>
 
-              <DropdownMenuContent
-                align="end"
-                className="w-52 rounded-2xl border border-slate-200/70 p-1 shadow-xl shadow-slate-200/60"
+              <DropdownMenuItem onClick={() => setShowUpdatePassword(true)}>
+                Update Password
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  sessionStorage.removeItem(documentAlertSessionKey);
+                  auth.logout();
+                }}
+                variant="destructive"
               >
-                <DropdownMenuItem onClick={() => setShowUpdatePhoto(true)}>
-                  Update Photo
-                </DropdownMenuItem>
-
-                <DropdownMenuItem onClick={() => setShowUpdatePassword(true)}>
-                  Update Password
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => {
-                    sessionStorage.removeItem(documentAlertSessionKey);
-                    auth.logout();
-                  }}
-                  variant="destructive"
-                >
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
