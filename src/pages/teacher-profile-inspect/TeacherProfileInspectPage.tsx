@@ -47,7 +47,8 @@ const TeacherProfileInspectPage = () => {
 
   const [selectedProfilePic, setSelectedProfilePic] = useState<string>("");
 
-  const teacherInformation = informations.length > 0 ? informations[0] : null;
+  const teacherInformation =
+    informations && informations.length > 0 ? informations[0] : null;
   if (teacherInformation != null) {
     if (selectedProfilePic != "")
       teacherInformation.photo_base64 = selectedProfilePic;

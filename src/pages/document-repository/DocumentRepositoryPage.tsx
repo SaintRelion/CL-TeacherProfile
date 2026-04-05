@@ -17,7 +17,7 @@ const DocumentRepositoryPage = () => {
   }).data;
 
   const totalStorageGB = React.useMemo(() => {
-    if (liveDocuments.length === 0) return 0;
+    if (!liveDocuments || liveDocuments.length <= 0) return 0;
 
     const totalMB = liveDocuments.reduce((sum, doc) => {
       const size = parseFloat(doc.file_size_in_mb) || 0; // convert string MB to number
@@ -31,7 +31,7 @@ const DocumentRepositoryPage = () => {
   const kpi: Record<string, string>[] = [
     {
       title: "Total Documents",
-      value: liveDocuments.length.toString(),
+      value: liveDocuments ? liveDocuments.length.toString() : "0",
       iconClassName: "fas fa-file-alt text-blue-600 bg-blue-100 rounded-lg p-2",
     },
     {
@@ -41,7 +41,7 @@ const DocumentRepositoryPage = () => {
     },
     {
       title: "Recent Uploads",
-      value: liveDocuments.length.toString(),
+      value: liveDocuments ? liveDocuments.length.toString() : "0",
       iconClassName: "fas fa-upload text-blue-600 bg-blue-100 rounded-lg p-2",
     },
   ];

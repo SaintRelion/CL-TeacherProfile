@@ -109,7 +109,7 @@ const DocumentExplorer = ({
   }, [search, filters, selectedFolderId]);
 
   const nonSubmittingTeachers = useMemo(() => {
-    if (!selectedFolderId || !documents.length) return [];
+    if (!selectedFolderId || !documents || !personalInfos) return [];
 
     const submittedUserIds = new Set(
       documents
@@ -132,6 +132,8 @@ const DocumentExplorer = ({
       string,
       { folder: string; folder_name: string; count: number }
     >();
+
+    if (!documentFolders || !documents) return [];
 
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
@@ -160,14 +162,16 @@ const DocumentExplorer = ({
 
   const searchResults = useMemo(
     () =>
-      filterAndSortDocuments({
-        documents,
-        search,
-        filters,
-        selectedFolderId,
-        personalInfos,
-        documentFolders,
-      }),
+      documents
+        ? filterAndSortDocuments({
+            documents,
+            search,
+            filters,
+            selectedFolderId,
+            personalInfos,
+            documentFolders,
+          })
+        : [],
     [
       documents,
       search,
@@ -196,21 +200,25 @@ const DocumentExplorer = ({
   );
   const searchSuggestions = useMemo(
     () =>
-      getSearchSuggestions({
-        documents,
-        personalInfos,
-        folders: documentFolders,
-      }),
+      documents
+        ? getSearchSuggestions({
+            documents,
+            personalInfos,
+            folders: documentFolders,
+          })
+        : [],
     [documents, personalInfos, documentFolders],
   );
 
   async function handleNewFolder(data: Record<string, string>) {
     const formattedName = formatFolderName(data.folder_name);
-    const alreadyExists = documentFolders.some(
-      (folder) =>
-        formatFolderName(folder.name).toLowerCase().trim() ===
-        formattedName.toLowerCase().trim(),
-    );
+    const alreadyExists = documentFolders
+      ? documentFolders.some(
+          (folder) =>
+            formatFolderName(folder.name).toLowerCase().trim() ===
+            formattedName.toLowerCase().trim(),
+        )
+      : [];
 
     if (alreadyExists) {
       toast.error(`${formattedName} already exist`);
@@ -230,11 +238,13 @@ const DocumentExplorer = ({
     }
 
     const newName = formatFolderName(data.folder_rename);
-    const alreadyExists = documentFolders.some(
-      (folder) =>
-        formatFolderName(folder.name).toLowerCase().trim() ===
-        newName.toLowerCase().trim(),
-    );
+    const alreadyExists = documentFolders
+      ? documentFolders.some(
+          (folder) =>
+            formatFolderName(folder.name).toLowerCase().trim() ===
+            newName.toLowerCase().trim(),
+        )
+      : [];
 
     if (alreadyExists) {
       toast.error(`${newName} already exists`);

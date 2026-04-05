@@ -8,8 +8,6 @@ import { NotificationProvider } from "@saintrelion/notifications";
 import { AuthProvider } from "@saintrelion/auth-lib";
 import { router } from "./navigations";
 
-import "@/lib/firebase-client";
-
 import "@/sr-config";
 import "@/repositories/UserRepo";
 import "@/repositories/DocumentFolderRepo";

@@ -108,7 +108,7 @@ const DashboardPage = () => {
     >();
 
     // Initialize map with folders (use folder name); fallback to DOCUMENT_TYPES if no folders
-    if (documentFolders.length > 0) {
+    if (documentFolders && documentFolders.length > 0) {
       documentFolders.forEach((f) => {
         map.set(f.name, {
           total: 0,
@@ -121,7 +121,7 @@ const DashboardPage = () => {
       });
     }
 
-    if (activeDocuments.length > 0) {
+    if (activeDocuments && activeDocuments.length > 0) {
       activeDocuments.forEach((doc) => {
         const folderName =
           (documentFolders &&
@@ -163,7 +163,8 @@ const DashboardPage = () => {
   }, [activeDocuments, documentFolders]);
 
   const complianceStatus = React.useMemo(() => {
-    const totalTeachers = filteredTeachers.length || teachers.length || 0;
+    const totalTeachers =
+      filteredTeachers.length || (teachers && teachers.length) || 0;
     return Array.from(complianceMapping.entries()).map(([title, bucket]) => {
       const { expired, expiring, submittedTeachers, compliantTeachers } =
         bucket;
@@ -199,12 +200,7 @@ const DashboardPage = () => {
         redirectPath: `/admin/documentrepository?folder=${folderId}`,
       };
     });
-  }, [
-    complianceMapping,
-    documentFolders,
-    filteredTeachers.length,
-    teachers.length,
-  ]);
+  }, [complianceMapping, documentFolders, filteredTeachers.length, teachers]);
 
   const complianceTotalPages = Math.max(
     1,
@@ -236,7 +232,7 @@ const DashboardPage = () => {
   const kpi = [
     {
       title: "Total Teachers",
-      value: teachers.length.toString(),
+      value: teachers ? teachers.length.toString() : "0",
       kpiIcon:
         "fas fa-chalkboard-teacher text-primary-600 text-xl bg-primary-100 p-3 rounded-lg",
       path: "/admin/teacherdirectory",
@@ -252,10 +248,7 @@ const DashboardPage = () => {
 
     {
       title: "Total Folders",
-      value:
-        documentFolders.length == undefined
-          ? "0"
-          : documentFolders.length.toString(),
+      value: documentFolders ? documentFolders.length.toString() : "0",
       kpiIcon:
         "fas fa-folder text-error-600 text-xl bg-error-100 p-3 rounded-lg",
       path: "/admin/documentrepository",
@@ -573,7 +566,7 @@ const DashboardPage = () => {
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-2xl border border-slate-200/50 bg-slate-50 p-3">
                   <p className="text-2xl font-semibold text-slate-800">
-                    {teachers.length}
+                    {teachers ? teachers.length : 0}
                   </p>
                   <p className="text-xs font-medium text-slate-500">
                     Active Users

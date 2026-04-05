@@ -89,7 +89,7 @@ export default function DocumentForm({
         type: "upload",
         title: "Document uploaded",
         description: `${data.document_title} - ${fullName}`,
-        is_read: false
+        is_read: false,
       });
 
       toast.success("Document Uploaded");
@@ -141,7 +141,7 @@ export default function DocumentForm({
 
       <FolderSelect
         name="folderSelect"
-        folders={documentFolders} // from getFolders().data
+        folders={documentFolders ?? []}
         onFolderChange={setSelectedFolderId}
       />
 

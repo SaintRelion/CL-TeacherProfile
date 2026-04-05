@@ -85,6 +85,8 @@ const DocumentExplorer = ({
       { folder: string; folder_name: string; count: number }
     >();
 
+    if (!documentFolders || !documents) return [];
+
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
         folder: folder.id,
@@ -112,14 +114,16 @@ const DocumentExplorer = ({
 
   const searchResults = useMemo(
     () =>
-      filterAndSortDocuments({
-        documents,
-        search,
-        filters,
-        selectedFolderId,
-        personalInfos,
-        documentFolders,
-      }),
+      documents
+        ? filterAndSortDocuments({
+            documents,
+            search,
+            filters,
+            selectedFolderId,
+            personalInfos,
+            documentFolders,
+          })
+        : [],
     [
       documents,
       search,
@@ -148,22 +152,25 @@ const DocumentExplorer = ({
   );
   const searchSuggestions = useMemo(
     () =>
-      getSearchSuggestions({
-        documents,
-        personalInfos,
-        folders: documentFolders,
-      }),
+      documents
+        ? getSearchSuggestions({
+            documents,
+            personalInfos,
+            folders: documentFolders,
+          })
+        : [],
     [documents, personalInfos, documentFolders],
   );
 
-  const totalArchivedDocuments = documents.length;
+  const totalArchivedDocuments = documents?.length ?? 0;
   const archivedFoldersCount = foldersWithDocs.filter(
     (folder) => Number(folder.files_count) > 0,
   ).length;
-  const selectedFolderDocumentCount = selectedFolderId
-    ? documents.filter((document) => document.folder === selectedFolderId)
-        .length
-    : totalArchivedDocuments;
+  const selectedFolderDocumentCount =
+    selectedFolderId && documents
+      ? documents.filter((document) => document.folder === selectedFolderId)
+          .length
+      : totalArchivedDocuments;
 
   const handleFilterChange = (filterType: string, value: string) => {
     if (filterType === "reset") {
