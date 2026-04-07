@@ -19,12 +19,13 @@ export default function AddTeacherForm() {
     console.log("Teacher added:", data);
 
     const userId = await auth.register(
-      { username: data.username, roles: ["instructor"] },
+      { username: data.username, roles: ["teacher"] },
       "123456",
     );
 
-    if (userId != null)
+    if (userId != null) {
       insertTeacherPerformance.run({ user: userId, rating: "5" });
+    }
   };
 
   return (

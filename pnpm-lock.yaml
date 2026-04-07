@@ -39,8 +39,8 @@ importers:
         specifier: ^4.3.2
         version: 4.3.2(react@19.2.4)
       '@saintrelion/auth-lib':
-        specifier: ^5.3.3
-        version: 5.3.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^5.3.4
+        version: 5.3.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@saintrelion/cache':
         specifier: ^1.0.1
         version: 1.0.1
@@ -2241,8 +2241,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@saintrelion/auth-lib@5.3.3':
-    resolution: {integrity: sha512-A9VVMnVHAfv6xuMBU0XnJtsEDwReccKktsqsUu4aQQAcF5L6HXP6OLpUUPFH6AvUGXxWbNqCROf0cfy7eqCp7w==, tarball: https://npm.pkg.github.com/download/@saintrelion/auth-lib/5.3.3/1ec2d65d6b896bed23d6f41cccbf136145a5fa3e}
+  '@saintrelion/auth-lib@5.3.4':
+    resolution: {integrity: sha512-3MVgZ12hh/MOjtPFQDh5YXh3kkapApkDPHCTPk+vh0wwNWn6wbOno4AQFx/fhPVuXCjamhMr3phwGnFxO+2C4A==, tarball: https://npm.pkg.github.com/download/@saintrelion/auth-lib/5.3.4/b4dd9d545949e6c2aebb9aacabec4be4daead404}
 
   '@saintrelion/cache@1.0.1':
     resolution: {integrity: sha512-4GXJGbvoS+DK4jCNsH/l6EUdmjbyBL76wghtGJS/ryZiwiGG05v60LWto+EYIXWKROhf9NxDn93/wPbcE3IBLQ==, tarball: https://npm.pkg.github.com/download/@saintrelion/cache/1.0.1/1aa40a67a8396a40cff61200155fecb9e7297ce8}
@@ -2603,8 +2603,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  baseline-browser-mapping@2.10.14:
-    resolution: {integrity: sha512-fOVLPAsFTsQfuCkvahZkzq6nf8KvGWanlYoTh0SVA0A/PIUxQGU2AOZAoD95n2gFLVDW/jP6sbGLny95nmEuHA==}
+  baseline-browser-mapping@2.10.16:
+    resolution: {integrity: sha512-Lyf3aK28zpsD1yQMiiHD4RvVb6UdMoo8xzG2XzFIfR9luPzOpcBlAsT/qfB1XWS1bxWT+UtE4WmQgsp297FYOA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -2679,8 +2679,8 @@ packages:
   caniuse-lite@1.0.30001770:
     resolution: {integrity: sha512-x/2CLQ1jHENRbHg5PSId2sXq1CIO1CISvwWAj027ltMVG2UNgW+w9oH2+HzgEIRFembL8bUlXtfbBHR1fCg2xw==}
 
-  caniuse-lite@1.0.30001785:
-    resolution: {integrity: sha512-blhOL/WNR+Km1RI/LCVAvA73xplXA7ZbjzI4YkMK9pa6T/P3F2GxjNpEkyw5repTw9IvkyrjyHpwjnhZ5FOvYQ==}
+  caniuse-lite@1.0.30001786:
+    resolution: {integrity: sha512-4oxTZEvqmLLrERwxO76yfKM7acZo310U+v4kqexI2TL1DkkUEMT8UijrxxcnVdxR3qkVf5awGRX+4Z6aPHVKrA==}
 
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -2889,8 +2889,8 @@ packages:
   electron-to-chromium@1.5.302:
     resolution: {integrity: sha512-sM6HAN2LyK82IyPBpznDRqlTQAtuSaO+ShzFiWTvoMJLHyZ+Y39r8VMfHzwbU8MVBzQ4Wdn85+wlZl2TLGIlwg==}
 
-  electron-to-chromium@1.5.331:
-    resolution: {integrity: sha512-IbxXrsTlD3hRodkLnbxAPP4OuJYdWCeM3IOdT+CpcMoIwIoDfCmRpEtSPfwBXxVkg9xmBeY7Lz2Eo2TDn/HC3Q==}
+  electron-to-chromium@1.5.332:
+    resolution: {integrity: sha512-7OOtytmh/rINMLwaFTbcMVvYXO3AUm029X0LcyfYk0B557RlPkdpTpnH9+htMlfu5dKwOmT0+Zs2Aw+lnn6TeQ==}
 
   emoji-regex-xs@1.0.0:
     resolution: {integrity: sha512-LRlerrMYoIDrT6jgpeZ2YYl/L8EulRTt5hQcYjy5AInh7HWXKimpqx68aknBFpGL2+/IcogTcaydJEgaTmOpDg==}
@@ -7222,7 +7222,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.58.0':
     optional: true
 
-  '@saintrelion/auth-lib@5.3.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@saintrelion/auth-lib@5.3.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@saintrelion/cache': 1.0.1
       '@saintrelion/notifications': 1.0.2
@@ -7289,7 +7289,7 @@ snapshots:
 
   '@saintrelion/routers@2.1.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@saintrelion/auth-lib': 5.3.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@saintrelion/auth-lib': 5.3.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-router-dom: 7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
@@ -7661,7 +7661,7 @@ snapshots:
 
   baseline-browser-mapping@2.10.0: {}
 
-  baseline-browser-mapping@2.10.14: {}
+  baseline-browser-mapping@2.10.16: {}
 
   bidi-js@1.0.3:
     dependencies:
@@ -7727,9 +7727,9 @@ snapshots:
 
   browserslist@4.28.2:
     dependencies:
-      baseline-browser-mapping: 2.10.14
-      caniuse-lite: 1.0.30001785
-      electron-to-chromium: 1.5.331
+      baseline-browser-mapping: 2.10.16
+      caniuse-lite: 1.0.30001786
+      electron-to-chromium: 1.5.332
       node-releases: 2.0.37
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
 
@@ -7763,7 +7763,7 @@ snapshots:
 
   caniuse-lite@1.0.30001770: {}
 
-  caniuse-lite@1.0.30001785: {}
+  caniuse-lite@1.0.30001786: {}
 
   chalk@4.1.2:
     dependencies:
@@ -7943,7 +7943,7 @@ snapshots:
 
   electron-to-chromium@1.5.302: {}
 
-  electron-to-chromium@1.5.331: {}
+  electron-to-chromium@1.5.332: {}
 
   emoji-regex-xs@1.0.0: {}
 
