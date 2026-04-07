@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
 
-const InstructorLayout = () => {
+const TeacherLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
@@ -12,4 +12,4 @@ const InstructorLayout = () => {
     </div>
   );
 };
-export default InstructorLayout;
+export default TeacherLayout;

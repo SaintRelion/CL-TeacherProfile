@@ -14,7 +14,7 @@ import TeacherProfileInspectPage from "./pages/teacher-profile-inspect/TeacherPr
 import { roleLayoutMap } from "@saintrelion/auth-lib";
 import { PublicLayout } from "./layout/PublicLayout";
 import AdminLayout from "./layout/AdminLayout";
-import InstructorLayout from "./layout/InstructorLayout";
+import TeacherLayout from "./layout/TeacherLayout";
 import ResetPasswordPage from "./pages/authentication/ResetPasswordPage";
 import LandingPage from "./pages/authentication/LandingPage";
 import ArchivedRepositoryPage from "./pages/archived-repository/ArchivedRepositoryPage";
@@ -87,14 +87,14 @@ registerGroupAppRoutes({
   ],
 });
 
-roleLayoutMap["instructor"] = {
-  redirect: "/instructor",
-  layout: InstructorLayout,
+roleLayoutMap["teacher"] = {
+  redirect: "/teacher",
+  layout: TeacherLayout,
 };
 
 registerGroupAppRoutes({
-  path: "/instructor",
-  layout: createRoleLayout("instructor"),
+  path: "/teacher",
+  layout: createRoleLayout("teacher"),
   errorElement: <NotFound />,
   children: [
     {
@@ -102,7 +102,7 @@ registerGroupAppRoutes({
       element: <TeacherProfilePage />,
       // label: "Teacher Profile",
       // iconClassName: "fas fa-user-edit"
-      allowedRoles: ["instructor"],
+      allowedRoles: ["teacher"],
     },
   ],
 });
