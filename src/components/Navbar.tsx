@@ -212,7 +212,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   }, [unreadNotifications]);
 
   useEffect(() => {
-    if (role !== "instructor" || documentAlerts.length === 0) return;
+    if (role !== "teacher" || documentAlerts.length === 0) return;
 
     const alreadyShown = sessionStorage.getItem(documentAlertSessionKey);
 
@@ -353,13 +353,14 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     <header className="sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200 bg-white px-4 lg:px-8">
       <div className="flex h-full items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 transition-colors hover:bg-slate-50"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
+          {role != "teacher" && (
+            <button
+              onClick={toggleSidebar}
+              className="flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 transition-colors hover:bg-slate-50"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
           <div className="min-w-0">
             <h1 className="truncate text-sm font-bold text-slate-900 sm:text-base md:text-lg">
               Katipunan Central School & SPED Center
@@ -436,8 +437,8 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
                   </div>
                 )}
 
-                <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">
-                  {role || user.username}
+                <span className="max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">
+                  {user.username || role}
                 </span>
 
                 <ChevronDown

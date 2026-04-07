@@ -80,6 +80,7 @@ const TeacherDirectoryPage = () => {
   const teacherPerformances = getTeacherPerformance().data ?? [];
   const documents = getDocuments().data ?? [];
 
+  console.log(users);
   // ---------- FILTERING ----------
   const filteredTeachers = users
     .map((user) => {
