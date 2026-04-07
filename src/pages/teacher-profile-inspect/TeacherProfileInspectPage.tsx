@@ -126,6 +126,7 @@ const TeacherProfileInspectPage = () => {
         <div className="print:hidden">
           <BasicInformationCard
             myInformation={teacherInformation}
+            selectedProfilePic={selectedProfilePic}
             onProfilePicChanged={(value) => setSelectedProfilePic(value)}
           />
 

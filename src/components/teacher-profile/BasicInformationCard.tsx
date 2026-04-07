@@ -7,9 +7,11 @@ import type { PersonalInformation } from "@/models/PersonalInformation";
 
 const BasicInformationCard = ({
   myInformation,
+  selectedProfilePic,
   onProfilePicChanged,
 }: {
   myInformation: PersonalInformation | null;
+  selectedProfilePic: string;
   onProfilePicChanged: (profilePic: string) => void;
 }) => {
   const yearsOfService = getYearsOfService(myInformation?.date_hired ?? "");
@@ -43,7 +45,9 @@ const BasicInformationCard = ({
               <div className="relative">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 opacity-20 blur-sm print:hidden"></div>
                 <img
-                  src={resolveImageSource(myInformation?.photo_base64)}
+                  src={resolveImageSource(
+                    myInformation?.photo_base64 || selectedProfilePic,
+                  )}
                   alt="Teacher Profile"
                   className="relative h-36 w-36 rounded-2xl border-4 border-white object-cover shadow-lg transition-transform duration-300 group-hover:scale-[1.02] md:h-44 md:w-44 print:h-32 print:w-32 print:border-2 print:border-slate-300 print:shadow-none"
                 />

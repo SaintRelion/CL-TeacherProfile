@@ -418,6 +418,7 @@ const TeacherProfilePage = () => {
         <div ref={printRef} className="print:hidden">
           <BasicInformationCard
             myInformation={myInformation}
+            selectedProfilePic={selectedProfilePic}
             onProfilePicChanged={(value) => setSelectedProfilePic(value)}
           />
 
