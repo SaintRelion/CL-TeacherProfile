@@ -13,19 +13,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./ui/dialog";
-import {
-  getAuth,
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "firebase/auth";
 import type {
   CreatePersonalInformation,
   PersonalInformation,
 } from "@/models/PersonalInformation";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
-import { getExpiryState, resolveImageSource } from "@/lib/utils";
-import { NO_FACE_IMAGE } from "@/constants";
+import { getExpiryState } from "@/lib/utils";
 import NotificationCard from "./dashboard/NotificationCard";
 import type {
   CreateNotification,
@@ -42,28 +35,53 @@ import { sortByTime } from "@saintrelion/time-functions";
 import { toast } from "@saintrelion/notifications";
 import type { User } from "@/models/user";
 import { AlertTriangle, Bell, ChevronDown, Menu } from "lucide-react";
+import { BASE_API } from "@/sr-config";
+
+const getAuthProof = (): Promise<{ type: "jwt"; access: string } | null> => {
+  return new Promise((resolve) => {
+    const request = indexedDB.open("AppCache");
+
+    request.onsuccess = () => {
+      const db = request.result;
+      try {
+        const transaction = db.transaction("kv", "readonly");
+        const store = transaction.objectStore("kv");
+        const getRequest = store.get("auth_proof");
+
+        getRequest.onsuccess = () => {
+          // If the value is a string, parse it. If it's already an object, return it.
+          const data = getRequest.result;
+          if (!data) return resolve(null);
+          resolve(typeof data === "string" ? JSON.parse(data) : data);
+        };
+        getRequest.onerror = () => resolve(null);
+      } catch (e) {
+        console.error(`Store 'kv' not found in AppCache ${e}`);
+        resolve(null);
+      }
+    };
+
+    request.onerror = () => resolve(null);
+  });
+};
 
 const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const user = useCurrentUser<User>();
   const auth = useAuth();
 
-  const [showUpdatePhoto, setShowUpdatePhoto] = useState(false);
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [showDocumentAlert, setShowDocumentAlert] = useState(false);
   const documentAlertSessionKey = `document-alert-shown:${user.id}`;
 
-  const { useList: getInformation, useUpdate: updateInformation } =
-    useResourceLocked<
-      PersonalInformation,
-      CreatePersonalInformation,
-      CreatePersonalInformation
-    >("personalinformation", { showToast: false });
+  const { useList: getInformation } = useResourceLocked<
+    PersonalInformation,
+    CreatePersonalInformation,
+    CreatePersonalInformation
+  >("personalinformation", { showToast: false });
 
   const role = user.roles?.[0] ?? "";
 
@@ -177,11 +195,6 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     updateDocument,
   ]);
 
-  const profilePic = useMemo(
-    () => myInformation?.photo_base64 ?? NO_FACE_IMAGE,
-    [myInformation],
-  );
-
   const unreadNotifications = useMemo(
     () => sortedNotifications.filter((n) => !n.is_read),
     [sortedNotifications],
@@ -264,86 +277,54 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     // setShowComplianceDialog(true);
   };
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5MB");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleUpdatePhoto = async () => {
-    if (!photoPreview || !myInformation) return;
-
-    setIsUpdatingPhoto(true);
-
-    try {
-      await updateInformation.run({
-        id: myInformation.id,
-        payload: { photo_base64: photoPreview },
-      });
-
-      toast.success("Profile photo updated");
-      setShowUpdatePhoto(false);
-      setPhotoPreview("");
-    } catch {
-      toast.error("Failed to update photo");
-    } finally {
-      setIsUpdatingPhoto(false);
-    }
-  };
-
-  const handleUpdatePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("Fill all fields");
-      return;
-    }
-
+  const handleUpdatePassword = async (): Promise<void> => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      toast.error("Password too short");
+      toast.error("New passwords do not match!");
       return;
     }
 
     setIsUpdatingPassword(true);
-
     try {
-      const authInstance = getAuth();
-      const currentUser = authInstance.currentUser;
+      const authData = await getAuthProof();
+      const token = authData?.access;
 
-      if (!currentUser?.email) throw new Error();
+      if (!token) {
+        toast.error("No token");
+        console.log(token);
+        return;
+      }
 
-      const credential = EmailAuthProvider.credential(
-        currentUser.email,
-        currentPassword,
+      const response: Response = await fetch(
+        `${BASE_API}api/accounts/change-password/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Using the token from IndexedDB
+          },
+          body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_password: confirmPassword,
+          }),
+        },
       );
 
-      await reauthenticateWithCredential(currentUser, credential);
-      await updatePassword(currentUser, newPassword);
+      const result = await response.json();
 
-      toast.success("Password updated");
-      setShowUpdatePassword(false);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      if (response.ok) {
+        toast.success("Password updated successfully!");
+        setShowUpdatePassword(false);
+        // Clear fields
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(result.detail || "Failed to update password.");
+      }
     } catch (err) {
       const error = err as Record<string, string>;
-      toast.error(error.message ?? "Update failed");
+      toast.error("A network error occurred. ", error);
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -425,17 +406,9 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
                 aria-label="User menu"
                 className="group flex items-center gap-2 rounded-[4px] px-2 py-1.5 transition-all duration-300 hover:bg-slate-50"
               >
-                {myInformation?.photo_base64 ? (
-                  <img
-                    src={resolveImageSource(profilePic)}
-                    alt="Profile"
-                    className="h-9 w-9 rounded-full object-cover shadow-sm ring-1 shadow-blue-500/20 ring-slate-200"
-                  />
-                ) : (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.28),inset_0_-2px_6px_rgba(15,23,42,0.18),0_8px_20px_rgba(59,130,246,0.2)] shadow-blue-500/20">
-                    {user.username?.charAt(0).toUpperCase() || "A"}
-                  </div>
-                )}
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-blue-500/20">
+                  {user.username?.charAt(0).toUpperCase() || "A"}
+                </div>
 
                 <span className="max-w-[120px] truncate text-sm font-medium text-slate-700 sm:block">
                   {user.username || role}
@@ -453,10 +426,6 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
               align="end"
               className="w-52 rounded-2xl border border-slate-200/70 p-1 shadow-xl shadow-slate-200/60"
             >
-              <DropdownMenuItem onClick={() => setShowUpdatePhoto(true)}>
-                Update Photo
-              </DropdownMenuItem>
-
               <DropdownMenuItem onClick={() => setShowUpdatePassword(true)}>
                 Update Password
               </DropdownMenuItem>
@@ -475,29 +444,6 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
         </div>
       </div>
 
-      {/* PHOTO DIALOG */}
-      <Dialog open={showUpdatePhoto} onOpenChange={setShowUpdatePhoto}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Update Profile Photo</DialogTitle>
-            <DialogDescription>Upload JPG/PNG/GIF (max 5MB)</DialogDescription>
-          </DialogHeader>
-
-          <input type="file" accept="image/*" onChange={handlePhotoSelect} />
-
-          <DialogFooter>
-            <button onClick={() => setShowUpdatePhoto(false)}>Cancel</button>
-
-            <button
-              onClick={handleUpdatePhoto}
-              disabled={!photoPreview || isUpdatingPhoto}
-            >
-              {isUpdatingPhoto ? "Updating..." : "Update"}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* PASSWORD DIALOG */}
       <Dialog open={showUpdatePassword} onOpenChange={setShowUpdatePassword}>
         <DialogContent className="sm:max-w-md">
@@ -505,26 +451,35 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
             <DialogTitle>Update Password</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-2">
+          <div className="space-y-4 py-4">
             <input
               type="password"
+              className="w-full rounded border p-2"
               placeholder="Current password"
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setCurrentPassword(e.target.value)
+              }
             />
 
             <input
               type="password"
+              className="w-full rounded border p-2"
               placeholder="New password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setNewPassword(e.target.value)
+              }
             />
 
             <input
               type="password"
+              className="w-full rounded border p-2"
               placeholder="Confirm password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setConfirmPassword(e.target.value)
+              }
             />
           </div>
 
@@ -534,6 +489,7 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
             <button
               onClick={handleUpdatePassword}
               disabled={isUpdatingPassword}
+              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
             >
               {isUpdatingPassword ? "Updating..." : "Update"}
             </button>
