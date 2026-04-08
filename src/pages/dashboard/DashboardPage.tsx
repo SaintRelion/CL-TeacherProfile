@@ -107,7 +107,7 @@ const DashboardPage = () => {
       }
     >();
 
-    // Initialize map with folders (use folder name); fallback to DOCUMENT_TYPES if no folders
+    // 1. Initialize map with folder names
     if (documentFolders && documentFolders.length > 0) {
       documentFolders.forEach((f) => {
         map.set(f.name, {
@@ -123,10 +123,9 @@ const DashboardPage = () => {
 
     if (activeDocuments && activeDocuments.length > 0) {
       activeDocuments.forEach((doc) => {
-        const folderName =
-          (documentFolders &&
-            documentFolders.find((f) => f.id === doc.folder)?.name) ||
-          "Uncategorized";
+        // FIX: Changed doc.folder to doc.folder_id to match your JSON
+        const folder = documentFolders?.find((f) => f.id === doc.folder_id);
+        const folderName = folder ? folder.name : "Uncategorized";
 
         if (!map.has(folderName)) {
           map.set(folderName, {
@@ -142,8 +141,12 @@ const DashboardPage = () => {
         const state = getExpiryState(doc.expiry_date);
         const bucket = map.get(folderName)!;
 
+        // FIX: Changed doc.user to doc.user_id to match your JSON
+        const userIdStr = String(doc.user_id);
+
         bucket.total++;
-        bucket.submittedTeachers.add(doc.user);
+        bucket.submittedTeachers.add(userIdStr);
+
         const key =
           state === "expired"
             ? "expired"
@@ -152,9 +155,8 @@ const DashboardPage = () => {
               : "valid";
         bucket[key]++;
 
-        // Count teacher as compliant for this folder only when they have at least one VALID document
         if (state === "valid") {
-          bucket.compliantTeachers.add(doc.user);
+          bucket.compliantTeachers.add(userIdStr);
         }
       });
     }
@@ -210,6 +212,8 @@ const DashboardPage = () => {
     (compliancePage - 1) * COMPLIANCE_PAGE_SIZE,
     compliancePage * COMPLIANCE_PAGE_SIZE,
   );
+
+  console.log(paginatedComplianceStatus);
   const complianceStart =
     complianceStatus.length === 0
       ? 0

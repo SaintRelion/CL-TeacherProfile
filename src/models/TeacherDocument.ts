@@ -1,7 +1,7 @@
 export interface TeacherDocument {
   id: string;
-  user: string;
-  folder: string;
+  user_id: string;
+  folder_id: string;
   document_title: string;
   issue_date: string;
   expiry_date: string;
