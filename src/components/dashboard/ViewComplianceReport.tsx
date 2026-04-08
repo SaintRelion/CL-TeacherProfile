@@ -31,7 +31,7 @@ const ViewComplianceReport = ({
     });
 
     documents.forEach((doc) => {
-      const bucket = map.get(doc.user);
+      const bucket = map.get(doc.user_id);
       if (!bucket) return;
 
       const state = getExpiryState(doc.expiry_date);
@@ -68,8 +68,7 @@ const ViewComplianceReport = ({
         <DialogHeader className="text-md truncate border-b border-slate-200 px-4 py-3 font-medium">
           <DialogTitle>{doc.document_title}</DialogTitle>
           <DialogDescription className="mt-1 text-xs text-slate-500">
-            {doc.extension.toUpperCase()} •{" "}
-            {doc.file_size_in_mb} MB
+            {doc.extension.toUpperCase()} • {doc.file_size_in_mb} MB
           </DialogDescription>
         </DialogHeader>
 
@@ -155,7 +154,8 @@ const ViewComplianceReport = ({
                         <div className="min-w-0 flex-1">
                           <p className="font-medium">{doc.document_title}</p>
                           <p className="text-xs text-slate-600">
-                            {doc.extension.toUpperCase()} • Expired on {formatReadableDate(doc.expiry_date)}
+                            {doc.extension.toUpperCase()} • Expired on{" "}
+                            {formatReadableDate(doc.expiry_date)}
                           </p>
                         </div>
                         <div className="shrink-0">
@@ -185,7 +185,8 @@ const ViewComplianceReport = ({
                         <div className="min-w-0 flex-1">
                           <p className="font-medium">{doc.document_title}</p>
                           <p className="text-xs text-slate-600">
-                            {doc.extension.toUpperCase()} • Expires on {formatReadableDate(doc.expiry_date)}
+                            {doc.extension.toUpperCase()} • Expires on{" "}
+                            {formatReadableDate(doc.expiry_date)}
                           </p>
                         </div>
                         <div className="shrink-0">

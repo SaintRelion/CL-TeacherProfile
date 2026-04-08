@@ -96,8 +96,8 @@ const DocumentExplorer = ({
     });
 
     documents.forEach((doc) => {
-      if (!doc.folder) return;
-      const entry = map.get(doc.folder);
+      if (!doc.folder_id) return;
+      const entry = map.get(doc.folder_id);
       if (entry) entry.count += 1;
     });
 
@@ -168,7 +168,7 @@ const DocumentExplorer = ({
   ).length;
   const selectedFolderDocumentCount =
     selectedFolderId && documents
-      ? documents.filter((document) => document.folder === selectedFolderId)
+      ? documents.filter((document) => document.folder_id === selectedFolderId)
           .length
       : totalArchivedDocuments;
 

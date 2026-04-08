@@ -40,7 +40,7 @@ const DEFAULT_OPTIONS: UseDocumentNotificationsOptions = {
 
 export const useDocumentNotifications = (
   userId: string,
-  options: UseDocumentNotificationsOptions = {}
+  options: UseDocumentNotificationsOptions = {},
 ) => {
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
@@ -74,8 +74,9 @@ export const useDocumentNotifications = (
   });
 
   // Fetch teacher personal information (for admin view to show teacher names)
-  const { useList: getPersonalInfo } =
-    useResourceLocked<PersonalInformation>("personalinformation");
+  const { useList: getPersonalInfo } = useResourceLocked<PersonalInformation>(
+    "personalinformation",
+  );
 
   const personalInfoData = getPersonalInfo().data;
 
@@ -98,7 +99,13 @@ export const useDocumentNotifications = (
 
   // Determine notification status and urgency
   const getNotificationDetails = useCallback(
-    (daysRemaining: number): { status: DocumentNotification["status"]; urgency: DocumentNotification["urgency"]; requiredAction: string } => {
+    (
+      daysRemaining: number,
+    ): {
+      status: DocumentNotification["status"];
+      urgency: DocumentNotification["urgency"];
+      requiredAction: string;
+    } => {
       if (daysRemaining < 0) {
         return {
           status: "expired",
@@ -145,7 +152,7 @@ export const useDocumentNotifications = (
         requiredAction: `Expires in ${daysRemaining} day(s).`,
       };
     },
-    [mergedOptions]
+    [mergedOptions],
   );
 
   // Process documents into notifications
@@ -165,7 +172,7 @@ export const useDocumentNotifications = (
 
         // Get teacher info if available (for admin view)
         const teacherInfo = personalInfoData?.find(
-          (info) => info.user === doc.user
+          (info) => info.user === doc.user_id,
         );
 
         return {
@@ -179,7 +186,7 @@ export const useDocumentNotifications = (
             ? `${teacherInfo.first_name} ${teacherInfo.last_name}`.trim()
             : undefined,
           teacherDepartment: teacherInfo?.department,
-          teacherUserId: doc.user,
+          teacherUserId: doc.user_id,
         };
       })
       .filter(Boolean) as DocumentNotification[];
@@ -206,8 +213,7 @@ export const useDocumentNotifications = (
   const sortedNotifications = useMemo(() => {
     const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
     return [...filteredNotifications].sort((a, b) => {
-      const urgencyDiff =
-        urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+      const urgencyDiff = urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
       if (urgencyDiff !== 0) return urgencyDiff;
       return a.daysRemaining - b.daysRemaining;
     });
@@ -220,10 +226,10 @@ export const useDocumentNotifications = (
       expired: processedNotifications.filter((n) => n.status === "expired")
         .length,
       expiring_today: processedNotifications.filter(
-        (n) => n.status === "expiring_today"
+        (n) => n.status === "expiring_today",
       ).length,
       expiring_soon: processedNotifications.filter(
-        (n) => n.status === "expiring_soon"
+        (n) => n.status === "expiring_soon",
       ).length,
       unread: processedNotifications.filter((n) => !n.isRead).length,
     };
@@ -241,22 +247,22 @@ export const useDocumentNotifications = (
         console.error("Failed to mark notification as read", err);
       }
     },
-    [updateNotification]
+    [updateNotification],
   );
 
   // Mark all as read
   const markAllAsRead = useCallback(async () => {
     try {
       const unreadNotifications = (notificationsData.data ?? []).filter(
-        (n) => !n.is_read
+        (n) => !n.is_read,
       );
       await Promise.all(
         unreadNotifications.map((n) =>
           updateNotification.run({
             id: n.id,
             payload: { is_read: true },
-          })
-        )
+          }),
+        ),
       );
     } catch (err) {
       console.error("Failed to mark all as read", err);
@@ -264,8 +270,7 @@ export const useDocumentNotifications = (
   }, [notificationsData.data, updateNotification]);
 
   // Loading state
-  const isLoading =
-    documentsData.isLoading || notificationsData.isLoading;
+  const isLoading = documentsData.isLoading || notificationsData.isLoading;
 
   // Error handling
   useEffect(() => {

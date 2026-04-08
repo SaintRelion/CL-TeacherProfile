@@ -119,7 +119,7 @@ const TeacherDirectoryPage = () => {
         return null;
 
       if (filters.certificationStatus) {
-        const teacherDocs = documents.filter((doc) => doc.user === user.id);
+        const teacherDocs = documents.filter((doc) => doc.user_id === user.id);
         const hasStatus = teacherDocs.some(
           (doc) =>
             getExpiryState(doc.expiry_date) === filters.certificationStatus,

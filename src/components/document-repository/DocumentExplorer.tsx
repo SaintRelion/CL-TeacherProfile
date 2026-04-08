@@ -113,8 +113,8 @@ const DocumentExplorer = ({
 
     const submittedUserIds = new Set(
       documents
-        .filter((doc) => doc.folder === selectedFolderId)
-        .map((doc) => doc.user),
+        .filter((doc) => doc.folder_id === selectedFolderId)
+        .map((doc) => doc.user_id),
     );
 
     return personalInfos
@@ -144,8 +144,8 @@ const DocumentExplorer = ({
     });
 
     documents.forEach((doc) => {
-      if (!doc.folder) return;
-      const entry = map.get(doc.folder);
+      if (!doc.folder_id) return;
+      const entry = map.get(doc.folder_id);
       if (entry) entry.count += 1;
     });
 

@@ -35,7 +35,9 @@ const NonCompliantTeachersReport = () => {
     daysSinceHire: "all",
   });
 
-  const [sortBy, setSortBy] = useState<"name" | "department" | "daysWithoutSubmission">("daysWithoutSubmission");
+  const [sortBy, setSortBy] = useState<
+    "name" | "department" | "daysWithoutSubmission"
+  >("daysWithoutSubmission");
 
   // API Data
   const usersData = getUsers();
@@ -44,14 +46,16 @@ const NonCompliantTeachersReport = () => {
 
   // Loading and error states
   const isLoading =
-    usersData.isLoading || teachersInfoData.isLoading || documentsData.isLoading;
+    usersData.isLoading ||
+    teachersInfoData.isLoading ||
+    documentsData.isLoading;
   const hasError =
     usersData.error || teachersInfoData.error || documentsData.error;
 
   // Get unique departments
   const availableDepartments = useMemo(() => {
     const depts = new Set(
-      (teachersInfoData.data ?? []).map((ti) => ti.department).filter(Boolean)
+      (teachersInfoData.data ?? []).map((ti) => ti.department).filter(Boolean),
     );
     return Array.from(depts).sort();
   }, [teachersInfoData.data]);
@@ -78,7 +82,9 @@ const NonCompliantTeachersReport = () => {
       const info = teachersInfo.find((ti) => ti.user === user.id);
 
       if (info) {
-        const userDocuments = documents.filter((doc) => doc.user === user.id);
+        const userDocuments = documents.filter(
+          (doc) => doc.user_id === user.id,
+        );
 
         // Only include teachers with NO documents (non-compliant)
         if (userDocuments.length === 0) {
@@ -139,10 +145,12 @@ const NonCompliantTeachersReport = () => {
         return teachers.sort((a, b) => a.name.localeCompare(b.name));
       case "department":
         return teachers.sort((a, b) =>
-          a.department.localeCompare(b.department)
+          a.department.localeCompare(b.department),
         );
       case "daysWithoutSubmission":
-        return teachers.sort((a, b) => b.daysWithoutSubmission - a.daysWithoutSubmission);
+        return teachers.sort(
+          (a, b) => b.daysWithoutSubmission - a.daysWithoutSubmission,
+        );
       default:
         return teachers;
     }
@@ -152,22 +160,45 @@ const NonCompliantTeachersReport = () => {
   const stats = {
     total: nonCompliantTeachers.length,
     criticalPriority: nonCompliantTeachers.filter(
-      (t) => t.daysWithoutSubmission >= 90
+      (t) => t.daysWithoutSubmission >= 90,
     ).length,
     highPriority: nonCompliantTeachers.filter(
-      (t) => t.daysWithoutSubmission >= 60 && t.daysWithoutSubmission < 90
+      (t) => t.daysWithoutSubmission >= 60 && t.daysWithoutSubmission < 90,
     ).length,
     mediumPriority: nonCompliantTeachers.filter(
-      (t) => t.daysWithoutSubmission >= 30 && t.daysWithoutSubmission < 60
+      (t) => t.daysWithoutSubmission >= 30 && t.daysWithoutSubmission < 60,
     ).length,
   };
 
   // Get priority level
   const getPriorityLevel = (days: number) => {
-    if (days >= 90) return { label: "Critical", color: "red", bg: "bg-red-50", badge: "bg-red-100 text-red-700" };
-    if (days >= 60) return { label: "High", color: "orange", bg: "bg-orange-50", badge: "bg-orange-100 text-orange-700" };
-    if (days >= 30) return { label: "Medium", color: "yellow", bg: "bg-yellow-50", badge: "bg-yellow-100 text-yellow-700" };
-    return { label: "Low", color: "blue", bg: "bg-blue-50", badge: "bg-blue-100 text-blue-700" };
+    if (days >= 90)
+      return {
+        label: "Critical",
+        color: "red",
+        bg: "bg-red-50",
+        badge: "bg-red-100 text-red-700",
+      };
+    if (days >= 60)
+      return {
+        label: "High",
+        color: "orange",
+        bg: "bg-orange-50",
+        badge: "bg-orange-100 text-orange-700",
+      };
+    if (days >= 30)
+      return {
+        label: "Medium",
+        color: "yellow",
+        bg: "bg-yellow-50",
+        badge: "bg-yellow-100 text-yellow-700",
+      };
+    return {
+      label: "Low",
+      color: "blue",
+      bg: "bg-blue-50",
+      badge: "bg-blue-100 text-blue-700",
+    };
   };
 
   // Format date helper
@@ -190,9 +221,7 @@ const NonCompliantTeachersReport = () => {
               <i className="fas fa-exclamation-circle text-red-600"></i>
             </div>
             <div>
-              <h3 className="font-medium text-red-900">
-                Error Loading Data
-              </h3>
+              <h3 className="font-medium text-red-900">Error Loading Data</h3>
               <p className="mt-1 text-sm text-red-700">
                 Failed to fetch compliance data. Please try refreshing the page.
               </p>
@@ -333,7 +362,8 @@ const NonCompliantTeachersReport = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({
                     ...prev,
-                    daysSinceHire: e.target.value as typeof filters.daysSinceHire,
+                    daysSinceHire: e.target
+                      .value as typeof filters.daysSinceHire,
                   }))
                 }
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
@@ -357,14 +387,18 @@ const NonCompliantTeachersReport = () => {
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
               >
-                <option value="daysWithoutSubmission">Days Without Submission</option>
+                <option value="daysWithoutSubmission">
+                  Days Without Submission
+                </option>
                 <option value="name">Name (A-Z)</option>
                 <option value="department">Department</option>
               </select>
             </div>
 
             {/* Clear Filters */}
-            {(filters.searchQuery || filters.department || filters.daysSinceHire !== "all") && (
+            {(filters.searchQuery ||
+              filters.department ||
+              filters.daysSinceHire !== "all") && (
               <button
                 onClick={() =>
                   setFilters({
@@ -414,7 +448,7 @@ const NonCompliantTeachersReport = () => {
 
       {/* Teachers Table */}
       {!isLoading && sortedTeachers.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -444,7 +478,9 @@ const NonCompliantTeachersReport = () => {
               </thead>
               <tbody>
                 {sortedTeachers.map((teacher) => {
-                  const priority = getPriorityLevel(teacher.daysWithoutSubmission);
+                  const priority = getPriorityLevel(
+                    teacher.daysWithoutSubmission,
+                  );
                   return (
                     <tr
                       key={teacher.userId}
@@ -453,7 +489,9 @@ const NonCompliantTeachersReport = () => {
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
                         <div>
                           <p>{teacher.name}</p>
-                          <p className="text-xs text-gray-500">{teacher.email}</p>
+                          <p className="text-xs text-gray-500">
+                            {teacher.email}
+                          </p>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
@@ -475,7 +513,9 @@ const NonCompliantTeachersReport = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${priority.badge}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${priority.badge}`}
+                        >
                           <i className={`fas fa-circle text-xs`}></i>
                           {priority.label}
                         </span>
@@ -491,7 +531,8 @@ const NonCompliantTeachersReport = () => {
           <div className="border-t border-gray-200 bg-gray-50 px-6 py-3">
             <p className="text-sm text-gray-600">
               Showing <strong>{sortedTeachers.length}</strong> of{" "}
-              <strong>{nonCompliantTeachers.length}</strong> non-compliant teachers
+              <strong>{nonCompliantTeachers.length}</strong> non-compliant
+              teachers
             </p>
           </div>
         </div>

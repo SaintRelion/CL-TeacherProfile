@@ -44,14 +44,16 @@ const TeacherDocumentUploadStatus = () => {
 
   // Loading and error states
   const isLoading =
-    usersData.isLoading || teachersInfoData.isLoading || documentsData.isLoading;
+    usersData.isLoading ||
+    teachersInfoData.isLoading ||
+    documentsData.isLoading;
   const hasError =
     usersData.error || teachersInfoData.error || documentsData.error;
 
   // Get unique departments from teacher data
   const availableDepartments = useMemo(() => {
     const depts = new Set(
-      (teachersInfoData.data ?? []).map((ti) => ti.department).filter(Boolean)
+      (teachersInfoData.data ?? []).map((ti) => ti.department).filter(Boolean),
     );
     return Array.from(depts).sort();
   }, [teachersInfoData.data]);
@@ -69,10 +71,12 @@ const TeacherDocumentUploadStatus = () => {
       const info = teachersInfo.find((ti) => ti.user === user.id);
 
       if (info) {
-        const userDocuments = documents.filter((doc) => doc.user === user.id);
+        const userDocuments = documents.filter(
+          (doc) => doc.user_id === user.id,
+        );
         const sortedDocs = userDocuments.sort(
           (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
 
         teacherMap.set(user.id, {
@@ -82,7 +86,8 @@ const TeacherDocumentUploadStatus = () => {
           email: info.email || "—",
           employeeId: info.employee_id || "—",
           documentCount: userDocuments.length,
-          lastUploadDate: sortedDocs.length > 0 ? sortedDocs[0].created_at : null,
+          lastUploadDate:
+            sortedDocs.length > 0 ? sortedDocs[0].created_at : null,
           hasCompleted: userDocuments.length > 0,
         });
       }
@@ -130,12 +135,16 @@ const TeacherDocumentUploadStatus = () => {
         return teachers.sort((a, b) => a.name.localeCompare(b.name));
       case "department":
         return teachers.sort((a, b) =>
-          a.department.localeCompare(b.department)
+          a.department.localeCompare(b.department),
         );
       case "date":
         return teachers.sort((a, b) => {
-          const dateA = a.lastUploadDate ? new Date(a.lastUploadDate).getTime() : 0;
-          const dateB = b.lastUploadDate ? new Date(b.lastUploadDate).getTime() : 0;
+          const dateA = a.lastUploadDate
+            ? new Date(a.lastUploadDate).getTime()
+            : 0;
+          const dateB = b.lastUploadDate
+            ? new Date(b.lastUploadDate).getTime()
+            : 0;
           return dateB - dateA;
         });
       default:
@@ -157,7 +166,7 @@ const TeacherDocumentUploadStatus = () => {
         ? Math.round(
             (processedTeachers.filter((t) => t.hasCompleted).length /
               processedTeachers.length) *
-              100
+              100,
           )
         : 0,
   };
@@ -182,9 +191,7 @@ const TeacherDocumentUploadStatus = () => {
               <i className="fas fa-exclamation-circle text-red-600"></i>
             </div>
             <div>
-              <h3 className="font-medium text-red-900">
-                Error Loading Data
-              </h3>
+              <h3 className="font-medium text-red-900">Error Loading Data</h3>
               <p className="mt-1 text-sm text-red-700">
                 Failed to fetch teacher and document information. Please try
                 refreshing the page.
@@ -440,7 +447,7 @@ const TeacherDocumentUploadStatus = () => {
             <div className="space-y-6">
               {/* Completed Section */}
               {completedTeachers.length > 0 && (
-                <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
                   <div className="border-b border-gray-200 bg-gradient-to-r from-green-50 to-white px-6 py-4">
                     <h2 className="flex items-center gap-2 font-semibold text-gray-900">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
@@ -504,7 +511,7 @@ const TeacherDocumentUploadStatus = () => {
 
               {/* Pending Section */}
               {pendingTeachers.length > 0 && (
-                <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
                   <div className="border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white px-6 py-4">
                     <h2 className="flex items-center gap-2 font-semibold text-gray-900">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">

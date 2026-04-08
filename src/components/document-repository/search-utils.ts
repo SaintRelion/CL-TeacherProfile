@@ -52,7 +52,9 @@ const normalize = (value?: string | null) => (value ?? "").trim().toLowerCase();
 const parseDateInput = (value: string, endOfDay = false) => {
   if (!value) return null;
 
-  const date = new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}`);
+  const date = new Date(
+    `${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}`,
+  );
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
@@ -98,7 +100,9 @@ const scoreField = (
   return score;
 };
 
-export const buildDepartmentOptions = (personalInfos: PersonalInformation[] = []) =>
+export const buildDepartmentOptions = (
+  personalInfos: PersonalInformation[] = [],
+) =>
   Array.from(
     new Set(
       personalInfos
@@ -121,20 +125,24 @@ export const getSearchSuggestions = ({
   personalInfos?: PersonalInformation[];
   folders?: DocumentFolder[];
 }) => {
-  const folderMap = new Map((folders ?? []).map((folder) => [folder.id, folder.name]));
-  const infoMap = new Map((personalInfos ?? []).map((info) => [info.user, info]));
+  const folderMap = new Map(
+    (folders ?? []).map((folder) => [folder.id, folder.name]),
+  );
+  const infoMap = new Map(
+    (personalInfos ?? []).map((info) => [info.user, info]),
+  );
 
   return Array.from(
     new Set(
       documents.flatMap((doc) => {
-        const info = infoMap.get(doc.user);
+        const info = infoMap.get(doc.user_id);
         return [
           doc.document_title,
           `${doc.document_title}.${doc.extension.toLowerCase()}`,
           doc.extension.toUpperCase(),
           buildAuthorName(info),
           info?.department ?? "",
-          folderMap.get(doc.folder) ?? "",
+          folderMap.get(doc.folder_id) ?? "",
         ].filter(Boolean);
       }),
     ),
@@ -156,7 +164,9 @@ export const filterAndSortDocuments = ({
   personalInfos?: PersonalInformation[];
   documentFolders?: DocumentFolder[];
 }) => {
-  const infoMap = new Map((personalInfos ?? []).map((info) => [info.user, info]));
+  const infoMap = new Map(
+    (personalInfos ?? []).map((info) => [info.user, info]),
+  );
   const folderMap = new Map(
     (documentFolders ?? []).map((folder) => [folder.id, folder.name]),
   );
@@ -171,11 +181,13 @@ export const filterAndSortDocuments = ({
   }, 0);
 
   const filtered = documents.reduce<DocumentSearchResult[]>((results, doc) => {
-    const info = infoMap.get(doc.user);
+    const info = infoMap.get(doc.user_id);
     const authorName = buildAuthorName(info);
     const department = info?.department ?? "";
-    const folderName = folderMap.get(doc.folder) ?? "";
-    const status = doc.is_archived ? "archived" : getExpiryState(doc.expiry_date);
+    const folderName = folderMap.get(doc.folder_id) ?? "";
+    const status = doc.is_archived
+      ? "archived"
+      : getExpiryState(doc.expiry_date);
     const fileSizeMb = Number.parseFloat(doc.file_size_in_mb) || 0;
     const createdAt = toDate(doc.created_at);
     const updatedAt = toDate(doc.updated_at);
@@ -195,14 +207,17 @@ export const filterAndSortDocuments = ({
       .join(" ");
     const matchContext: string[] = [];
 
-    if (selectedFolderId && doc.folder !== selectedFolderId) return results;
+    if (selectedFolderId && doc.folder_id !== selectedFolderId) return results;
 
     if (filters.department) {
       const filterDept = normalize(filters.department).replaceAll("-", " ");
       if (!normalize(department).includes(filterDept)) return results;
     }
 
-    if (filters.fileType && normalize(doc.extension) !== normalize(filters.fileType)) {
+    if (
+      filters.fileType &&
+      normalize(doc.extension) !== normalize(filters.fileType)
+    ) {
       return results;
     }
 
@@ -210,7 +225,10 @@ export const filterAndSortDocuments = ({
       return results;
     }
 
-    if (filters.fileSize && getFileSizeCategory(fileSizeMb) !== filters.fileSize) {
+    if (
+      filters.fileSize &&
+      getFileSizeCategory(fileSizeMb) !== filters.fileSize
+    ) {
       return results;
     }
 
@@ -219,14 +237,20 @@ export const filterAndSortDocuments = ({
     const expiryDateFrom = parseDateInput(filters.expiryDateFrom);
     const expiryDateTo = parseDateInput(filters.expiryDateTo, true);
 
-    if (uploadDateFrom && (!createdAt || createdAt < uploadDateFrom)) return results;
-    if (uploadDateTo && (!createdAt || createdAt > uploadDateTo)) return results;
-    if (expiryDateFrom && (!expiryAt || expiryAt < expiryDateFrom)) return results;
+    if (uploadDateFrom && (!createdAt || createdAt < uploadDateFrom))
+      return results;
+    if (uploadDateTo && (!createdAt || createdAt > uploadDateTo))
+      return results;
+    if (expiryDateFrom && (!expiryAt || expiryAt < expiryDateFrom))
+      return results;
     if (expiryDateTo && (!expiryAt || expiryAt > expiryDateTo)) return results;
 
     switch (filters.quickTag) {
       case "recent":
-        if (!createdAt || createdAt.getTime() < latestCreated - 1000 * 60 * 60 * 24 * 7) {
+        if (
+          !createdAt ||
+          createdAt.getTime() < latestCreated - 1000 * 60 * 60 * 24 * 7
+        ) {
           return results;
         }
         break;
@@ -238,7 +262,12 @@ export const filterAndSortDocuments = ({
         break;
       case "none":
         if (searchTerms.length > 0) break;
-        if (filters.department || filters.fileType || filters.status || filters.fileSize) {
+        if (
+          filters.department ||
+          filters.fileType ||
+          filters.status ||
+          filters.fileSize
+        ) {
           break;
         }
         break;
@@ -246,13 +275,37 @@ export const filterAndSortDocuments = ({
 
     let score = 0;
     if (searchTerms.length > 0) {
-      score += scoreField(doc.document_title, searchTerms, 12, "Title", matchContext);
+      score += scoreField(
+        doc.document_title,
+        searchTerms,
+        12,
+        "Title",
+        matchContext,
+      );
       score += scoreField(filename, searchTerms, 10, "Filename", matchContext);
       score += scoreField(authorName, searchTerms, 9, "Author", matchContext);
-      score += scoreField(department, searchTerms, 8, "Department", matchContext);
+      score += scoreField(
+        department,
+        searchTerms,
+        8,
+        "Department",
+        matchContext,
+      );
       score += scoreField(folderName, searchTerms, 7, "Folder", matchContext);
-      score += scoreField(doc.extension.toUpperCase(), searchTerms, 6, "File Type", matchContext);
-      score += scoreField(contentProxy, searchTerms, 4, "Content", matchContext);
+      score += scoreField(
+        doc.extension.toUpperCase(),
+        searchTerms,
+        6,
+        "File Type",
+        matchContext,
+      );
+      score += scoreField(
+        contentProxy,
+        searchTerms,
+        4,
+        "Content",
+        matchContext,
+      );
 
       if (score === 0) return results;
     } else {
@@ -298,8 +351,10 @@ export const filterAndSortDocuments = ({
       case "size_desc":
         return b.fileSizeMb - a.fileSizeMb;
       case "expiry_asc":
-        return (a.expiryAt?.getTime() ?? Number.MAX_SAFE_INTEGER) -
-          (b.expiryAt?.getTime() ?? Number.MAX_SAFE_INTEGER);
+        return (
+          (a.expiryAt?.getTime() ?? Number.MAX_SAFE_INTEGER) -
+          (b.expiryAt?.getTime() ?? Number.MAX_SAFE_INTEGER)
+        );
       case "expiry_desc":
         return (b.expiryAt?.getTime() ?? 0) - (a.expiryAt?.getTime() ?? 0);
       case "relevance":
@@ -317,7 +372,11 @@ function formatDateForSearch(date: Date | null) {
   if (!date) return "";
 
   return [
-    date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
     date.toISOString().slice(0, 10),
   ].join(" ");
 }
