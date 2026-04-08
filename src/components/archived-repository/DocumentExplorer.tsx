@@ -222,49 +222,38 @@ const DocumentExplorer = ({
 
       <div className="overflow-hidden rounded-3xl border border-slate-200/60 bg-white/80 shadow-[0_24px_80px_-42px_rgba(15,23,42,0.35)] backdrop-blur-sm">
         <div className="border-b border-slate-200/70 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium tracking-[0.24em] text-slate-200 uppercase">
-                <ArchiveRestore className="h-3.5 w-3.5" />
-                Archive Control Center
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {/* Total Archived Files */}
+            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
+              <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
+                <FileStack className="h-4 w-4 text-blue-400" />
+                Archived Files
               </div>
-              <h2 className="text-2xl font-semibold tracking-tight">
-                Keep archived records organized and easy to restore
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-300">
-                Search archived files by metadata, folder, owner, or date range,
-                then restore records back into the live repository when needed.
+              <p className="mt-3 text-3xl font-bold tracking-tight text-white">
+                {totalArchivedDocuments.toLocaleString()}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <div className="flex items-center gap-2 text-xs tracking-[0.18em] text-slate-300 uppercase">
-                  <FileStack className="h-3.5 w-3.5" />
-                  Archived Files
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-white">
-                  {totalArchivedDocuments}
-                </p>
+            {/* Active Folders */}
+            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
+              <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
+                <FolderArchive className="h-4 w-4 text-emerald-400" />
+                Active Folders
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <div className="flex items-center gap-2 text-xs tracking-[0.18em] text-slate-300 uppercase">
-                  <FolderArchive className="h-3.5 w-3.5" />
-                  Active Folders
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-white">
-                  {archivedFoldersCount}
-                </p>
+              <p className="mt-3 text-3xl font-bold tracking-tight text-white">
+                {archivedFoldersCount.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Current Scope */}
+            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
+              <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
+                <ArchiveRestore className="h-4 w-4 text-amber-400" />
+                Current Scope
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <div className="flex items-center gap-2 text-xs tracking-[0.18em] text-slate-300 uppercase">
-                  <ArchiveRestore className="h-3.5 w-3.5" />
-                  Current Scope
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-white">
-                  {selectedFolderDocumentCount}
-                </p>
-              </div>
+              <p className="mt-3 text-3xl font-bold tracking-tight text-white">
+                {selectedFolderDocumentCount.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>

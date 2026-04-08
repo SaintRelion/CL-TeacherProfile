@@ -19,10 +19,10 @@ const SectionHeader = ({
       <i className={`${icon} text-blue-600`}></i>
     </div>
     <div>
-      <h4 className="text-gray-900 text-lg font-semibold print:text-base">
+      <h4 className="text-lg font-semibold text-gray-900 print:text-base">
         {title}
       </h4>
-      {subtitle && <p className="text-gray-400 text-xs">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
     </div>
   </div>
 );
@@ -35,11 +35,9 @@ const FieldLabel = ({
   isEditable?: boolean;
 }) => (
   <div className="mb-2 flex items-center gap-2">
-    <span className="text-gray-700 block text-sm font-medium">
-      {label}
-    </span>
+    <span className="block text-sm font-medium text-gray-700">{label}</span>
     {isEditable && (
-      <span className="text-gray-300 text-xs print:hidden">
+      <span className="text-xs text-gray-300 print:hidden">
         <i className="fas fa-pencil-alt text-[10px]"></i>
       </span>
     )}
@@ -564,7 +562,7 @@ const PersonalInformationForm = ({
           />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print:gap-2">
             <div>
-              <FieldLabel label="Employee ID" />
+              <FieldLabel label="Employee No." />
               <RenderFormField
                 field={{
                   label: "",
@@ -681,12 +679,6 @@ const PersonalInformationForm = ({
             </div>
           </div>
         </div>
-        
-
-
-
-
-        
       </div>
     </div>
   );

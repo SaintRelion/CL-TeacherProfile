@@ -101,7 +101,7 @@ const BasicInformationCard = ({
 
             {/* Quick Info Cards */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
-              {/* Employee ID */}
+              {/* Employee No. */}
               <div className="group rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 transition-all duration-200 hover:from-blue-50 hover:to-blue-100/50 print:border print:border-slate-200 print:bg-transparent print:p-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm transition-colors group-hover:bg-blue-100 print:hidden">
@@ -109,7 +109,7 @@ const BasicInformationCard = ({
                   </div>
                   <div>
                     <p className="text-xs font-medium tracking-wider text-slate-400 uppercase print:text-slate-600">
-                      Employee ID
+                      Employee No.
                     </p>
                     <p className="text-secondary-900 text-base font-semibold print:text-sm">
                       {myInformation?.employee_id || "—"}
