@@ -74,13 +74,6 @@ const LandingPage = () => {
             <br />
             Teacher Profiling System
           </h2>
-
-          <button
-            onClick={() => setShowLoginModal(true)}
-            className="bg-yellow-400 px-7 py-3 text-sm font-black tracking-widest text-[#0d1b4b] uppercase transition-colors duration-200 hover:bg-yellow-300"
-          >
-            Read More
-          </button>
         </div>
 
         {/* Right — image */}
@@ -97,10 +90,7 @@ const LandingPage = () => {
       </section>
 
       {/* ══ FOOTER ═══════════════════════════════════════════════════════ */}
-      <footer className="bg-[#080e2e] px-6 py-5 text-center text-xs text-gray-400">
-        © {new Date().getFullYear()} TeacherPro · Teacher Profiling System ·
-        Built for Philippine Schools
-      </footer>
+      <footer className="bg-[#080e2e] px-6 py-5 text-center text-xs text-gray-400"></footer>
 
       {/* ══ LOGIN MODAL ══════════════════════════════════════════════════ */}
       <LoginModal

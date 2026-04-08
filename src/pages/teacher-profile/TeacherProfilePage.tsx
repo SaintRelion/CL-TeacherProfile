@@ -160,9 +160,6 @@ const TeacherProfilePage = () => {
                   <h2 className="text-secondary-900 text-2xl font-bold tracking-tight md:text-3xl">
                     Teacher Profile Management
                   </h2>
-                  <p className="text-secondary-500 mt-0.5 text-sm md:text-base">
-                    Manage comprehensive teacher profiles and documentation
-                  </p>
                 </div>
               </div>
             </div>
@@ -224,7 +221,7 @@ const TeacherProfilePage = () => {
                         <div className="rounded-xl bg-blue-50 p-4 text-center">
                           <i className="fas fa-id-badge mb-2 text-2xl text-blue-500"></i>
                           <p className="text-xs font-medium text-blue-600 uppercase">
-                            Employee ID
+                            Employee No.
                           </p>
                           <p className="font-bold text-slate-900">
                             {myInformation?.employee_id || "—"}
