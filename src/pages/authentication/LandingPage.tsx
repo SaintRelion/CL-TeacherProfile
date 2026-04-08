@@ -69,11 +69,7 @@ const LandingPage = () => {
       <section className="mx-auto grid max-w-7xl items-center gap-16 px-8 py-20 md:grid-cols-2 md:px-16">
         {/* Left — text */}
         <div>
-          <h2 className="mb-6 text-3xl leading-tight font-black text-[#0d1b4b] md:text-4xl">
-            Welcome to Our
-            <br />
-            Teacher Profiling System
-          </h2>
+         
         </div>
 
         {/* Right — image */}
