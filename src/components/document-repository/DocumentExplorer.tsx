@@ -509,31 +509,41 @@ const DocumentExplorer = ({
                   }}
                   className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 >
-                  {paginatedResults.map((result) => (
-                    <motion.div
-                      key={result.doc.id}
-                      layout
-                      variants={{
-                        hidden: { opacity: 0, y: 20 },
-                        show: { opacity: 1, y: 0 },
-                      }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                      <FileCard
-                        doc={result.doc}
-                        highlightTerms={result.searchTerms}
-                        matchContext={result.matchContext}
-                        onArchive={() => {
-                          if (!updateDocument.isLocked) {
-                            updateDocument.run({
-                              id: result.doc.id,
-                              payload: { is_archived: true },
-                            });
-                          }
+                  {paginatedResults.map((result) => {
+                    const owner = personalInfos?.find(
+                      (p) => p.id === result.doc.user_id,
+                    );
+                    const ownerName = owner
+                      ? `${owner.first_name} ${owner.last_name}`
+                      : "Unknown User";
+
+                    return (
+                      <motion.div
+                        key={result.doc.id}
+                        layout
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          show: { opacity: 1, y: 0 },
                         }}
-                      />
-                    </motion.div>
-                  ))}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <FileCard
+                          doc={result.doc}
+                          ownerName={ownerName}
+                          highlightTerms={result.searchTerms}
+                          matchContext={result.matchContext}
+                          onArchive={() => {
+                            if (!updateDocument.isLocked) {
+                              updateDocument.run({
+                                id: result.doc.id,
+                                payload: { is_archived: true },
+                              });
+                            }
+                          }}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               </AnimatePresence>
 

@@ -114,12 +114,14 @@ const getDocumentStatusClassName = (expiry: string) => {
 
 const FileCard = ({
   doc,
+  ownerName,
   onArchive,
   onRestore,
   highlightTerms = [],
   matchContext = [],
 }: {
   doc: TeacherDocument;
+  ownerName: string;
   onArchive?: () => void;
   onRestore?: () => void;
   highlightTerms?: string[];
@@ -320,8 +322,16 @@ const FileCard = ({
           </div>
         </div>
 
+        {/* Info Section */}
+        <div className="flex flex-col gap-1 italic">
+          <p className="text-xs text-slate-500">
+            Owned by:{" "}
+            <span className="font-medium text-slate-500">{ownerName}</span>
+          </p>
+        </div>
+
         <div className="min-w-0">
-          <h4 className="mb-1 truncate text-sm font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+          <h4 className="text-md mb-1 truncate font-bold text-slate-900 transition-colors group-hover:text-blue-600">
             {highlightText(doc.document_title, highlightTerms)}
           </h4>
           <p className="mb-3 text-xs font-medium text-slate-400">
