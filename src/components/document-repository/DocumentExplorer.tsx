@@ -17,6 +17,7 @@ import { formatReadableDate } from "@saintrelion/time-functions";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
+  CheckCircle2,
   ChevronRight,
   FileSearch,
   FolderPlus,
@@ -130,31 +131,53 @@ const DocumentExplorer = ({
   const foldersWithDocs = useMemo(() => {
     const map = new Map<
       string,
-      { folder: string; folder_name: string; count: number }
+      {
+        folder: string;
+        folder_name: string;
+        count: number;
+        submittedUserIds: Set<string>;
+      }
     >();
 
-    if (!documentFolders || !documents) return [];
+    if (!documentFolders || !documents || !personalInfos) return [];
+
+    const totalTeachersCount: number = personalInfos.length;
 
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
         folder: folder.id,
         folder_name: formatFolderName(folder.name),
         count: 0,
+        submittedUserIds: new Set(),
       });
     });
 
     documents.forEach((doc) => {
       if (!doc.folder_id) return;
       const entry = map.get(doc.folder_id);
-      if (entry) entry.count += 1;
+      if (entry) {
+        entry.count += 1;
+        if (doc.user_id) {
+          entry.submittedUserIds.add(doc.user_id);
+        }
+      }
     });
 
-    return Array.from(map.values()).map((folder) => ({
-      folder_name: folder.folder_name,
-      files_count: String(folder.count),
-      folder: folder.folder,
-    }));
-  }, [documentFolders, documents]);
+    return Array.from(map.values()).map((folder) => {
+      const submittedCount: number = folder.submittedUserIds.size;
+      const notPassedCount: number = totalTeachersCount - submittedCount;
+
+      return {
+        folder: folder.folder,
+        folder_name: folder.folder_name,
+        files_count: String(folder.count),
+        // The logic you requested
+        notPassed: notPassedCount,
+        total: totalTeachersCount,
+        isClean: notPassedCount === 0, // Everyone has passed
+      };
+    });
+  }, [documentFolders, documents, personalInfos]);
 
   const folderName =
     foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
@@ -391,18 +414,42 @@ const DocumentExplorer = ({
                 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
               >
-                <FolderCard
-                  userRole={role}
-                  folderInfo={value}
-                  selectedFolderId={selectedFolderId}
-                  onFolderClicked={(folderValue) =>
-                    setSelectedFolderId((current) =>
-                      current === folderValue ? "" : folderValue,
-                    )
-                  }
-                  onRenameFolder={(folderId) => setFolderIdToRename(folderId)}
-                  onDeleteFolder={handleDeleteFolder}
-                />
+                <div className="relative">
+                  <FolderCard
+                    userRole={role}
+                    folderInfo={value}
+                    selectedFolderId={selectedFolderId}
+                    onFolderClicked={(folderValue) =>
+                      setSelectedFolderId((current) =>
+                        current === folderValue ? "" : folderValue,
+                      )
+                    }
+                    onRenameFolder={(folderId) => setFolderIdToRename(folderId)}
+                    onDeleteFolder={handleDeleteFolder}
+                  />
+
+                  {/*  foldersWithDocs.map */}
+                  <div className="absolute top-3 right-3">
+                    <div
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-black shadow-sm transition-all ${
+                        value.isClean
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-rose-100 bg-rose-50 text-rose-700"
+                      }`}
+                    >
+                      {value.isClean ? (
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      ) : (
+                        <AlertCircle className="h-3 w-3 animate-pulse text-rose-500" />
+                      )}
+                      <span>
+                        {value.isClean
+                          ? "ALL TEACHERS PASSED"
+                          : `${value.notPassed} OUT OF ${value.total} NOT PASSED`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -597,52 +644,68 @@ const DocumentExplorer = ({
             </>
           )}
 
-          {selectedFolderId !== "" && nonSubmittingTeachers.length > 0 && (
-            <div className="mt-8 border-t border-slate-200/70 pt-8">
-              <div className="mb-4 flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-slate-900">
-                  Teachers Not Yet Submitted
-                </h3>
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
-                  {nonSubmittingTeachers.length}
-                </span>
-              </div>
-              <p className="mb-4 text-sm text-slate-500">
-                The following teachers have not submitted documents to this
-                folder.
-              </p>
+          {selectedFolderId !== "" &&
+            personalInfos &&
+            nonSubmittingTeachers.length > 0 && (
+              <div className="mt-8 border-t border-slate-200/70 pt-8">
+                <div className="mb-6">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold tracking-tight text-slate-900">
+                      Outstanding Requirements
+                    </h3>
+                    <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
+                      Action Required
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {nonSubmittingTeachers.map((teacher) => (
-                  <div
-                    key={teacher.userId}
-                    className="flex items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/70 p-4 transition-all hover:shadow-lg hover:shadow-amber-500/10"
-                  >
-                    <div className="shrink-0 overflow-hidden rounded-full border-2 border-amber-200">
-                      <img
-                        src={teacher.photo}
-                        alt={teacher.name}
-                        className="h-12 w-12 object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-slate-900">
-                        {teacher.name}
-                      </p>
-                      <p className="truncate text-xs text-slate-500">
-                        {teacher.department || "No Department"}
-                      </p>
-                    </div>
-                    <div className="shrink-0">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-200">
-                        <AlertCircle className="h-4 w-4 text-amber-700" />
+                  <p className="mt-1 text-sm text-slate-500">
+                    Currently,{" "}
+                    <span className="font-bold text-rose-600">
+                      {nonSubmittingTeachers.length}
+                    </span>{" "}
+                    not yet passed out of{" "}
+                    <span className="font-bold text-slate-700">
+                      {personalInfos.length}
+                    </span>{" "}
+                    teachers for the{" "}
+                    <span className="font-medium italic">
+                      {folderName || "selected folder"}
+                    </span>
+                    .
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {nonSubmittingTeachers.map((teacher) => (
+                    <div
+                      key={teacher.userId}
+                      className="flex items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/70 p-4 transition-all hover:shadow-lg hover:shadow-amber-500/10"
+                    >
+                      <div className="shrink-0 overflow-hidden rounded-full border-2 border-amber-200">
+                        <img
+                          src={teacher.photo}
+                          alt={teacher.name}
+                          className="h-12 w-12 object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-slate-900">
+                          {teacher.name}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {teacher.department || "No Department"}
+                        </p>
+                      </div>
+                      <div className="shrink-0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-200">
+                          <AlertCircle className="h-4 w-4 text-amber-700" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </>
