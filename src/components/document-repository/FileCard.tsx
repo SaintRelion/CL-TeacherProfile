@@ -127,6 +127,8 @@ const FileCard = ({
   highlightTerms?: string[];
   matchContext?: string[];
 }) => {
+  const isMissingOwner: boolean = ownerName.toLowerCase() === "none";
+
   const { Icon, wrapperClassName, iconClassName } = getDocumentIcon(
     doc.extension,
   );
@@ -323,10 +325,32 @@ const FileCard = ({
         </div>
 
         {/* Info Section */}
-        <div className="flex flex-col gap-1 italic">
-          <p className="text-xs text-slate-500">
-            Owned by:{" "}
-            <span className="font-medium text-slate-500">{ownerName}</span>
+        <div
+          className={`mb-2 flex flex-col gap-1 rounded-lg px-2 py-1 transition-colors ${
+            isMissingOwner
+              ? "border border-dashed border-orange-200 bg-orange-50/50"
+              : ""
+          }`}
+        >
+          <p
+            className={`text-[11px] italic ${isMissingOwner ? "text-orange-600" : "text-slate-500"}`}
+          >
+            {isMissingOwner ? (
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
+                </span>
+                Teacher account: Waiting for name update
+              </span>
+            ) : (
+              <>
+                Owned by:{" "}
+                <span className="font-semibold text-slate-600">
+                  {ownerName}
+                </span>
+              </>
+            )}
           </p>
         </div>
 

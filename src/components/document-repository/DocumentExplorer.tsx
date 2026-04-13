@@ -511,11 +511,11 @@ const DocumentExplorer = ({
                 >
                   {paginatedResults.map((result) => {
                     const owner = personalInfos?.find(
-                      (p) => p.id === result.doc.user_id,
+                      (p) => p.user === result.doc.user_id,
                     );
                     const ownerName = owner
                       ? `${owner.first_name} ${owner.last_name}`
-                      : "Unknown User";
+                      : "none";
 
                     return (
                       <motion.div
