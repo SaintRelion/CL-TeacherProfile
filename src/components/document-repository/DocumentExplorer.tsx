@@ -37,6 +37,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { NO_FACE_IMAGE } from "@/constants";
 
 const PAGE_SIZE = 8;
 
@@ -67,12 +68,11 @@ const DocumentExplorer = ({
     showToast: false,
   });
 
-  const teachers =
-    getUsers({
-      filters: {
-        groups: 2,
-      },
-    }).data ?? [];
+  const teachers = getUsers({
+    filters: {
+      groups: 2,
+    },
+  }).data;
 
   const {
     useList: getFolders,
@@ -112,15 +112,32 @@ const DocumentExplorer = ({
   }, [search, filters, selectedFolderId]);
 
   const nonSubmittingTeachers = useMemo(() => {
-    if (!selectedFolderId || !documents || !personalInfos) return [];
+    if (!selectedFolderId || !documents || !personalInfos || !teachers)
+      return [];
 
-    const submittedUserIds = new Set(
+    // 1. Get IDs of everyone who DID submit
+    const submittedUserIds: Set<string> = new Set(
       documents
         .filter((doc) => doc.folder_id === selectedFolderId)
         .map((doc) => doc.user_id),
     );
 
-    return teachers.filter((teacher) => !submittedUserIds.has(teacher.userId));
+    // 2. Filter teachers who haven't submitted, then attach their personal info
+    return teachers
+      .filter((t) => !submittedUserIds.has(t.id))
+      .map((t) => {
+        const info = personalInfos.find((p) => p.user === t.id);
+
+        return {
+          userId: t.id,
+          // Use the found info, or a fallback if the profile doesn't exist yet
+          name: info
+            ? `${info.first_name} ${info.middle_name ? info.middle_name + " " : ""}${info.last_name}`.trim()
+            : "Unknown Teacher",
+          photo: info?.photo_base64 || NO_FACE_IMAGE,
+          department: info?.department || "No Department Linked",
+        };
+      });
   }, [selectedFolderId, documents, personalInfos, teachers]);
 
   const foldersWithDocs = useMemo(() => {
@@ -158,7 +175,7 @@ const DocumentExplorer = ({
 
     return Array.from(map.values()).map((folder) => {
       const submittedCount: number = folder.submittedUserIds.size;
-      const notPassedCount: number = teachers.length - submittedCount;
+      const notPassedCount: number = teachers?.length ?? 0 - submittedCount;
 
       return {
         folder: folder.folder,
@@ -166,11 +183,11 @@ const DocumentExplorer = ({
         files_count: String(folder.count),
         // The logic you requestedx`
         notPassed: notPassedCount,
-        total: teachers.length,
+        total: teachers?.length ?? 0,
         isClean: notPassedCount === 0, // Everyone has passed
       };
     });
-  }, [teachers.length, documentFolders, documents, personalInfos]);
+  }, [teachers, documentFolders, documents, personalInfos]);
 
   const folderName =
     foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
@@ -646,7 +663,7 @@ const DocumentExplorer = ({
                     </span>{" "}
                     not yet passed out of{" "}
                     <span className="font-bold text-slate-700">
-                      {teachers.length}
+                      {teachers?.length ?? 0}
                     </span>{" "}
                     teachers for the{" "}
                     <span className="font-medium italic">
