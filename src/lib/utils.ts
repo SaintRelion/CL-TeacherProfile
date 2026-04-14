@@ -1,9 +1,35 @@
+import type { PersonalInformation } from "@/models/PersonalInformation";
+import type { User } from "@/models/user";
 import { getCurrentDateTimeString, toDate } from "@saintrelion/time-functions";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function createFallbackTeacher(user: User): PersonalInformation {
+  return {
+    id: "",
+    user: user.id,
+    employee_id: "",
+    photo_base64: "",
+    first_name: user.username ?? "",
+    last_name: "",
+    middle_name: "",
+    date_of_birth: "",
+    gender: "",
+    civil_status: "",
+    email: "",
+    mobile_number: "",
+    home_address: "",
+    position: "",
+    department: "",
+    employment_status: "",
+    date_hired: "",
+    salary_grade: "",
+    tin: "",
+  };
 }
 
 export function getYearsOfService(startDate: string) {

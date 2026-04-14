@@ -19,9 +19,7 @@ import type { User } from "@/models/user";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArchiveRestore,
   ChevronRight,
-  FileSearch,
   FileStack,
   FolderArchive,
   Home,
@@ -166,11 +164,6 @@ const DocumentExplorer = ({
   const archivedFoldersCount = foldersWithDocs.filter(
     (folder) => Number(folder.files_count) > 0,
   ).length;
-  const selectedFolderDocumentCount =
-    selectedFolderId && documents
-      ? documents.filter((document) => document.folder_id === selectedFolderId)
-          .length
-      : totalArchivedDocuments;
 
   const handleFilterChange = (filterType: string, value: string) => {
     if (filterType === "reset") {
@@ -244,17 +237,6 @@ const DocumentExplorer = ({
                 {archivedFoldersCount.toLocaleString()}
               </p>
             </div>
-
-            {/* Current Scope */}
-            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
-              <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
-                <ArchiveRestore className="h-4 w-4 text-amber-400" />
-                Current Scope
-              </div>
-              <p className="mt-3 text-3xl font-bold tracking-tight text-white">
-                {selectedFolderDocumentCount.toLocaleString()}
-              </p>
-            </div>
           </div>
         </div>
 
@@ -316,11 +298,6 @@ const DocumentExplorer = ({
                 {searchResults.length === 1 ? "" : "s"} ready for review or
                 restoration.
               </p>
-            </div>
-
-            <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              <FileSearch className="h-4 w-4 text-blue-600" />
-              Live search, metadata filtering, and safe restore actions
             </div>
           </div>
 

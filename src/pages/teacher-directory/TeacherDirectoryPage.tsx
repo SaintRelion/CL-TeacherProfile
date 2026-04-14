@@ -11,7 +11,11 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { NO_FACE_IMAGE } from "@/constants";
-import { getYearsOfService, getExpiryState } from "@/lib/utils";
+import {
+  getYearsOfService,
+  getExpiryState,
+  createFallbackTeacher,
+} from "@/lib/utils";
 import type { TeacherPerformance } from "@/models/TeacherPerformance";
 import { type PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
@@ -19,30 +23,6 @@ import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useState, useEffect } from "react";
 import { toast } from "@saintrelion/notifications";
-
-function createFallbackTeacher(user: User): PersonalInformation {
-  return {
-    id: "",
-    user: user.id,
-    employee_id: "",
-    photo_base64: "",
-    first_name: user.username ?? "",
-    last_name: "",
-    middle_name: "",
-    date_of_birth: "",
-    gender: "",
-    civil_status: "",
-    email: "",
-    mobile_number: "",
-    home_address: "",
-    position: "",
-    department: "",
-    employment_status: "",
-    date_hired: "",
-    salary_grade: "",
-    tin: "",
-  };
-}
 
 const TeacherDirectoryPage = () => {
   const { useList: getUsers, useDelete: deleteUser } = useResourceLocked<User>(

@@ -19,10 +19,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ChevronRight,
-  FileSearch,
   FolderPlus,
   Home,
-  Layers3,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -46,6 +44,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import type { TeacherPerformance } from "@/models/TeacherPerformance";
+import { createFallbackTeacher } from "@/lib/utils";
 
 const PAGE_SIZE = 8;
 
@@ -71,6 +71,15 @@ const DocumentExplorer = ({
       setSelectedFolderId(initialFolder);
     }
   }, [initialFolder]);
+
+  const { useList: getUsers } = useResourceLocked<User>("user", {
+    showToast: false,
+  });
+  const { useList: getTeacherPerformance } =
+    useResourceLocked<TeacherPerformance>("teacherperformance");
+
+  const users = getUsers().data ?? [];
+  const teacherPerformances = getTeacherPerformance().data ?? [];
 
   const {
     useList: getFolders,
@@ -105,6 +114,31 @@ const DocumentExplorer = ({
           },
   }).data;
 
+  const activeTeachers = useMemo(() => {
+    if (!users || !personalInfos || !teacherPerformances) return [];
+
+    return users
+      .map((user) => {
+        // 1. Check for performance record first (The Gatekeeper)
+        const performance = teacherPerformances.find((p) => p.user === user.id);
+        if (!performance) return null;
+
+        // 2. Find personal info or fallback
+        const info =
+          personalInfos.find((ti) => ti.user === user.id) ??
+          createFallbackTeacher(user);
+
+        return {
+          userId: user.id,
+          name: `${info.first_name} ${info.middle_name} ${info.last_name}`.trim(),
+          photo: info.photo_base64 || NO_FACE_IMAGE,
+          department: info.department,
+          rating: performance.rating, // Keep the rating if you need it later
+        };
+      })
+      .filter((t): t is NonNullable<typeof t> => t !== null);
+  }, [users, personalInfos, teacherPerformances]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filters, selectedFolderId]);
@@ -118,15 +152,10 @@ const DocumentExplorer = ({
         .map((doc) => doc.user_id),
     );
 
-    return personalInfos
-      .map((info) => ({
-        userId: info.user,
-        name: `${info.first_name} ${info.middle_name} ${info.last_name}`.trim(),
-        photo: info.photo_base64 || NO_FACE_IMAGE,
-        department: info.department,
-      }))
-      .filter((teacher) => !submittedUserIds.has(teacher.userId));
-  }, [selectedFolderId, personalInfos, documents]);
+    return activeTeachers.filter(
+      (teacher) => !submittedUserIds.has(teacher.userId),
+    );
+  }, [selectedFolderId, documents, personalInfos, activeTeachers]);
 
   const foldersWithDocs = useMemo(() => {
     const map = new Map<
@@ -140,8 +169,6 @@ const DocumentExplorer = ({
     >();
 
     if (!documentFolders || !documents || !personalInfos) return [];
-
-    const totalTeachersCount: number = personalInfos.length;
 
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
@@ -165,19 +192,19 @@ const DocumentExplorer = ({
 
     return Array.from(map.values()).map((folder) => {
       const submittedCount: number = folder.submittedUserIds.size;
-      const notPassedCount: number = totalTeachersCount - submittedCount;
+      const notPassedCount: number = activeTeachers.length - submittedCount;
 
       return {
         folder: folder.folder,
         folder_name: folder.folder_name,
         files_count: String(folder.count),
-        // The logic you requested
+        // The logic you requestedx`
         notPassed: notPassedCount,
-        total: totalTeachersCount,
+        total: activeTeachers.length,
         isClean: notPassedCount === 0, // Everyone has passed
       };
     });
-  }, [documentFolders, documents, personalInfos]);
+  }, [activeTeachers.length, documentFolders, documents, personalInfos]);
 
   const folderName =
     foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
@@ -505,18 +532,6 @@ const DocumentExplorer = ({
                 {formatReadableDate(new Date().toISOString())}
               </p>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <FileSearch className="h-4 w-4 text-blue-600" />
-                Dynamic search and metadata filtering
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <Layers3 className="h-4 w-4 text-blue-600" />
-                Access scoped to{" "}
-                {role === "admin" ? "admin visibility" : "your documents"}
-              </div>
-            </div>
           </div>
 
           {searchResults.length === 0 ? (
@@ -665,7 +680,7 @@ const DocumentExplorer = ({
                     </span>{" "}
                     not yet passed out of{" "}
                     <span className="font-bold text-slate-700">
-                      {personalInfos.length}
+                      {activeTeachers.length}
                     </span>{" "}
                     teachers for the{" "}
                     <span className="font-medium italic">
