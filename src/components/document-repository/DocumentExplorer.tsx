@@ -8,20 +8,13 @@ import {
   getSearchSuggestions,
   type DocumentRepositoryFilters,
 } from "@/components/document-repository/search-utils";
-import { NO_FACE_IMAGE } from "@/constants";
 import formatFolderName from "@/hooks/useFolderNameFormat";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { RenderFormButton, RenderFormField } from "@saintrelion/forms";
 import { toast } from "@saintrelion/notifications";
 import { formatReadableDate } from "@saintrelion/time-functions";
 import { useEffect, useMemo, useState } from "react";
-import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronRight,
-  FolderPlus,
-  Home,
-} from "lucide-react";
+import { AlertCircle, ChevronRight, FolderPlus, Home } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import type {
@@ -44,8 +37,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import type { TeacherPerformance } from "@/models/TeacherPerformance";
-import { createFallbackTeacher } from "@/lib/utils";
 
 const PAGE_SIZE = 8;
 
@@ -75,11 +66,13 @@ const DocumentExplorer = ({
   const { useList: getUsers } = useResourceLocked<User>("user", {
     showToast: false,
   });
-  const { useList: getTeacherPerformance } =
-    useResourceLocked<TeacherPerformance>("teacherperformance");
 
-  const users = getUsers().data ?? [];
-  const teacherPerformances = getTeacherPerformance().data ?? [];
+  const teachers =
+    getUsers({
+      filters: {
+        groups: 2,
+      },
+    }).data ?? [];
 
   const {
     useList: getFolders,
@@ -114,31 +107,6 @@ const DocumentExplorer = ({
           },
   }).data;
 
-  const activeTeachers = useMemo(() => {
-    if (!users || !personalInfos || !teacherPerformances) return [];
-
-    return users
-      .map((user) => {
-        // 1. Check for performance record first (The Gatekeeper)
-        const performance = teacherPerformances.find((p) => p.user === user.id);
-        if (!performance) return null;
-
-        // 2. Find personal info or fallback
-        const info =
-          personalInfos.find((ti) => ti.user === user.id) ??
-          createFallbackTeacher(user);
-
-        return {
-          userId: user.id,
-          name: `${info.first_name} ${info.middle_name} ${info.last_name}`.trim(),
-          photo: info.photo_base64 || NO_FACE_IMAGE,
-          department: info.department,
-          rating: performance.rating, // Keep the rating if you need it later
-        };
-      })
-      .filter((t): t is NonNullable<typeof t> => t !== null);
-  }, [users, personalInfos, teacherPerformances]);
-
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filters, selectedFolderId]);
@@ -152,10 +120,8 @@ const DocumentExplorer = ({
         .map((doc) => doc.user_id),
     );
 
-    return activeTeachers.filter(
-      (teacher) => !submittedUserIds.has(teacher.userId),
-    );
-  }, [selectedFolderId, documents, personalInfos, activeTeachers]);
+    return teachers.filter((teacher) => !submittedUserIds.has(teacher.userId));
+  }, [selectedFolderId, documents, personalInfos, teachers]);
 
   const foldersWithDocs = useMemo(() => {
     const map = new Map<
@@ -192,7 +158,7 @@ const DocumentExplorer = ({
 
     return Array.from(map.values()).map((folder) => {
       const submittedCount: number = folder.submittedUserIds.size;
-      const notPassedCount: number = activeTeachers.length - submittedCount;
+      const notPassedCount: number = teachers.length - submittedCount;
 
       return {
         folder: folder.folder,
@@ -200,11 +166,11 @@ const DocumentExplorer = ({
         files_count: String(folder.count),
         // The logic you requestedx`
         notPassed: notPassedCount,
-        total: activeTeachers.length,
+        total: teachers.length,
         isClean: notPassedCount === 0, // Everyone has passed
       };
     });
-  }, [activeTeachers.length, documentFolders, documents, personalInfos]);
+  }, [teachers.length, documentFolders, documents, personalInfos]);
 
   const folderName =
     foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
@@ -456,7 +422,7 @@ const DocumentExplorer = ({
                   />
 
                   {/*  foldersWithDocs.map */}
-                  <div className="absolute top-3 right-3">
+                  {/* <div className="absolute top-3 right-3">
                     <div
                       className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-black shadow-sm transition-all ${
                         value.isClean
@@ -475,7 +441,7 @@ const DocumentExplorer = ({
                           : `${value.notPassed} OUT OF ${value.total} NOT PASSED`}
                       </span>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </motion.div>
             ))}
@@ -680,7 +646,7 @@ const DocumentExplorer = ({
                     </span>{" "}
                     not yet passed out of{" "}
                     <span className="font-bold text-slate-700">
-                      {activeTeachers.length}
+                      {teachers.length}
                     </span>{" "}
                     teachers for the{" "}
                     <span className="font-medium italic">

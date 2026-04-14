@@ -55,14 +55,18 @@ const TeacherDirectoryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  const users = getUsers().data ?? [];
+  const teachers =
+    getUsers({
+      filters: {
+        groups: 2,
+      },
+    }).data ?? [];
   const teachersInformation = getTeacherInformation().data ?? [];
   const teacherPerformances = getTeacherPerformance().data ?? [];
   const documents = getDocuments().data ?? [];
 
-  console.log(users);
   // ---------- FILTERING ----------
-  const filteredTeachers = users
+  const filteredTeachers = teachers
     .map((user) => {
       const info =
         teachersInformation.find((ti) => ti.user === user.id) ??
@@ -70,8 +74,13 @@ const TeacherDirectoryPage = () => {
 
       if (!info.photo_base64) info.photo_base64 = NO_FACE_IMAGE;
 
-      const performance = teacherPerformances.find((p) => p.user === user.id);
-      if (!performance) return null;
+      const performance = teacherPerformances.find(
+        (p) => p.user === user.id,
+      ) ?? {
+        id: "temp",
+        user: user.id,
+        rating: "Unrated", // or "0" depending on your display preference
+      };
 
       const name =
         `${info.first_name} ${info.middle_name} ${info.last_name}`.toLowerCase();
@@ -122,7 +131,7 @@ const TeacherDirectoryPage = () => {
     .filter(Boolean);
 
   // ---------- PAGINATION ----------
-  const totalItems = filteredTeachers.length;
+  const totalItems = teachers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
 
   const startIndex = (currentPage - 1) * itemsPerPage;
