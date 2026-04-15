@@ -14,7 +14,7 @@ const LandingPage = () => {
           <div className="flex flex-shrink-0 items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full shadow">
               <img
-                src="/background_logo.png"
+                src="/teacher-logo.png"
                 alt="Logo"
                 className="object-contain"
               />

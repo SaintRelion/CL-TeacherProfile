@@ -363,9 +363,33 @@ const FileCard = ({
           </p>
         </div>
 
-        <div className="flex items-center justify-between text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-          <span>{formatReadableDate(doc.issue_date)}</span>
-          <span>{formatReadableDate(doc.expiry_date)}</span>
+        <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-slate-400">Issued</span>
+            <span className="text-slate-600">
+              {formatReadableDate(doc.issue_date)}
+            </span>
+          </div>
+
+          {doc.expiry_date ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-slate-400">Expires</span>
+              <span
+                className={
+                  new Date(doc.expiry_date) < new Date()
+                    ? "text-rose-600"
+                    : "text-slate-600"
+                }
+              >
+                {formatReadableDate(doc.expiry_date)}
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-slate-400">Validity</span>
+              <span className="text-emerald-600 italic">Permanent</span>
+            </div>
+          )}
         </div>
 
         {matchContext.length > 0 && (
