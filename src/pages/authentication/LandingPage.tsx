@@ -12,10 +12,12 @@ const LandingPage = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 md:px-12">
           {/* Logo */}
           <div className="flex flex-shrink-0 items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0d1b4b] shadow">
-              <svg viewBox="0 0 24 24" fill="#f5c518" className="h-5 w-5">
-                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
-              </svg>
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full shadow">
+              <img
+                src="/background_logo.png"
+                alt="Logo"
+                className="object-contain"
+              />
             </div>
             <span className="text-xl font-black tracking-tight text-[#0d1b4b] uppercase">
               Teacher <span className="text-yellow-400">Profiling System</span>

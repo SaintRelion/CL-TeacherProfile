@@ -77,13 +77,12 @@ const DocumentExplorer = ({
   const {
     useList: getFolders,
     useInsert: insertFolder,
-    useDelete: deleteFolder,
     useUpdate: updateFolder,
   } = useResourceLocked<
     DocumentFolder,
     CreateDocumentFolder,
     UpdateDocumentFolder
-  >("documentfolder");
+  >("documentfolder", { showToast: false });
 
   const { useList: getDocuments, useUpdate: updateDocument } =
     useResourceLocked<TeacherDocument, never, UpdateTeacherDocument>(
@@ -133,9 +132,9 @@ const DocumentExplorer = ({
           // Use the found info, or a fallback if the profile doesn't exist yet
           name: info
             ? `${info.first_name} ${info.middle_name ? info.middle_name + " " : ""}${info.last_name}`.trim()
-            : "Unknown Teacher",
+            : t.username,
           photo: info?.photo_base64 || NO_FACE_IMAGE,
-          department: info?.department || "No Department Linked",
+          department: info?.department || "No Department provided",
         };
       });
   }, [selectedFolderId, documents, personalInfos, teachers]);
@@ -156,7 +155,7 @@ const DocumentExplorer = ({
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
         folder: folder.id,
-        folder_name: formatFolderName(folder.name),
+        folder_name: folder.name,
         count: 0,
         submittedUserIds: new Set(),
       });
@@ -174,8 +173,11 @@ const DocumentExplorer = ({
     });
 
     return Array.from(map.values()).map((folder) => {
+      const totalTeachers: number = teachers?.length ?? 0;
       const submittedCount: number = folder.submittedUserIds.size;
-      const notPassedCount: number = teachers?.length ?? 0 - submittedCount;
+
+      // Wrap the fallback in parentheses
+      const notPassedCount: number = totalTeachers - submittedCount;
 
       return {
         folder: folder.folder,
@@ -192,6 +194,12 @@ const DocumentExplorer = ({
   const folderName =
     foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
       ?.folder_name ?? "";
+
+  const folderToRename = foldersWithDocs.find(
+    (f) => f.folder === folderIdToRename,
+  );
+
+  const currentFolderName: string = folderToRename?.folder_name ?? "";
 
   const searchResults = useMemo(
     () =>
@@ -270,12 +278,12 @@ const DocumentExplorer = ({
       return;
     }
 
-    const newName = formatFolderName(data.folder_rename);
+    const newName = data.folder_rename;
     const alreadyExists = documentFolders
       ? documentFolders.some(
           (folder) =>
-            formatFolderName(folder.name).toLowerCase().trim() ===
-            newName.toLowerCase().trim(),
+            folder.id !== folderIdToRename &&
+            folder.name.toLowerCase().trim() === newName.toLowerCase().trim(),
         )
       : [];
 
@@ -286,7 +294,7 @@ const DocumentExplorer = ({
 
     try {
       await updateFolder.run({
-        id: folderIdToRename || selectedFolderId,
+        id: folderIdToRename,
         payload: { name: newName },
       });
       setFolderIdToRename("");
@@ -297,15 +305,18 @@ const DocumentExplorer = ({
     }
   };
 
-  const handleDeleteFolder = async (folder: string) => {
+  const handleDeleteFolder = async (folderId: string) => {
     if (
       window.confirm(
         "Are you sure you want to delete this folder? Documents in this folder will not be deleted.",
       )
     ) {
-      await deleteFolder.run(folder);
+      await updateFolder.run({
+        id: folderId,
+        payload: { is_archived: true },
+      });
       toast.success("Folder deleted successfully");
-      if (selectedFolderId === folder) {
+      if (selectedFolderId === folderId) {
         setSelectedFolderId("");
       }
     }
@@ -435,7 +446,7 @@ const DocumentExplorer = ({
                       )
                     }
                     onRenameFolder={(folderId) => setFolderIdToRename(folderId)}
-                    onDeleteFolder={handleDeleteFolder}
+                    onDeleteFolder={(folderId) => handleDeleteFolder(folderId)}
                   />
 
                   {/*  foldersWithDocs.map */}
@@ -485,10 +496,16 @@ const DocumentExplorer = ({
                   field={{
                     name: "folder_rename",
                     type: "text",
+
                     placeholder: "Enter new folder name",
                   }}
+                  defaultValue={currentFolderName}
                   inputClassName="w-full rounded-2xl border border-slate-200 px-3 py-3 focus:border-transparent focus:ring-4 focus:ring-blue-500/10"
                 />
+                {/* Visual hint for the user */}
+                <p className="text-[10px] text-slate-400 italic">
+                  Current name: {currentFolderName}
+                </p>
               </div>
 
               <DialogFooter>
@@ -578,6 +595,7 @@ const DocumentExplorer = ({
                           highlightTerms={result.searchTerms}
                           matchContext={result.matchContext}
                           onArchive={() => {
+                            console.log(result.doc.id);
                             if (!updateDocument.isLocked) {
                               updateDocument.run({
                                 id: result.doc.id,

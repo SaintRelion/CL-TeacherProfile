@@ -130,21 +130,6 @@ const AdminSidebar: React.FC<Props> = ({ isOpen, closeSidebar }) => {
               ))}
             </ul>
           </nav>
-
-          {/* SIDEBAR FOOTER (Optional) */}
-          <div className="border-t border-slate-100 p-4">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">
-                System Status
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                <span className="text-xs font-semibold text-slate-600">
-                  All Systems Online
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </aside>
     </>

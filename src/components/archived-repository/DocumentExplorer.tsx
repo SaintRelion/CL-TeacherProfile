@@ -99,11 +99,13 @@ const DocumentExplorer = ({
       if (entry) entry.count += 1;
     });
 
-    return Array.from(map.values()).map((folder) => ({
-      folder_name: folder.folder_name,
-      files_count: String(folder.count),
-      folder: folder.folder,
-    }));
+    return Array.from(map.values())
+      .filter((folder) => folder.count > 0)
+      .map((folder) => ({
+        folder_name: folder.folder_name,
+        files_count: String(folder.count),
+        folder: folder.folder,
+      }));
   }, [documentFolders, documents]);
 
   const folderName =
@@ -231,7 +233,7 @@ const DocumentExplorer = ({
             <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
               <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
                 <FolderArchive className="h-4 w-4 text-emerald-400" />
-                Active Folders
+                Folders with Archives
               </div>
               <p className="mt-3 text-3xl font-bold tracking-tight text-white">
                 {archivedFoldersCount.toLocaleString()}
