@@ -546,46 +546,8 @@ const DashboardPage = () => {
           </div>
 
           {/* System Status Card */}
-          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/15">
-            <div className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-                  <ServerCog
-                    className="h-5 w-5 text-emerald-600"
-                    strokeWidth={2}
-                  />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-slate-800">
-                    System Status
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-                    <span className="text-sm text-emerald-600">
-                      All systems operational
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-center">
-                <div className="rounded-2xl border border-slate-200/50 bg-slate-50 p-3">
-                  <p className="text-2xl font-semibold text-slate-800">
-                    {teachers ? teachers.length : 0}
-                  </p>
-                  <p className="text-xs font-medium text-slate-500">
-                    Active Users
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-slate-200/50 bg-slate-50 p-3">
-                  <p className="text-2xl font-semibold text-slate-800">
-                    {activeDocuments?.length || 0}
-                  </p>
-                  <p className="text-xs font-medium text-slate-500">
-                    Total Docs
-                  </p>
-                </div>
-              </div>
-            </div>
+          
+              
           </div>
         </div>
       </div>
