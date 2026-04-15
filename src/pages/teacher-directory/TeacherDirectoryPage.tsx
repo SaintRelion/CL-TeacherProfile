@@ -11,7 +11,11 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { NO_FACE_IMAGE } from "@/constants";
-import { getYearsOfService, getExpiryState } from "@/lib/utils";
+import {
+  getYearsOfService,
+  getExpiryState,
+  createFallbackTeacher,
+} from "@/lib/utils";
 import type { TeacherPerformance } from "@/models/TeacherPerformance";
 import { type PersonalInformation } from "@/models/PersonalInformation";
 import type { User } from "@/models/user";
@@ -19,30 +23,6 @@ import type { TeacherDocument } from "@/models/TeacherDocument";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useState, useEffect } from "react";
 import { toast } from "@saintrelion/notifications";
-
-function createFallbackTeacher(user: User): PersonalInformation {
-  return {
-    id: "",
-    user: user.id,
-    employee_id: "",
-    photo_base64: "",
-    first_name: user.username ?? "",
-    last_name: "",
-    middle_name: "",
-    date_of_birth: "",
-    gender: "",
-    civil_status: "",
-    email: "",
-    mobile_number: "",
-    home_address: "",
-    position: "",
-    department: "",
-    employment_status: "",
-    date_hired: "",
-    salary_grade: "",
-    tin: "",
-  };
-}
 
 const TeacherDirectoryPage = () => {
   const { useList: getUsers, useDelete: deleteUser } = useResourceLocked<User>(
@@ -75,14 +55,18 @@ const TeacherDirectoryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  const users = getUsers().data ?? [];
+  const teachers =
+    getUsers({
+      filters: {
+        groups: 2,
+      },
+    }).data ?? [];
   const teachersInformation = getTeacherInformation().data ?? [];
   const teacherPerformances = getTeacherPerformance().data ?? [];
   const documents = getDocuments().data ?? [];
 
-  console.log(users);
   // ---------- FILTERING ----------
-  const filteredTeachers = users
+  const filteredTeachers = teachers
     .map((user) => {
       const info =
         teachersInformation.find((ti) => ti.user === user.id) ??
@@ -90,8 +74,13 @@ const TeacherDirectoryPage = () => {
 
       if (!info.photo_base64) info.photo_base64 = NO_FACE_IMAGE;
 
-      const performance = teacherPerformances.find((p) => p.user === user.id);
-      if (!performance) return null;
+      const performance = teacherPerformances.find(
+        (p) => p.user === user.id,
+      ) ?? {
+        id: "temp",
+        user: user.id,
+        rating: "Unrated", // or "0" depending on your display preference
+      };
 
       const name =
         `${info.first_name} ${info.middle_name} ${info.last_name}`.toLowerCase();
@@ -142,7 +131,7 @@ const TeacherDirectoryPage = () => {
     .filter(Boolean);
 
   // ---------- PAGINATION ----------
-  const totalItems = filteredTeachers.length;
+  const totalItems = teachers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
 
   const startIndex = (currentPage - 1) * itemsPerPage;

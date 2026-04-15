@@ -19,9 +19,7 @@ import type { User } from "@/models/user";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArchiveRestore,
   ChevronRight,
-  FileSearch,
   FileStack,
   FolderArchive,
   Home,
@@ -101,11 +99,13 @@ const DocumentExplorer = ({
       if (entry) entry.count += 1;
     });
 
-    return Array.from(map.values()).map((folder) => ({
-      folder_name: folder.folder_name,
-      files_count: String(folder.count),
-      folder: folder.folder,
-    }));
+    return Array.from(map.values())
+      .filter((folder) => folder.count > 0)
+      .map((folder) => ({
+        folder_name: folder.folder_name,
+        files_count: String(folder.count),
+        folder: folder.folder,
+      }));
   }, [documentFolders, documents]);
 
   const folderName =
@@ -166,11 +166,6 @@ const DocumentExplorer = ({
   const archivedFoldersCount = foldersWithDocs.filter(
     (folder) => Number(folder.files_count) > 0,
   ).length;
-  const selectedFolderDocumentCount =
-    selectedFolderId && documents
-      ? documents.filter((document) => document.folder_id === selectedFolderId)
-          .length
-      : totalArchivedDocuments;
 
   const handleFilterChange = (filterType: string, value: string) => {
     if (filterType === "reset") {
@@ -238,21 +233,10 @@ const DocumentExplorer = ({
             <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
               <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
                 <FolderArchive className="h-4 w-4 text-emerald-400" />
-                Active Folders
+                Folders with Archives
               </div>
               <p className="mt-3 text-3xl font-bold tracking-tight text-white">
                 {archivedFoldersCount.toLocaleString()}
-              </p>
-            </div>
-
-            {/* Current Scope */}
-            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
-              <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
-                <ArchiveRestore className="h-4 w-4 text-amber-400" />
-                Current Scope
-              </div>
-              <p className="mt-3 text-3xl font-bold tracking-tight text-white">
-                {selectedFolderDocumentCount.toLocaleString()}
               </p>
             </div>
           </div>
@@ -317,11 +301,6 @@ const DocumentExplorer = ({
                 restoration.
               </p>
             </div>
-
-            <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              <FileSearch className="h-4 w-4 text-blue-600" />
-              Live search, metadata filtering, and safe restore actions
-            </div>
           </div>
 
           {searchResults.length === 0 ? (
@@ -354,31 +333,41 @@ const DocumentExplorer = ({
                   }}
                   className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 >
-                  {paginatedResults.map((result) => (
-                    <motion.div
-                      key={result.doc.id}
-                      layout
-                      variants={{
-                        hidden: { opacity: 0, y: 18 },
-                        show: { opacity: 1, y: 0 },
-                      }}
-                      transition={{ duration: 0.28, ease: "easeOut" }}
-                    >
-                      <FileCard
-                        doc={result.doc}
-                        highlightTerms={result.searchTerms}
-                        matchContext={result.matchContext}
-                        onRestore={() => {
-                          if (!updateDocument.isLocked) {
-                            updateDocument.run({
-                              id: result.doc.id,
-                              payload: { is_archived: false },
-                            });
-                          }
+                  {paginatedResults.map((result) => {
+                    const owner = personalInfos?.find(
+                      (p) => p.user === result.doc.user_id,
+                    );
+                    const ownerName = owner
+                      ? `${owner.first_name} ${owner.last_name}`
+                      : "none";
+
+                    return (
+                      <motion.div
+                        key={result.doc.id}
+                        layout
+                        variants={{
+                          hidden: { opacity: 0, y: 18 },
+                          show: { opacity: 1, y: 0 },
                         }}
-                      />
-                    </motion.div>
-                  ))}
+                        transition={{ duration: 0.28, ease: "easeOut" }}
+                      >
+                        <FileCard
+                          doc={result.doc}
+                          ownerName={ownerName}
+                          highlightTerms={result.searchTerms}
+                          matchContext={result.matchContext}
+                          onRestore={() => {
+                            if (!updateDocument.isLocked) {
+                              updateDocument.run({
+                                id: result.doc.id,
+                                payload: { is_archived: false },
+                              });
+                            }
+                          }}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               </AnimatePresence>
 

@@ -8,21 +8,13 @@ import {
   getSearchSuggestions,
   type DocumentRepositoryFilters,
 } from "@/components/document-repository/search-utils";
-import { NO_FACE_IMAGE } from "@/constants";
 import formatFolderName from "@/hooks/useFolderNameFormat";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { RenderFormButton, RenderFormField } from "@saintrelion/forms";
 import { toast } from "@saintrelion/notifications";
 import { formatReadableDate } from "@saintrelion/time-functions";
 import { useEffect, useMemo, useState } from "react";
-import {
-  AlertCircle,
-  ChevronRight,
-  FileSearch,
-  FolderPlus,
-  Home,
-  Layers3,
-} from "lucide-react";
+import { AlertCircle, ChevronRight, FolderPlus, Home } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import type {
@@ -45,6 +37,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { NO_FACE_IMAGE } from "@/constants";
 
 const PAGE_SIZE = 8;
 
@@ -71,16 +64,25 @@ const DocumentExplorer = ({
     }
   }, [initialFolder]);
 
+  const { useList: getUsers } = useResourceLocked<User>("user", {
+    showToast: false,
+  });
+
+  const teachers = getUsers({
+    filters: {
+      groups: 2,
+    },
+  }).data;
+
   const {
     useList: getFolders,
     useInsert: insertFolder,
-    useDelete: deleteFolder,
     useUpdate: updateFolder,
   } = useResourceLocked<
     DocumentFolder,
     CreateDocumentFolder,
     UpdateDocumentFolder
-  >("documentfolder");
+  >("documentfolder", { showToast: false });
 
   const { useList: getDocuments, useUpdate: updateDocument } =
     useResourceLocked<TeacherDocument, never, UpdateTeacherDocument>(
@@ -109,56 +111,95 @@ const DocumentExplorer = ({
   }, [search, filters, selectedFolderId]);
 
   const nonSubmittingTeachers = useMemo(() => {
-    if (!selectedFolderId || !documents || !personalInfos) return [];
+    if (!selectedFolderId || !documents || !personalInfos || !teachers)
+      return [];
 
-    const submittedUserIds = new Set(
+    // 1. Get IDs of everyone who DID submit
+    const submittedUserIds: Set<string> = new Set(
       documents
         .filter((doc) => doc.folder_id === selectedFolderId)
         .map((doc) => doc.user_id),
     );
 
-    return personalInfos
-      .map((info) => ({
-        userId: info.user,
-        name: `${info.first_name} ${info.middle_name} ${info.last_name}`.trim(),
-        photo: info.photo_base64 || NO_FACE_IMAGE,
-        department: info.department,
-      }))
-      .filter((teacher) => !submittedUserIds.has(teacher.userId));
-  }, [selectedFolderId, personalInfos, documents]);
+    // 2. Filter teachers who haven't submitted, then attach their personal info
+    return teachers
+      .filter((t) => !submittedUserIds.has(t.id))
+      .map((t) => {
+        const info = personalInfos.find((p) => p.user === t.id);
+
+        return {
+          userId: t.id,
+          // Use the found info, or a fallback if the profile doesn't exist yet
+          name: info
+            ? `${info.first_name} ${info.middle_name ? info.middle_name + " " : ""}${info.last_name}`.trim()
+            : t.username,
+          photo: info?.photo_base64 || NO_FACE_IMAGE,
+          department: info?.department || "No Department provided",
+        };
+      });
+  }, [selectedFolderId, documents, personalInfos, teachers]);
 
   const foldersWithDocs = useMemo(() => {
     const map = new Map<
       string,
-      { folder: string; folder_name: string; count: number }
+      {
+        folder: string;
+        folder_name: string;
+        count: number;
+        submittedUserIds: Set<string>;
+      }
     >();
 
-    if (!documentFolders || !documents) return [];
+    if (!documentFolders || !documents || !personalInfos) return [];
 
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
         folder: folder.id,
-        folder_name: formatFolderName(folder.name),
+        folder_name: folder.name,
         count: 0,
+        submittedUserIds: new Set(),
       });
     });
 
     documents.forEach((doc) => {
       if (!doc.folder_id) return;
       const entry = map.get(doc.folder_id);
-      if (entry) entry.count += 1;
+      if (entry) {
+        entry.count += 1;
+        if (doc.user_id) {
+          entry.submittedUserIds.add(doc.user_id);
+        }
+      }
     });
 
-    return Array.from(map.values()).map((folder) => ({
-      folder_name: folder.folder_name,
-      files_count: String(folder.count),
-      folder: folder.folder,
-    }));
-  }, [documentFolders, documents]);
+    return Array.from(map.values()).map((folder) => {
+      const totalTeachers: number = teachers?.length ?? 0;
+      const submittedCount: number = folder.submittedUserIds.size;
+
+      // Wrap the fallback in parentheses
+      const notPassedCount: number = totalTeachers - submittedCount;
+
+      return {
+        folder: folder.folder,
+        folder_name: folder.folder_name,
+        files_count: String(folder.count),
+        // The logic you requestedx`
+        notPassed: notPassedCount,
+        total: teachers?.length ?? 0,
+        isClean: notPassedCount === 0, // Everyone has passed
+      };
+    });
+  }, [teachers, documentFolders, documents, personalInfos]);
 
   const folderName =
     foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
       ?.folder_name ?? "";
+
+  const folderToRename = foldersWithDocs.find(
+    (f) => f.folder === folderIdToRename,
+  );
+
+  const currentFolderName: string = folderToRename?.folder_name ?? "";
 
   const searchResults = useMemo(
     () =>
@@ -237,12 +278,12 @@ const DocumentExplorer = ({
       return;
     }
 
-    const newName = formatFolderName(data.folder_rename);
+    const newName = data.folder_rename;
     const alreadyExists = documentFolders
       ? documentFolders.some(
           (folder) =>
-            formatFolderName(folder.name).toLowerCase().trim() ===
-            newName.toLowerCase().trim(),
+            folder.id !== folderIdToRename &&
+            folder.name.toLowerCase().trim() === newName.toLowerCase().trim(),
         )
       : [];
 
@@ -253,7 +294,7 @@ const DocumentExplorer = ({
 
     try {
       await updateFolder.run({
-        id: folderIdToRename || selectedFolderId,
+        id: folderIdToRename,
         payload: { name: newName },
       });
       setFolderIdToRename("");
@@ -264,15 +305,18 @@ const DocumentExplorer = ({
     }
   };
 
-  const handleDeleteFolder = async (folder: string) => {
+  const handleDeleteFolder = async (folderId: string) => {
     if (
       window.confirm(
         "Are you sure you want to delete this folder? Documents in this folder will not be deleted.",
       )
     ) {
-      await deleteFolder.run(folder);
+      await updateFolder.run({
+        id: folderId,
+        payload: { is_archived: true },
+      });
       toast.success("Folder deleted successfully");
-      if (selectedFolderId === folder) {
+      if (selectedFolderId === folderId) {
         setSelectedFolderId("");
       }
     }
@@ -391,18 +435,42 @@ const DocumentExplorer = ({
                 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
               >
-                <FolderCard
-                  userRole={role}
-                  folderInfo={value}
-                  selectedFolderId={selectedFolderId}
-                  onFolderClicked={(folderValue) =>
-                    setSelectedFolderId((current) =>
-                      current === folderValue ? "" : folderValue,
-                    )
-                  }
-                  onRenameFolder={(folderId) => setFolderIdToRename(folderId)}
-                  onDeleteFolder={handleDeleteFolder}
-                />
+                <div className="relative">
+                  <FolderCard
+                    userRole={role}
+                    folderInfo={value}
+                    selectedFolderId={selectedFolderId}
+                    onFolderClicked={(folderValue) =>
+                      setSelectedFolderId((current) =>
+                        current === folderValue ? "" : folderValue,
+                      )
+                    }
+                    onRenameFolder={(folderId) => setFolderIdToRename(folderId)}
+                    onDeleteFolder={(folderId) => handleDeleteFolder(folderId)}
+                  />
+
+                  {/*  foldersWithDocs.map */}
+                  {/* <div className="absolute top-3 right-3">
+                    <div
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-black shadow-sm transition-all ${
+                        value.isClean
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-rose-100 bg-rose-50 text-rose-700"
+                      }`}
+                    >
+                      {value.isClean ? (
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      ) : (
+                        <AlertCircle className="h-3 w-3 animate-pulse text-rose-500" />
+                      )}
+                      <span>
+                        {value.isClean
+                          ? "ALL TEACHERS PASSED"
+                          : `${value.notPassed} OUT OF ${value.total} NOT PASSED`}
+                      </span>
+                    </div>
+                  </div> */}
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -428,10 +496,16 @@ const DocumentExplorer = ({
                   field={{
                     name: "folder_rename",
                     type: "text",
+
                     placeholder: "Enter new folder name",
                   }}
+                  defaultValue={currentFolderName}
                   inputClassName="w-full rounded-2xl border border-slate-200 px-3 py-3 focus:border-transparent focus:ring-4 focus:ring-blue-500/10"
                 />
+                {/* Visual hint for the user */}
+                <p className="text-[10px] text-slate-400 italic">
+                  Current name: {currentFolderName}
+                </p>
               </div>
 
               <DialogFooter>
@@ -457,18 +531,6 @@ const DocumentExplorer = ({
                 {searchResults.length === 1 ? "" : "s"} | Updated{" "}
                 {formatReadableDate(new Date().toISOString())}
               </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <FileSearch className="h-4 w-4 text-blue-600" />
-                Dynamic search and metadata filtering
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <Layers3 className="h-4 w-4 text-blue-600" />
-                Access scoped to{" "}
-                {role === "admin" ? "admin visibility" : "your documents"}
-              </div>
             </div>
           </div>
 
@@ -509,31 +571,42 @@ const DocumentExplorer = ({
                   }}
                   className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 >
-                  {paginatedResults.map((result) => (
-                    <motion.div
-                      key={result.doc.id}
-                      layout
-                      variants={{
-                        hidden: { opacity: 0, y: 20 },
-                        show: { opacity: 1, y: 0 },
-                      }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                      <FileCard
-                        doc={result.doc}
-                        highlightTerms={result.searchTerms}
-                        matchContext={result.matchContext}
-                        onArchive={() => {
-                          if (!updateDocument.isLocked) {
-                            updateDocument.run({
-                              id: result.doc.id,
-                              payload: { is_archived: true },
-                            });
-                          }
+                  {paginatedResults.map((result) => {
+                    const owner = personalInfos?.find(
+                      (p) => p.user === result.doc.user_id,
+                    );
+                    const ownerName = owner
+                      ? `${owner.first_name} ${owner.last_name}`
+                      : "none";
+
+                    return (
+                      <motion.div
+                        key={result.doc.id}
+                        layout
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          show: { opacity: 1, y: 0 },
                         }}
-                      />
-                    </motion.div>
-                  ))}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <FileCard
+                          doc={result.doc}
+                          ownerName={ownerName}
+                          highlightTerms={result.searchTerms}
+                          matchContext={result.matchContext}
+                          onArchive={() => {
+                            console.log(result.doc.id);
+                            if (!updateDocument.isLocked) {
+                              updateDocument.run({
+                                id: result.doc.id,
+                                payload: { is_archived: true },
+                              });
+                            }
+                          }}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               </AnimatePresence>
 
@@ -587,52 +660,68 @@ const DocumentExplorer = ({
             </>
           )}
 
-          {selectedFolderId !== "" && nonSubmittingTeachers.length > 0 && (
-            <div className="mt-8 border-t border-slate-200/70 pt-8">
-              <div className="mb-4 flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-slate-900">
-                  Teachers Not Yet Submitted
-                </h3>
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
-                  {nonSubmittingTeachers.length}
-                </span>
-              </div>
-              <p className="mb-4 text-sm text-slate-500">
-                The following teachers have not submitted documents to this
-                folder.
-              </p>
+          {selectedFolderId !== "" &&
+            personalInfos &&
+            nonSubmittingTeachers.length > 0 && (
+              <div className="mt-8 border-t border-slate-200/70 pt-8">
+                <div className="mb-6">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold tracking-tight text-slate-900">
+                      Outstanding Requirements
+                    </h3>
+                    <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
+                      Action Required
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {nonSubmittingTeachers.map((teacher) => (
-                  <div
-                    key={teacher.userId}
-                    className="flex items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/70 p-4 transition-all hover:shadow-lg hover:shadow-amber-500/10"
-                  >
-                    <div className="shrink-0 overflow-hidden rounded-full border-2 border-amber-200">
-                      <img
-                        src={teacher.photo}
-                        alt={teacher.name}
-                        className="h-12 w-12 object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-slate-900">
-                        {teacher.name}
-                      </p>
-                      <p className="truncate text-xs text-slate-500">
-                        {teacher.department || "No Department"}
-                      </p>
-                    </div>
-                    <div className="shrink-0">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-200">
-                        <AlertCircle className="h-4 w-4 text-amber-700" />
+                  <p className="mt-1 text-sm text-slate-500">
+                    Currently,{" "}
+                    <span className="font-bold text-rose-600">
+                      {nonSubmittingTeachers.length}
+                    </span>{" "}
+                    not yet passed out of{" "}
+                    <span className="font-bold text-slate-700">
+                      {teachers?.length ?? 0}
+                    </span>{" "}
+                    teachers for the{" "}
+                    <span className="font-medium italic">
+                      {folderName || "selected folder"}
+                    </span>
+                    .
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {nonSubmittingTeachers.map((teacher) => (
+                    <div
+                      key={teacher.userId}
+                      className="flex items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/70 p-4 transition-all hover:shadow-lg hover:shadow-amber-500/10"
+                    >
+                      <div className="shrink-0 overflow-hidden rounded-full border-2 border-amber-200">
+                        <img
+                          src={teacher.photo}
+                          alt={teacher.name}
+                          className="h-12 w-12 object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-slate-900">
+                          {teacher.name}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {teacher.department || "No Department"}
+                        </p>
+                      </div>
+                      <div className="shrink-0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-200">
+                          <AlertCircle className="h-4 w-4 text-amber-700" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </>

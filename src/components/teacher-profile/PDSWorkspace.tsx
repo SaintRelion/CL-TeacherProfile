@@ -11,7 +11,7 @@ import { useResourceLocked } from "@saintrelion/data-access-layer";
 import type { UpdateUser, User } from "@/models/user";
 import { toast } from "@saintrelion/notifications";
 import { useState } from "react";
-import { PDSPrintable } from "./PDSPrintable";
+import { PDSExportOptions } from "./PDSExportOptions";
 
 export interface PDSFormData {
   personalInfo: PDSDataNode;
@@ -102,22 +102,22 @@ export const PDSWorkspace = ({ user }: { user: User }) => {
 
         {/* FLOATING ACTION DOCK */}
         <div className="fixed right-8 bottom-8 z-50 flex flex-col items-end gap-5 print:hidden">
-          {/* 1. PRINT ACTION */}
+          {/* 1. PREPARE PDS ACTION */}
           <div className="group relative flex items-center justify-end">
-            {/* Label (Optional Click) */}
-            <div className="pointer-events-none absolute right-full mr-4 translate-x-4 scale-90 whitespace-nowrap opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:scale-100 group-hover:opacity-100">
+            {/* Label */}
+            <div className="pointer-events-none absolute right-full mr-4 translate-x-4 scale-90 whitespace-nowrap opacity-0 transition-all duration-500 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:scale-100 group-hover:opacity-100">
               <div className="rounded-xl bg-slate-900 px-5 py-2 text-[10px] font-black tracking-widest text-white uppercase shadow-2xl ring-1 ring-white/10">
-                Configure & Print PDS
+                Prepare & Export PDS
               </div>
             </div>
 
-            {/* PRIMARY CLICK TARGET: The Icon */}
+            {/* PRIMARY CLICK TARGET */}
             <button
               type="button"
-              onClick={() => setPrintOpen(true)} // Clicking the icon opens the dialog
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-lg transition-all duration-300 hover:border-slate-900 hover:text-slate-900 hover:shadow-slate-200 active:scale-90"
+              onClick={() => setPrintOpen(true)}
+              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-lg transition-all duration-300 hover:border-blue-600 hover:text-blue-600 hover:shadow-blue-100 active:scale-90"
             >
-              <i className="fas fa-print text-lg"></i>
+              <i className="fas fa-file-invoice text-lg"></i>
             </button>
           </div>
 
@@ -159,7 +159,7 @@ export const PDSWorkspace = ({ user }: { user: User }) => {
   `}</style>
         </div>
 
-        <PDSPrintable
+        <PDSExportOptions
           isOpen={printOpen}
           onOpenChange={setPrintOpen}
           user={user}

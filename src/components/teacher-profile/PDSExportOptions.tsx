@@ -16,7 +16,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Printer, ArrowLeft, X, Settings2 } from "lucide-react";
+import {
+  FileText,
+  Printer,
+  ArrowLeft,
+  X,
+  Settings2,
+  FileDown,
+  Eye,
+} from "lucide-react";
 
 import {
   PDS_CONFIG,
@@ -32,6 +40,7 @@ import {
   type PDSPrintSectionId,
   type PDSPrintTemplateOptions,
 } from "./PDSPrintTemplate";
+import html2pdf from "html2pdf.js";
 
 interface Props {
   isOpen: boolean;
@@ -39,7 +48,7 @@ interface Props {
   user: User;
 }
 
-export const PDSPrintable: React.FC<Props> = ({
+export const PDSExportOptions: React.FC<Props> = ({
   isOpen,
   onOpenChange,
   user,
@@ -144,6 +153,32 @@ export const PDSPrintable: React.FC<Props> = ({
     printWindow.document.close();
   };
 
+  const handleDownloadPDF = () => {
+    const element = document.getElementById("pds-printable-root");
+    if (!element) return;
+
+    const opt = {
+      margin: 0,
+      filename: `PDS_${user.username}.pdf`,
+      image: {
+        type: "jpeg" as const, // Force TS to treat this as the literal "jpeg"
+        quality: 0.98,
+      },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+      },
+      jsPDF: {
+        unit: "in",
+        format: "letter",
+        orientation: "portrait" as const, // Same here for orientation
+      },
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
+
   const closeAll = () => {
     setPreviewOpen(false);
     onOpenChange(false);
@@ -231,17 +266,19 @@ export const PDSPrintable: React.FC<Props> = ({
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter>
             <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
+            {/* ONLY ONE PRIMARY ACTION HERE: GENERATE PREVIEW */}
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="gap-2 bg-blue-600 px-8 shadow-md transition-all hover:bg-blue-700 active:scale-95"
               onClick={() => {
                 onOpenChange(false);
                 setPreviewOpen(true);
               }}
             >
+              <Eye className="h-4 w-4" />
               Generate Preview
             </Button>
           </DialogFooter>
@@ -251,15 +288,10 @@ export const PDSPrintable: React.FC<Props> = ({
       {/* 2. DIGITAL PREVIEW OVERLAY */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent
-          /* CRITICAL FIXES: 
-       1. h-[98vh] and w-[98vw] for maximum screen real estate.
-       2. max-w-none to override the default Shadcn/Radix 512px limit.
-       3. p-0 to ensure the toolbar stays flush to the top.
-    */
           className="flex h-[98vh] w-[98vw] max-w-none flex-col overflow-hidden border-none bg-slate-900 p-0 shadow-2xl transition-all"
           style={{ maxWidth: "98vw" }}
         >
-          {/* TOOLBAR - Sticky at the top */}
+          {/* TOOLBAR - Now includes Download and Print */}
           <div className="z-50 flex items-center justify-between border-b bg-white p-4 shadow-md">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-emerald-600 p-2 text-white">
@@ -285,11 +317,22 @@ export const PDSPrintable: React.FC<Props> = ({
                 }}
               >
                 <ArrowLeft className="h-4 w-4" />
-                Options
+                Back to Options
               </Button>
 
               <div className="mx-1 h-6 w-[1px] bg-slate-200" />
 
+              {/* DOWNLOAD PDF ACTION */}
+              <Button
+                variant="outline"
+                className="gap-2 border-slate-200 text-slate-700"
+                onClick={handleDownloadPDF}
+              >
+                <FileDown className="h-4 w-4" />
+                Download PDF
+              </Button>
+
+              {/* PRINT ACTION */}
               <Button
                 className="gap-2 bg-emerald-600 px-6 shadow-md transition-all hover:bg-emerald-700 active:scale-95"
                 onClick={handlePrint}
@@ -302,19 +345,15 @@ export const PDSPrintable: React.FC<Props> = ({
                 variant="ghost"
                 size="icon"
                 onClick={closeAll}
-                className="ml-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                className="ml-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
               >
                 <X className="h-5 w-5" />
               </Button>
             </div>
           </div>
 
-          {/* VIEWPORT AREA - Where the magic happens */}
-          <div className="no-scrollbar custom-scroll flex-1 overflow-x-auto overflow-y-auto bg-slate-800 p-10">
-            {/* Centered Canvas: 
-          We use justify-center on the parent and items-start 
-          to allow the user to scroll from the top naturally.
-      */}
+          {/* VIEWPORT AREA */}
+          <div className="no-scrollbar custom-scroll flex-1 overflow-auto bg-slate-800 p-10">
             <div className="flex min-h-full items-start justify-center">
               {formData && (
                 <div className="transition-all duration-300 ease-in-out hover:shadow-[0_0_100px_rgba(0,0,0,0.6)]">
@@ -325,8 +364,6 @@ export const PDSPrintable: React.FC<Props> = ({
                 </div>
               )}
             </div>
-
-            {/* Bottom Padding so the PDS doesn't touch the bottom edge */}
             <div className="h-20" />
           </div>
         </DialogContent>

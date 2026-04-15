@@ -12,4 +12,5 @@ export interface CreateDocumentFolder {
 
 export interface UpdateDocumentFolder {
   name: string;
+  is_archived: boolean;
 }
