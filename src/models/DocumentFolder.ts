@@ -2,6 +2,7 @@ export interface DocumentFolder {
   id: string;
   name: string;
   user: string;
+  has_expiry: boolean;
   created_at: string;
 }
 

@@ -35,8 +35,12 @@ export default function DocumentForm({
   const documentFolders = getFolders().data;
 
   const [selectedFolderId, setSelectedFolderId] = useState("");
-  // const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [file, setFile] = useState<File | null>();
+
+  const selectedFolder = documentFolders?.find(
+    (f) => f.id === selectedFolderId,
+  );
+  const showExpiry = selectedFolder?.has_expiry ?? false;
 
   const maxKB = 5000;
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +67,11 @@ export default function DocumentForm({
       return;
     }
 
+    if (!selectedFolderId) {
+      toast.error("Please select a folder");
+      return;
+    }
+
     try {
       const extension = file.name.split(".").pop() ?? "";
       const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
@@ -73,16 +82,23 @@ export default function DocumentForm({
       data.file_base64 = base64;
       data.user = userId;
 
-      await insertDocument.run({
+      const payload: CreateTeacherDocument = {
         user: userId,
         folder: selectedFolderId,
         document_title: data.document_title,
         issue_date: data.issue_date,
-        expiry_date: data.expiry_date,
-        extension: data.extension,
-        file_size_in_mb: data.file_size_in_mb,
-        file_base64: data.file_base64,
-      });
+        expiry_date: null,
+        extension,
+        file_size_in_mb: fileSizeInMB,
+        file_base64: base64,
+      };
+
+      // Only include expiry_date if the folder requires it and it was provided
+      if (showExpiry && data.expiry_date) {
+        payload.expiry_date = data.expiry_date;
+      }
+
+      await insertDocument.run(payload);
 
       await insertNotification.run({
         user: userId,
@@ -114,8 +130,16 @@ export default function DocumentForm({
         inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
       />
 
-      {/* Dates Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+      <FolderSelect
+        name="folderSelect"
+        folders={documentFolders ?? []}
+        onFolderChange={setSelectedFolderId}
+      />
+
+      {/* Conditional Dates Grid */}
+      <div
+        className={`grid gap-4 ${showExpiry ? "grid-cols-2" : "grid-cols-1"}`}
+      >
         {/* Issue Date */}
         <RenderFormField
           field={{
@@ -124,26 +148,22 @@ export default function DocumentForm({
             name: "issue_date",
           }}
           labelClassName="mb-1 block text-xs font-medium text-gray-700"
-          inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+          inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
         />
 
-        {/* Expiry Date */}
-        <RenderFormField
-          field={{
-            label: "Expiry Date *",
-            type: "date",
-            name: "expiry_date",
-          }}
-          labelClassName="mb-1 block text-xs font-medium text-gray-700"
-          inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-        />
+        {/* Conditional Expiry Date */}
+        {showExpiry && (
+          <RenderFormField
+            field={{
+              label: "Expiry Date *",
+              type: "date",
+              name: "expiry_date",
+            }}
+            labelClassName="mb-1 block text-xs font-medium text-gray-700"
+            inputClassName="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+          />
+        )}
       </div>
-
-      <FolderSelect
-        name="folderSelect"
-        folders={documentFolders ?? []}
-        onFolderChange={setSelectedFolderId}
-      />
 
       {/* File Upload */}
       <div>
