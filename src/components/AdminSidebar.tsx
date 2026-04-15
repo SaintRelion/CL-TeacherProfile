@@ -24,7 +24,7 @@ const navItems = [
   },
   {
     to: "/admin/teacherdirectory",
-    label: "Teacher Profile",
+    label: "Teachers Profile",
     Icon: Users,
     iconClassName: "text-violet-600",
     iconWrapperClassName: "bg-violet-500/10",
