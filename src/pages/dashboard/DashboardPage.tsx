@@ -548,9 +548,7 @@ const DashboardPage = () => {
           {/* System Status Card */}
           
               
-          </div>
-        </div>
-      </div>
+       
     </main>
   );
 };
