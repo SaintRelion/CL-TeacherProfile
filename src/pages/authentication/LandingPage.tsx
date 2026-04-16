@@ -9,7 +9,7 @@ const LandingPage = () => {
     <div className="min-h-screen overflow-x-hidden bg-white font-sans text-gray-800">
       {/* ══ NAVBAR ═══════════════════════════════════════════════════════ */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 md:px-12">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-12">
           {/* Logo */}
           <div className="flex flex-shrink-0 items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full shadow">
