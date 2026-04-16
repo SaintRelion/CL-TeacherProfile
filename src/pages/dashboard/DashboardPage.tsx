@@ -19,7 +19,7 @@ import {
   ChevronRight,
   FolderUp,
   Search,
-  ServerCog,
+
   UserPlus,
   UserRoundPen,
 } from "lucide-react";
