@@ -67,10 +67,13 @@ export default function DocumentForm({
       const extension = file.name.split(".").pop() ?? "";
       const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
       const base64 = await fileToBase64(file);
+      if (base64 == null) {
+        toast.error("Unable to process file");
+        return;
+      }
 
       data.extension = extension;
       data.file_size_in_mb = fileSizeInMB;
-      data.file_base64 = base64;
       data.user = userId;
 
       await insertDocument.run({
@@ -81,7 +84,7 @@ export default function DocumentForm({
         expiry_date: data.expiry_date,
         extension: data.extension,
         file_size_in_mb: data.file_size_in_mb,
-        file_base64: data.file_base64,
+        file_base64: base64,
       });
 
       await insertNotification.run({
