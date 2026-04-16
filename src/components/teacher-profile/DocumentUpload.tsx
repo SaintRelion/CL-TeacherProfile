@@ -60,7 +60,6 @@ export default function DocumentForm({
   const removeFile = () => {
     setFile(null);
   };
-
 const handleSubmit = async (data: Record<string, string>) => {
   if (!file) {
     alert("Please select a file to upload");
@@ -77,13 +76,12 @@ const handleSubmit = async (data: Record<string, string>) => {
     const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
     const base64 = await fileToBase64(file);
 
-    // Construct the payload correctly
     const payload: CreateTeacherDocument = {
       user: userId,
       folder: selectedFolderId,
       document_title: data.document_title,
       issue_date: data.issue_date,
-      expiry_date: data.expiry_date || null, // Ensure expiry is handled
+      expiry_date: showExpiry ? data.expiry_date : null,
       extension: extension,
       file_size_in_mb: fileSizeInMB,
       file_base64: base64,
@@ -101,10 +99,12 @@ const handleSubmit = async (data: Record<string, string>) => {
 
     toast.success("Document Uploaded");
   } catch (err) {
-    console.error(err);
+    const error = err as Record<string, string>;
+    console.log(error);
     toast.error("Document Upload error");
   }
 };
+
   return (
     <RenderForm wrapperClassName="space-y-3">
       {/* Document Title */}
