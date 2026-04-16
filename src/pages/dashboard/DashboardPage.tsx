@@ -261,24 +261,6 @@ const DashboardPage = () => {
 
   return (
     <main className="min-h-screen flex-1 bg-slate-50 p-4 md:p-6 lg:p-8">
-      {/* Dashboard Header */}
-      {/* <div className="mb-8">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-         
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <i className="fas fa-calendar-alt text-blue-600"></i>
-            <span>
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </div>
-        </div>
-      </div> */}
-
       {/* KPI Cards */}
       <div className="mb-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:gap-6 lg:grid-cols-3">
@@ -375,7 +357,6 @@ const DashboardPage = () => {
                 </div>
               )}
 
-              {/* View Report Button */}
               <Dialog>
                 <DialogTrigger asChild>
                   <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15">
@@ -394,7 +375,8 @@ const DashboardPage = () => {
               </Dialog>
             </div>
           </div>
-        </div>{" "}
+        </div>
+
         {/* Quick Actions Sidebar */}
         <div className="lg:col-span-1">
           <div className="overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/15">
@@ -411,6 +393,7 @@ const DashboardPage = () => {
                 </div>
               </div>
             </div>
+
             <div className="space-y-2 p-4">
               <Link
                 to="/admin/teacherdirectory"
@@ -429,6 +412,7 @@ const DashboardPage = () => {
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-slate-500" />
               </Link>
+
               <Link
                 to="/admin/documentrepository"
                 className="group flex items-center gap-3 rounded-2xl border border-slate-200/50 p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg hover:shadow-amber-500/15"
@@ -474,7 +458,6 @@ const DashboardPage = () => {
                   </DialogHeader>
 
                   <div className="space-y-4">
-                    {/* Search Input */}
                     <div className="relative">
                       <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
@@ -488,7 +471,6 @@ const DashboardPage = () => {
                       />
                     </div>
 
-                    {/* Teacher List */}
                     <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
                       {filteredTeachers.length > 0 ? (
                         filteredTeachers.map((teacher) => (
@@ -503,7 +485,11 @@ const DashboardPage = () => {
                           >
                             <div className="flex items-center gap-3">
                               <span
-                                className={`text-sm font-medium ${selectedTeacherId === teacher.id ? "text-blue-700" : "text-slate-700"}`}
+                                className={`text-sm font-medium ${
+                                  selectedTeacherId === teacher.id
+                                    ? "text-blue-700"
+                                    : "text-slate-700"
+                                }`}
                               >
                                 {teacher.username}
                               </span>
@@ -520,7 +506,6 @@ const DashboardPage = () => {
                       )}
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex gap-2 pt-2">
                       <button
                         onClick={() => {
@@ -544,13 +529,9 @@ const DashboardPage = () => {
               </Dialog>
             </div>
           </div>
-
-       
-          
-              
-         </div>
+        </div>
       </div>
     </main>
   );
-};
+  
 export default DashboardPage;
