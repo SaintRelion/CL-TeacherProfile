@@ -8,7 +8,6 @@ import {
   getSearchSuggestions,
   type DocumentRepositoryFilters,
 } from "@/components/document-repository/search-utils";
-import formatFolderName from "@/hooks/useFolderNameFormat";
 import type { DocumentFolder } from "@/models/DocumentFolder";
 import type { PersonalInformation } from "@/models/PersonalInformation";
 import type {
@@ -88,7 +87,7 @@ const DocumentExplorer = ({
     documentFolders.forEach((folder) => {
       map.set(folder.id, {
         folder: folder.id,
-        folder_name: formatFolderName(folder.name),
+        folder_name: folder.name,
         count: 0,
       });
     });
