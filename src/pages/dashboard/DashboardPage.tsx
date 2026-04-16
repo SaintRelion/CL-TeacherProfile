@@ -545,10 +545,11 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* System Status Card */}
+       
           
               
-       
+         </div>
+      </div>
     </main>
   );
 };
