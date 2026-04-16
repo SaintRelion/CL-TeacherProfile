@@ -12,7 +12,7 @@ import type { CreateNotification } from "@/models/Notification";
 import { FolderSelect } from "../document-repository/FolderSelect";
 import type { DocumentFolder } from "@/models/DocumentFolder";
 import { toast } from "@saintrelion/notifications";
-
+//fixed
 export default function DocumentForm({
   userId,
   fullName,
@@ -71,6 +71,31 @@ const handleSubmit = async (data: Record<string, string>) => {
     return;
   }
 
+<<<<<<< HEAD
+    try {
+      const extension = file.name.split(".").pop() ?? "";
+      const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+      const base64 = await fileToBase64(file);
+      if (base64 == null) {
+        toast.error("Unable to process file");
+        return;
+      }
+
+      data.extension = extension;
+      data.file_size_in_mb = fileSizeInMB;
+      data.user = userId;
+
+      await insertDocument.run({
+        user: userId,
+        folder: selectedFolderId,
+        document_title: data.document_title,
+        issue_date: data.issue_date,
+        expiry_date: data.expiry_date,
+        extension: data.extension,
+        file_size_in_mb: data.file_size_in_mb,
+        file_base64: base64,
+      });
+=======
   try {
     const extension = file.name.split(".").pop() ?? "";
     const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
@@ -88,6 +113,7 @@ const handleSubmit = async (data: Record<string, string>) => {
     };
 
     await insertDocument.run(payload);
+>>>>>>> de057de2d41c00c740c3c0e05fa28a233a98ae94
 
     await insertNotification.run({
       user: userId,
