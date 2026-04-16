@@ -60,59 +60,50 @@ export default function DocumentForm({
   const removeFile = () => {
     setFile(null);
   };
+const handleSubmit = async (data: Record<string, string>) => {
+  if (!file) {
+    alert("Please select a file to upload");
+    return;
+  }
 
-  const handleSubmit = async (data: Record<string, string>) => {
-    if (!file) {
-      alert("Please select a file to upload");
-      return;
-    }
+  if (!selectedFolderId) {
+    toast.error("Please select a folder");
+    return;
+  }
 
-    if (!selectedFolderId) {
-      toast.error("Please select a folder");
-      return;
-    }
+  try {
+    const extension = file.name.split(".").pop() ?? "";
+    const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+    const base64 = await fileToBase64(file);
 
-    try {
-      const extension = file.name.split(".").pop() ?? "";
-      const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-      const base64 = await fileToBase64(file);
-
-      data.extension = extension;
-      data.file_size_in_mb = fileSizeInMB;
-      data.file_base64 = base64;
-      data.user = userId;
-
-     const payload: CreateTeacherDocument = {
+    const payload: CreateTeacherDocument = {
       user: userId,
       folder: selectedFolderId,
       document_title: data.document_title,
       issue_date: data.issue_date,
-      extension?:string|null,
+      expiry_date: showExpiry ? data.expiry_date : null,
+      extension: extension,
       file_size_in_mb: fileSizeInMB,
       file_base64: base64,
     };
 
+    await insertDocument.run(payload);
 
+    await insertNotification.run({
+      user: userId,
+      type: "upload",
+      title: "Document uploaded",
+      description: `${data.document_title} - ${fullName}`,
+      is_read: false,
+    });
 
-    
-
-      await insertDocument.run(payload);
-
-      await insertNotification.run({
-        user: userId,
-        type: "upload",
-        title: "Document uploaded",
-        description: `${data.document_title} - ${fullName}`,
-        is_read: false,
-      });
-
-      toast.success("Document Uploaded");
-    } catch (err) {
-      const error = err as Record<string, string>;
-      console.log(error);
-      toast.error("Document Upload error");
-    }
-  };
+    toast.success("Document Uploaded");
+  } catch (err) {
+    const error = err as Record<string, string>;
+    console.log(error);
+    toast.error("Document Upload error");
+  }
+};
 
   return (
     <RenderForm wrapperClassName="space-y-3">
