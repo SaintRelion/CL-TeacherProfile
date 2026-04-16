@@ -82,19 +82,16 @@ export default function DocumentForm({
       data.file_base64 = base64;
       data.user = userId;
 
-     const payload: CreateTeacherDocument = {
-      user: userId,
-      folder: selectedFolderId,
-      document_title: data.document_title,
-      issue_date: data.issue_date,
-      extension?:string|null,
-      file_size_in_mb: fileSizeInMB,
-      file_base64: base64,
-    };
-
-
-
-    
+  const payload: CreateTeacherDocument = {
+  user: userId,
+  folder: selectedFolderId,
+  document_title: data.document_title,
+  issue_date: data.issue_date,
+  expiry_date: showExpiry ? data.expiry_date : null,
+  extension: extension,
+  file_size_in_mb: fileSizeInMB,
+  file_base64: base64,
+};
 
       await insertDocument.run(payload);
 
