@@ -533,5 +533,5 @@ const DashboardPage = () => {
       </div>
     </main>
   );
-  
+};
 export default DashboardPage;
