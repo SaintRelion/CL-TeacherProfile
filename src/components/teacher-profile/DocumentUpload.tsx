@@ -87,20 +87,14 @@ export default function DocumentForm({
       folder: selectedFolderId,
       document_title: data.document_title,
       issue_date: data.issue_date,
-      extension,
+      extension?:string|null,
       file_size_in_mb: fileSizeInMB,
       file_base64: base64,
     };
 
-// Only add expiry_date if needed
-if (showExpiry && data.expiry_date) {
-  payload.expiry_date = data.expiry_date;
-}
 
-      // Only include expiry_date if the folder requires it and it was provided
-      if (showExpiry && data.expiry_date) {
-        payload.expiry_date = data.expiry_date;
-      }
+
+    
 
       await insertDocument.run(payload);
 
