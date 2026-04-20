@@ -35,7 +35,7 @@ export default function DocumentForm({
   const documentFolders = getFolders().data;
 
   const [selectedFolderId, setSelectedFolderId] = useState("");
-  const [file, setFile] = useState<File | null>();
+  const [file, setFile] = useState<File | null>(null);
 
   const selectedFolder = documentFolders?.find(
     (f) => f.id === selectedFolderId,
@@ -60,10 +60,9 @@ export default function DocumentForm({
   const removeFile = () => {
     setFile(null);
   };
-
   const handleSubmit = async (data: Record<string, string>) => {
     if (!file) {
-      alert("Please select a file to upload");
+      toast.error("Please select a file to upload");
       return;
     }
 
@@ -72,31 +71,26 @@ export default function DocumentForm({
       return;
     }
 
+    if (showExpiry && !data.expiry_date) {
+      toast.error("Please select an expiry date");
+      return;
+    }
+
     try {
       const extension = file.name.split(".").pop() ?? "";
       const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-      const base64 = await fileToBase64(file);
-
-      data.extension = extension;
-      data.file_size_in_mb = fileSizeInMB;
-      data.file_base64 = base64;
-      data.user = userId;
+      const fileBase64 = await fileToBase64(file);
 
       const payload: CreateTeacherDocument = {
         user: userId,
         folder: selectedFolderId,
         document_title: data.document_title,
         issue_date: data.issue_date,
-        expiry_date: null,
+        expiry_date: showExpiry ? data.expiry_date : "",
         extension,
         file_size_in_mb: fileSizeInMB,
-        file_base64: base64,
+        file_base64: fileBase64,
       };
-
-      // Only include expiry_date if the folder requires it and it was provided
-      if (showExpiry && data.expiry_date) {
-        payload.expiry_date = data.expiry_date;
-      }
 
       await insertDocument.run(payload);
 

@@ -1,12 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  FolderKanban,
-  Users,
-  Archive,
-  ShieldCheck,
-} from "lucide-react";
+import { LayoutDashboard, FolderKanban, Users, Archive } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -77,8 +71,12 @@ const AdminSidebar: React.FC<Props> = ({ isOpen, closeSidebar }) => {
           {/* SIDEBAR HEADER */}
           <div className="flex h-20 shrink-0 items-center justify-between border-b border-slate-100 px-6">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-200">
-                <ShieldCheck className="h-6 w-6 text-white" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                <img
+                  src="background_logo.png"
+                  alt="Katipunan Central School Logo"
+                  className="h-20 w-20 object-contain drop-shadow-[0_0_4px_rgba(59,130,246,0.3)]"
+                />
               </div>
               <div className="min-w-0">
                 <h2 className="truncate text-sm font-bold tracking-tight text-slate-900 uppercase">
