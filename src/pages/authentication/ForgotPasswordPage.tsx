@@ -138,15 +138,7 @@ export default function ForgotPasswordPage() {
             </a>
           </div>
 
-          {/* Footer */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-slate-500">
-              Katipunan Central School & SPED Center
-            </p>
-            <p className="mt-1 text-xs text-slate-400">
-              © 2024 Teacher Profile Management System
-            </p>
-          </div>
+         
         </div>
       </div>
     </div>

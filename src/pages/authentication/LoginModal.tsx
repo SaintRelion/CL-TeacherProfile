@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom"; // Assuming react-router-dom for routing
 import { useAuth } from "@saintrelion/auth-lib";
 import {
   RenderForm,
@@ -15,7 +16,7 @@ type Props = {
 
 const LoginModal = ({ open, onClose }: Props) => {
   const auth = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleLogin = async (data: Record<string, string>) => {
     await auth.login({
@@ -72,7 +73,7 @@ const LoginModal = ({ open, onClose }: Props) => {
               <button
                 type="button"
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => setShowPassword((prev: boolean) => !prev)}
                 className="absolute top-[38px] right-3 flex items-center text-gray-400 hover:text-white"
               >
                 {showPassword ? (
@@ -81,13 +82,25 @@ const LoginModal = ({ open, onClose }: Props) => {
                   <Eye className="h-5 w-5" />
                 )}
               </button>
+
+              {/* FORGOT PASSWORD LINK */}
+              <div className="mt-2 flex justify-end">
+                <Link
+                  to="/forgot"
+                  onClick={onClose}
+                  className="text-xs font-medium text-blue-400 hover:text-blue-300 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
+
             {/* LOGIN BUTTON */}
             <RenderFormButton
               buttonLabel="LOGIN"
               onSubmit={handleLogin}
               isDisabled={auth.isLocked}
-              buttonClassName="w-full bg-yellow-600 hover:bg-blue-700 rounded-lg py-2 text-white font-semibold"
+              buttonClassName="w-full bg-yellow-600 hover:bg-blue-700 rounded-lg py-2 text-white font-semibold transition-colors"
             />
           </RenderForm>
         </div>
