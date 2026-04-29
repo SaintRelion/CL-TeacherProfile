@@ -211,12 +211,12 @@ const PDSPage2 = ({ data, show }: PDSPageProps) => {
                   <td className={`${borderClass} p-3 uppercase`}>
                     {toValue(row.departmentAgencyOfficeCompany)}
                   </td>
-                  {/* <td className={`${borderClass} p-3 text-center uppercase`}>
+                  <td className={`${borderClass} p-3 text-center uppercase`}>
                     {toValue(row.monthlySalary)}
                   </td>
                   <td className={`${borderClass} p-3 text-center uppercase`}>
                     {toValue(row.salaryGrade)}
-                  </td> */}
+                  </td>
                   <td className={`${borderClass} p-3 text-center uppercase`}>
                     {toValue(row.statusOfAppointment)}
                   </td>

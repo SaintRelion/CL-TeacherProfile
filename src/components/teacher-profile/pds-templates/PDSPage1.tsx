@@ -1,3 +1,4 @@
+import type { EducationRow } from "@/pds-schema";
 import {
   AddressCell,
   borderClass,
@@ -20,20 +21,24 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
     childrenRows.push({ name: "", dateOfBirth: "" });
   }
 
-  const getEduData = (keywords: string[]) => {
-    return (
-      (data.educationRows || []).find((r) =>
-        keywords.some((kw) => r.level?.toLowerCase().includes(kw)),
-      ) || {}
+  const getEduData = (
+    keywords: string[],
+    defaultLevel: string,
+  ): EducationRow => {
+    const found = (data.educationRows || []).find((r) =>
+      keywords.some((kw) => r.level?.toLowerCase().includes(kw)),
     );
+
+    // If not found, we fulfill your strict schema by providing an object with the required 'level'!
+    return found || { level: defaultLevel };
   };
 
   const eduRows = [
-    getEduData(["elem"]),
-    getEduData(["sec", "high"]),
-    getEduData(["voc", "trade"]),
-    getEduData(["coll", "bachelor"]),
-    getEduData(["grad", "master", "doctor"]),
+    getEduData(["elem"], "ELEMENTARY"),
+    getEduData(["sec", "high"], "SECONDARY"),
+    getEduData(["voc", "trade"], "VOCATIONAL / TRADE COURSE"),
+    getEduData(["coll", "bachelor"], "COLLEGE"),
+    getEduData(["grad", "master", "doctor"], "GRADUATE STUDIES"),
   ];
 
   const eduLabels = [
@@ -639,7 +644,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                   >
                     {eduLabels[index]}
                   </td>
-                  {/* <td className={`${borderClass} p-1 uppercase`}>
+                  <td className={`${borderClass} p-1 uppercase`}>
                     {toValue(row.school)}
                   </td>
                   <td className={`${borderClass} p-1 uppercase`}>
@@ -659,7 +664,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                   </td>
                   <td className={`${borderClass} !border-r-0 p-1 uppercase`}>
                     {toValue(row.honors)}
-                  </td> */}
+                  </td>
                 </tr>
               ))}
             </tbody>

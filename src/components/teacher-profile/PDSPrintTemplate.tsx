@@ -113,15 +113,6 @@ const createEmptyFormData = (): PDSPrintTemplateData => ({
   photoUrl: "",
 });
 
-// type EducationRow = PDSPrintTemplateData["educationRows"][number];
-// type CivilServiceRow = PDSPrintTemplateData["civilServiceRows"][number];
-// type WorkExperienceRow = PDSPrintTemplateData["workExperienceRows"][number];
-// type VoluntaryWorkRow = PDSPrintTemplateData["voluntaryWorkRows"][number];
-// type TrainingRow = PDSPrintTemplateData["trainingRows"][number];
-// type OtherInformationRow = PDSPrintTemplateData["otherInformationRows"][number];
-// type ChildRow = PDSPrintTemplateData["familyBackground"]["children"][number];
-// type ReferenceRow = PDSPrintTemplateData["references"][number];
-
 const emptyQuestion = (): PDSPrintQuestion => ({ answer: "", details: "" });
 
 export const PDSPrintTemplate = ({
