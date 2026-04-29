@@ -1,3 +1,14 @@
+export const padRows = <T>(
+  rows: T[] | undefined | null,
+  minLength: number,
+): T[] => {
+  const next = [...(rows || [])];
+  while (next.length < minLength) {
+    next.push({} as T); // Safely forces TS to accept the empty row
+  }
+  return next;
+};
+
 export type PDSFieldType =
   | "text"
   | "number"
@@ -1033,6 +1044,15 @@ export interface PDSPrintTemplateData {
     };
     // Subsection: college
     college: {
+      school?: string;
+      course?: string;
+      attendanceFrom?: string | number;
+      attendanceTo?: string | number;
+      highestLevel?: string; // Units earned
+      yearGraduated?: string | number;
+      honors?: string;
+    };
+    vocational: {
       school?: string;
       course?: string;
       attendanceFrom?: string | number;
