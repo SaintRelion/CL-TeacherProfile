@@ -1,3 +1,27 @@
+export const padRows = <T>(
+  rows: T[] | undefined | null,
+  minLength: number,
+): T[] => {
+  const next = [...(rows || [])];
+  while (next.length < minLength) {
+    next.push({} as T); // Safely forces TS to accept the empty row
+  }
+  return next;
+};
+
+export type EducationRow = PDSPrintTemplateData["educationRows"][number];
+export type CivilServiceRow = PDSPrintTemplateData["civilServiceRows"][number];
+export type WorkExperienceRow =
+  PDSPrintTemplateData["workExperienceRows"][number];
+export type VoluntaryWorkRow =
+  PDSPrintTemplateData["voluntaryWorkRows"][number];
+export type TrainingRow = PDSPrintTemplateData["trainingRows"][number];
+export type OtherInformationRow =
+  PDSPrintTemplateData["otherInformationRows"][number];
+export type ReferenceRow = NonNullable<
+  PDSPrintTemplateData["additionalInformation"]["references"]
+>[number];
+
 export type PDSFieldType =
   | "text"
   | "number"
@@ -1041,6 +1065,15 @@ export interface PDSPrintTemplateData {
       yearGraduated?: string | number;
       honors?: string;
     };
+    vocational: {
+      school?: string;
+      course?: string;
+      attendanceFrom?: string | number;
+      attendanceTo?: string | number;
+      highestLevel?: string; // Units earned
+      yearGraduated?: string | number;
+      honors?: string;
+    };
     // Subsection: graduateStudies
     graduateStudies: {
       school?: string;
@@ -1109,6 +1142,10 @@ export interface PDSPrintTemplateData {
     toDate?: string;
     positionTitle?: string;
     departmentAgencyOfficeCompany?: string;
+
+    monthlySalary?: string;
+    salaryGrade?: string;
+
     statusOfAppointment?: string;
     governmentService?: string;
   }>;
