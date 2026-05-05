@@ -81,12 +81,14 @@ export default function DocumentForm({
       const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
       const fileBase64 = await fileToBase64(file);
 
+      console.log(data.expiry_date);
+
       const payload: CreateTeacherDocument = {
         user: userId,
         folder: selectedFolderId,
         document_title: data.document_title,
         issue_date: data.issue_date,
-        expiry_date: showExpiry ? data.expiry_date : "",
+        expiry_date: showExpiry && data.expiry_date ? data.expiry_date : null,
         extension,
         file_size_in_mb: fileSizeInMB,
         file_base64: fileBase64,

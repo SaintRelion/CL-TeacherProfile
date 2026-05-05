@@ -660,7 +660,8 @@ const DocumentExplorer = ({
             </>
           )}
 
-          {selectedFolderId !== "" &&
+          {role == "admin" &&
+            selectedFolderId !== "" &&
             personalInfos &&
             nonSubmittingTeachers.length > 0 && (
               <div className="mt-8 border-t border-slate-200/70 pt-8">
