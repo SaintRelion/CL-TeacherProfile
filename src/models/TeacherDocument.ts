@@ -18,7 +18,7 @@ export interface CreateTeacherDocument {
   folder: string;
   document_title: string;
   issue_date: string;
-  expiry_date: string;
+  expiry_date: string | null;
   extension: string;
   file_size_in_mb: string;
   file_base64: string;
