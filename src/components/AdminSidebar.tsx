@@ -1,6 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Users, Archive } from "lucide-react";
+import {
+  LayoutDashboard,
+  FolderKanban,
+  ArchiveRestore,
+  Users,
+  Archive,
+  History,
+} from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -31,9 +38,23 @@ const navItems = [
     iconWrapperClassName: "bg-amber-500/10",
   },
   {
+    to: "/admin/restoredrepository",
+    label: "Restored Repository",
+    Icon: ArchiveRestore,
+    iconClassName: "text-amber-600",
+    iconWrapperClassName: "bg-amber-500/10",
+  },
+  {
     to: "/admin/archivedrepository",
     label: "Archived Repository",
     Icon: Archive,
+    iconClassName: "text-rose-600",
+    iconWrapperClassName: "bg-rose-500/10",
+  },
+  {
+    to: "/admin/auditlog",
+    label: "Audit Logs",
+    Icon: History,
     iconClassName: "text-rose-600",
     iconWrapperClassName: "bg-rose-500/10",
   },
@@ -42,7 +63,6 @@ const navItems = [
 const AdminSidebar: React.FC<Props> = ({ isOpen, closeSidebar }) => {
   const sidebarRef = useRef<HTMLDivElement | null>(null);
 
-  // Handle clicking outside on mobile to close
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (

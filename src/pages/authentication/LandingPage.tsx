@@ -7,7 +7,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white font-sans text-gray-800">
-      {/* ══ NAVBAR ═══════════════════════════════════════════════════════ */}
+      {/* NAVBAR */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-12">
           {/* Logo */}
@@ -36,7 +36,7 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* ══ HERO ═════════════════════════════════════════════════════════ */}
+      {/* HERO */}
       <section
         className="relative flex min-h-[520px] items-center overflow-hidden"
         style={{
@@ -67,25 +67,24 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ══ WELCOME SECTION ══════════════════════════════════════════════ */}
-      <section className="mx-auto grid max-w-7xl items-center gap-16 px-8 py-10 md:px-16">
-        {/* Right — image */}
+      {/* WELCOME SECTION */}
+      {/* <section className="mx-auto grid max-w-7xl items-center gap-16 px-8 py-10 md:px-16">
+    
         <div className="relative">
           <img
             src="hero.jpg"
             alt="Teachers at a school"
             className="w-full object-cover shadow-2xl"
           />
-          {/* yellow accent bar */}
           <div className="absolute -bottom-3 -left-3 -z-10 h-24 w-24 bg-yellow-400" />
           <div className="absolute -top-3 -right-3 -z-10 h-16 w-16 bg-[#0d1b4b]" />
         </div>
-      </section>
+      </section> */}
 
-      {/* ══ FOOTER ═══════════════════════════════════════════════════════ */}
-      <footer className="bg-[#080e2e] px-6 py-5 text-center text-xs text-gray-400"></footer>
+      {/* FOOTER */}
+      <footer className="bg-[#080e2e] px-6 py-6 text-center text-xs text-gray-400"></footer>
 
-      {/* ══ LOGIN MODAL ══════════════════════════════════════════════════ */}
+      {/* LOGIN MODAL */}
       <LoginModal
         open={showLoginModal}
         onClose={() => setShowLoginModal(false)}

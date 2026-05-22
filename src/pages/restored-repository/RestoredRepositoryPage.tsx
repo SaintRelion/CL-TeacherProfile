@@ -1,3 +1,14 @@
+import { useLocation } from "react-router-dom";
+import { useCurrentUser } from "@saintrelion/auth-lib";
+import type { User } from "@/models/user";
+import { RenderForm } from "@saintrelion/forms";
+import { useResourceLocked } from "@saintrelion/data-access-layer";
+import type {
+  TeacherDocument,
+  UpdateTeacherDocument,
+} from "@/models/TeacherDocument";
+import type { DocumentFolder } from "@/models/DocumentFolder";
+import type { PersonalInformation } from "@/models/PersonalInformation";
 import FileCard from "@/components/document-repository/FileCard";
 import Filters from "@/components/document-repository/Filters";
 import FolderCard from "@/components/document-repository/FolderCard";
@@ -8,69 +19,66 @@ import {
   getSearchSuggestions,
   type DocumentRepositoryFilters,
 } from "@/components/document-repository/search-utils";
-import type { DocumentFolder } from "@/models/DocumentFolder";
-import type { PersonalInformation } from "@/models/PersonalInformation";
-import type {
-  TeacherDocument,
-  UpdateTeacherDocument,
-} from "@/models/TeacherDocument";
-import type { User } from "@/models/user";
-import { useResourceLocked } from "@saintrelion/data-access-layer";
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronRight,
-  FileStack,
-  FolderArchive,
   Home,
+  RotateCcw,
+  FolderOpen,
   SearchX,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 const PAGE_SIZE = 8;
 
-const DocumentExplorer = ({
-  user,
-  initialSearch,
-  initialFolder,
-}: {
-  user: User;
-  initialSearch?: string;
-  initialFolder?: string;
-}) => {
-  const [selectedFolderId, setSelectedFolderId] = useState<string>("");
-  const [search, setSearch] = useState(initialSearch ?? "");
-  const [filters, setFilters] = useState<DocumentRepositoryFilters>({
-    ...defaultDocumentRepositoryFilters,
-    status: "archived",
-  });
+const RestoredRepositoryPage = () => {
+  const user = useCurrentUser<User>();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const q = params.get("q") ?? "";
+  const folder = params.get("folder") ?? "";
+
+  const [selectedFolderId, setSelectedFolderId] = useState(folder);
+  const [search, setSearch] = useState(q);
+  const [filters, setFilters] = useState<DocumentRepositoryFilters>(
+    defaultDocumentRepositoryFilters,
+  );
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    if (initialFolder) {
-      setSelectedFolderId(initialFolder);
-    }
-  }, [initialFolder]);
+  const role = user?.roles ? user.roles[0] : "";
 
   const { useList: getFolders } =
     useResourceLocked<DocumentFolder>("documentfolder");
-
-  const { useList: getDocuments, useUpdate: updateDocument } =
-    useResourceLocked<TeacherDocument, never, UpdateTeacherDocument>(
-      "teacherdocument",
-    );
-
+  const { useList: getDocuments } =
+    useResourceLocked<TeacherDocument>("teacherdocument");
   const { useList: getPersonalInfo } = useResourceLocked<PersonalInformation>(
     "personalinformation",
   );
 
-  const role = user.roles ? user.roles[0] : "";
-  const personalInfos = getPersonalInfo().data;
+  const { useUpdate: updateDocument } = useResourceLocked<
+    TeacherDocument,
+    never,
+    UpdateTeacherDocument
+  >("teacherdocument");
+
   const documentFolders = getFolders().data;
-  const documents = getDocuments({
-    filters: {
-      is_archived: "True",
-    },
+  const personalInfos = getPersonalInfo().data;
+
+  // Only restored docs: is_archived=False AND restored_at is not null
+  // Backend should support restored=True filter — if not, filter client-side
+  const allLive = getDocuments({
+    filters:
+      role === "admin"
+        ? { is_archived: "False" }
+        : { user: user?.id, is_archived: "False" },
   }).data;
+
+  const documents = useMemo(
+    () => allLive?.filter((doc) => doc.restored_at !== null) ?? [],
+    [allLive],
+  );
+
+  console.log(documents);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -81,35 +89,27 @@ const DocumentExplorer = ({
       string,
       { folder: string; folder_name: string; count: number }
     >();
-
     if (!documentFolders || !documents) return [];
-
-    documentFolders.forEach((folder) => {
-      map.set(folder.id, {
-        folder: folder.id,
-        folder_name: folder.name,
-        count: 0,
-      });
-    });
-
+    documentFolders.forEach((f) =>
+      map.set(f.id, { folder: f.id, folder_name: f.name, count: 0 }),
+    );
     documents.forEach((doc) => {
       if (!doc.folder_id) return;
       const entry = map.get(doc.folder_id);
       if (entry) entry.count += 1;
     });
-
     return Array.from(map.values())
-      .filter((folder) => folder.count > 0)
-      .map((folder) => ({
-        folder_name: folder.folder_name,
-        files_count: String(folder.count),
-        folder: folder.folder,
+      .filter((f) => f.count > 0)
+      .map((f) => ({
+        folder_name: f.folder_name,
+        files_count: String(f.count),
+        folder: f.folder,
       }));
   }, [documentFolders, documents]);
 
   const folderName =
-    foldersWithDocs.find((folder) => folder.folder === selectedFolderId)
-      ?.folder_name ?? "";
+    foldersWithDocs.find((f) => f.folder === selectedFolderId)?.folder_name ??
+    "";
 
   const searchResults = useMemo(
     () =>
@@ -141,10 +141,11 @@ const DocumentExplorer = ({
   const paginationStart =
     searchResults.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const paginationEnd = Math.min(currentPage * PAGE_SIZE, searchResults.length);
-  const pageNumbers = Array.from(
-    { length: totalPages },
-    (_, index) => index + 1,
-  ).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1));
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1).slice(
+    Math.max(0, currentPage - 2),
+    Math.min(totalPages, currentPage + 1),
+  );
+
   const departmentOptions = useMemo(
     () => buildDepartmentOptions(personalInfos),
     [personalInfos],
@@ -161,50 +162,30 @@ const DocumentExplorer = ({
     [documents, personalInfos, documentFolders],
   );
 
-  const totalArchivedDocuments = documents?.length ?? 0;
-  const archivedFoldersCount = foldersWithDocs.filter(
-    (folder) => Number(folder.files_count) > 0,
-  ).length;
-
-  const handleFilterChange = (filterType: string, value: string) => {
-    if (filterType === "reset") {
-      setFilters({
-        ...defaultDocumentRepositoryFilters,
-        status: "archived",
-      });
-      return;
-    }
-
-    if (filterType === "status" && value !== "" && value !== "archived") {
-      return;
-    }
-
-    setFilters((prev) => ({
-      ...prev,
-      [filterType]:
-        filterType === "status" && value === "" ? "archived" : value,
-    }));
-  };
-
   return (
-    <>
+    <RenderForm wrapperClassName="flex-1 bg-slate-50 p-4 md:p-6 lg:p-8">
       <Filters
         filters={filters}
         searchValue={search}
         onSearchChange={setSearch}
-        onFilterChange={handleFilterChange}
+        onFilterChange={(type, value) => {
+          if (type === "reset") {
+            setFilters(defaultDocumentRepositoryFilters);
+            return;
+          }
+          setFilters((prev) => ({ ...prev, [type]: value }));
+        }}
         suggestionItems={searchSuggestions}
         departmentOptions={departmentOptions}
-        statusOptions={[{ label: "Archived", value: "archived" }]}
       />
 
       <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-        <Home className="h-4 w-4 text-blue-600" />
+        <Home className="h-4 w-4 text-emerald-600" />
         <span
           className="cursor-pointer font-medium transition-opacity hover:opacity-60"
           onClick={() => setSelectedFolderId("")}
         >
-          Archived Repository
+          Restored Repository
         </span>
         {selectedFolderId !== "" && (
           <>
@@ -215,52 +196,44 @@ const DocumentExplorer = ({
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-slate-200/60 bg-white/80 shadow-[0_24px_80px_-42px_rgba(15,23,42,0.35)] backdrop-blur-sm">
-        <div className="border-b border-slate-200/70 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white">
+        {/* Header stats */}
+        <div className="border-b border-slate-200/70 bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 p-6 text-white">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {/* Total Archived Files */}
-            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors hover:bg-white/10">
               <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
-                <FileStack className="h-4 w-4 text-blue-400" />
-                Archived Files
+                <RotateCcw className="h-4 w-4 text-emerald-400" />
+                Restored Files
               </div>
               <p className="mt-3 text-3xl font-bold tracking-tight text-white">
-                {totalArchivedDocuments.toLocaleString()}
+                {documents.length.toLocaleString()}
               </p>
             </div>
-
-            {/* Active Folders */}
-            <div className="transition-hover rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors hover:bg-white/10">
               <div className="flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">
-                <FolderArchive className="h-4 w-4 text-emerald-400" />
-                Folders with Archives
+                <FolderOpen className="h-4 w-4 text-sky-400" />
+                Folders
               </div>
               <p className="mt-3 text-3xl font-bold tracking-tight text-white">
-                {archivedFoldersCount.toLocaleString()}
+                {foldersWithDocs.length.toLocaleString()}
               </p>
             </div>
           </div>
         </div>
 
+        {/* Folders */}
         <div className="border-b border-slate-200/70 p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Folders</h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Browse archive volumes by repository folder.
-              </p>
-            </div>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-slate-900">Folders</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Browse restored documents by folder.
+            </p>
           </div>
-
           <motion.div
             initial="hidden"
             animate="show"
             variants={{
               hidden: {},
-              show: {
-                transition: {
-                  staggerChildren: 0.06,
-                },
-              },
+              show: { transition: { staggerChildren: 0.06 } },
             }}
             className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-5"
           >
@@ -288,18 +261,16 @@ const DocumentExplorer = ({
           </motion.div>
         </div>
 
+        {/* Documents */}
         <div className="p-6">
-          <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">
-                {selectedFolderId === "" ? "Archived Documents" : folderName}
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                {searchResults.length} archived item
-                {searchResults.length === 1 ? "" : "s"} ready for review or
-                restoration.
-              </p>
-            </div>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-slate-900">
+              {selectedFolderId === "" ? "Restored Documents" : folderName}
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">
+              {searchResults.length} restored item
+              {searchResults.length === 1 ? "" : "s"}.
+            </p>
           </div>
 
           {searchResults.length === 0 ? (
@@ -308,12 +279,10 @@ const DocumentExplorer = ({
                 <SearchX className="h-7 w-7" />
               </div>
               <h4 className="mt-5 text-lg font-semibold text-slate-900">
-                No documents found
+                No restored documents
               </h4>
               <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Try adjusting your keywords, narrowing the date range
-                differently, or clearing the current filters to expand the
-                archive results.
+                Documents restored from the archive will appear here.
               </p>
             </div>
           ) : (
@@ -324,11 +293,7 @@ const DocumentExplorer = ({
                   animate="show"
                   variants={{
                     hidden: {},
-                    show: {
-                      transition: {
-                        staggerChildren: 0.05,
-                      },
-                    },
+                    show: { transition: { staggerChildren: 0.05 } },
                   }}
                   className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 >
@@ -339,7 +304,6 @@ const DocumentExplorer = ({
                     const ownerName = owner
                       ? `${owner.first_name} ${owner.last_name}`
                       : "none";
-
                     return (
                       <motion.div
                         key={result.doc.id}
@@ -355,14 +319,11 @@ const DocumentExplorer = ({
                           ownerName={ownerName}
                           highlightTerms={result.searchTerms}
                           matchContext={result.matchContext}
-                          onRestore={() => {
+                          onArchive={() => {
                             if (!updateDocument.isLocked) {
                               updateDocument.run({
                                 id: result.doc.id,
-                                payload: {
-                                  is_archived: false,
-                                  restored_at: new Date().toISOString(),
-                                },
+                                payload: { is_archived: true },
                               });
                             }
                           }}
@@ -376,22 +337,18 @@ const DocumentExplorer = ({
               {totalPages > 1 && (
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
-                    Showing {paginationStart}-{paginationEnd} of{" "}
+                    Showing {paginationStart}–{paginationEnd} of{" "}
                     {searchResults.length}
                   </p>
-
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        setCurrentPage((page) => Math.max(1, page - 1))
-                      }
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Previous
                     </button>
-
                     {pageNumbers.map((page) => (
                       <button
                         key={page}
@@ -400,20 +357,19 @@ const DocumentExplorer = ({
                         className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-medium transition ${
                           currentPage === page
                             ? "border-slate-900 bg-slate-900 text-white"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                         }`}
                       >
                         {page}
                       </button>
                     ))}
-
                     <button
                       type="button"
                       onClick={() =>
-                        setCurrentPage((page) => Math.min(totalPages, page + 1))
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
                       }
                       disabled={currentPage === totalPages}
-                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Next
                     </button>
@@ -424,8 +380,8 @@ const DocumentExplorer = ({
           )}
         </div>
       </div>
-    </>
+    </RenderForm>
   );
 };
 
-export default DocumentExplorer;
+export default RestoredRepositoryPage;

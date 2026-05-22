@@ -12,6 +12,7 @@ import DocumentExplorer from "../document-repository/DocumentExplorer";
 import { useResourceLocked } from "@saintrelion/data-access-layer";
 import type { User } from "@/models/user";
 import type { PersonalInformation } from "@/models/PersonalInformation";
+import { useState } from "react";
 
 const DocumentsTab = ({ userId }: { userId: string }) => {
   const { useList: getUsers } = useResourceLocked<User>("user");
@@ -32,13 +33,19 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
   const myInformation =
     informations && informations.length > 0 ? informations[0] : undefined;
 
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
   return (
     <div>
       <h4 className="mb-6 text-lg font-semibold text-gray-900">
         Document Repository
       </h4>
 
-      <Dialog>
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) setUploadedFileName(null);
+        }}
+      >
         <DialogTrigger className="w-full">
           <div className="mb-6 cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50">
             <div className="space-y-3">
@@ -59,7 +66,14 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
         <DialogContent className="mx-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-lg transition-all duration-300 sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-gray-800 sm:text-3xl">
-              Document License Form
+              {uploadedFileName ? (
+                uploadedFileName
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+                  Waiting for file…
+                </span>
+              )}
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
@@ -71,6 +85,7 @@ const DocumentsTab = ({ userId }: { userId: string }) => {
                   ? `${myInformation.first_name} ${myInformation.middle_name} ${myInformation.last_name}`
                   : `Username: ${user.username}`
               }
+              onFileSelect={(name) => setUploadedFileName(name)}
             />
           )}
         </DialogContent>

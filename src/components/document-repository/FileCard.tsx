@@ -17,6 +17,7 @@ import {
   Loader2,
   CheckCircle2,
   CloudDownload,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatReadableDate } from "@saintrelion/time-functions";
@@ -32,16 +33,12 @@ const highlightText = (value: string, terms: string[]) => {
       terms.map((term) => term.trim()).filter((term) => term.length >= 2),
     ),
   );
-
   if (!value || cleanTerms.length === 0) return value;
-
   const regex = new RegExp(`(${cleanTerms.map(escapeRegExp).join("|")})`, "gi");
-
   return value.split(regex).map((part, index) => {
     const isMatch = cleanTerms.some(
       (term) => part.toLowerCase() === term.toLowerCase(),
     );
-
     return isMatch ? (
       <mark
         key={`${part}-${index}`}
@@ -128,11 +125,11 @@ const FileCard = ({
   matchContext?: string[];
 }) => {
   const isMissingOwner: boolean = ownerName.toLowerCase() === "none";
-
   const { Icon, wrapperClassName, iconClassName } = getDocumentIcon(
     doc.extension,
   );
   const statusClassName = getDocumentStatusClassName(doc.expiry_date);
+  const isExpired = !!doc.expiry_date && new Date(doc.expiry_date) < new Date();
 
   const [isContextOpen, setIsContextOpen] = useState<boolean>(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
@@ -161,9 +158,8 @@ const FileCard = ({
     const base64 = data.split(",")[1] || data;
     const byteCharacters = atob(base64);
     const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
+    for (let i = 0; i < byteCharacters.length; i++)
       byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
     const blob = new Blob([new Uint8Array(byteNumbers)], {
       type: `application/${ext}`,
     });
@@ -172,7 +168,6 @@ const FileCard = ({
 
   const preloadData = async (): Promise<void> => {
     if (fetchStatus === "ready" || fetchStatus === "fetching") return;
-
     setFetchStatus("fetching");
     try {
       const response = await fetch(
@@ -182,10 +177,8 @@ const FileCard = ({
           headers: { "Content-Type": "application/json" },
         },
       );
-
       if (response.ok) {
         const result = await response.json();
-
         setFullDoc({ ...doc, file_base64: result.file_base64 });
         setFetchStatus("ready");
       } else {
@@ -193,7 +186,7 @@ const FileCard = ({
         toast.error("Server error: " + response.status);
       }
     } catch (error) {
-      setFetchStatus("error"); // This catches ERR_CONNECTION_REFUSED
+      setFetchStatus("error");
       toast.error("Connection Refused. Is the backend running?");
       console.error("Connection error:", error);
     }
@@ -202,7 +195,6 @@ const FileCard = ({
   const handleAction = async (type: "download" | "print" | "preview") => {
     setIsContextOpen(false);
     if (!fullDoc?.file_base64) return;
-
     if (type === "preview") {
       setIsPreviewOpen(true);
     } else {
@@ -240,199 +232,215 @@ const FileCard = ({
         role="button"
         tabIndex={0}
         onClick={preloadData}
-        className="group relative flex w-full cursor-pointer flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-md"
+        className={`group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:shadow-md ${
+          isExpired
+            ? "border-red-300 hover:border-red-400"
+            : "border-slate-200 hover:border-blue-300"
+        }`}
       >
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${wrapperClassName}`}
-          >
-            <Icon className={`h-6 w-6 ${iconClassName}`} strokeWidth={2} />
-          </div>
-
-          <div ref={menuRef} className="relative flex items-center gap-2">
-            {/* Status Pill */}
-            <div
-              className={`flex h-8 items-center gap-2 rounded-lg px-2 text-[10px] font-bold transition-all ${
-                fetchStatus === "fetching"
-                  ? "animate-pulse bg-blue-50 text-blue-500"
-                  : fetchStatus === "ready"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : fetchStatus === "error"
-                      ? "bg-red-50 text-red-600"
-                      : "bg-slate-50 text-slate-400"
-              }`}
-            >
-              {fetchStatus === "fetching" ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : fetchStatus === "ready" ? (
-                <CheckCircle2 className="h-3 w-3" />
-              ) : fetchStatus === "error" ? (
-                <FileWarning className="h-3 w-3" />
-              ) : (
-                <CloudDownload className="h-3 w-3" />
-              )}
-              <span>{fetchStatus.toUpperCase()}</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsContextOpen(!isContextOpen);
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-transparent bg-slate-50 text-slate-400 hover:border-slate-200 hover:bg-white"
-            >
-              <Ellipsis className="h-4 w-4" />
-            </button>
-
-            {isContextOpen && (
-              <div
-                className="absolute top-11 right-0 z-50 w-44 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {!doc.is_archived ? (
-                  <>
-                    <button
-                      onClick={() => handleAction("download")}
-                      className={actionButtonClassName}
-                    >
-                      <Download className="h-4 w-4 text-slate-400" /> Download
-                    </button>
-                    <button
-                      onClick={() => handleAction("print")}
-                      className={actionButtonClassName}
-                    >
-                      <Printer className="h-4 w-4 text-slate-400" /> Print
-                    </button>
-                    <button
-                      onClick={() => onArchive?.()}
-                      className={`${actionButtonClassName} text-red-600 hover:bg-red-50`}
-                    >
-                      <Trash2 className="h-4 w-4" /> Archive
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => onRestore?.()}
-                    className={`${actionButtonClassName} text-emerald-600 hover:bg-emerald-50`}
-                  >
-                    <RotateCcw className="h-4 w-4" /> Restore
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div
-          className={`mb-2 flex flex-col gap-1 rounded-lg px-2 py-1 transition-colors ${
-            isMissingOwner
-              ? "border border-dashed border-orange-200 bg-orange-50/50"
-              : ""
-          }`}
-        >
-          <p
-            className={`text-[11px] italic ${isMissingOwner ? "text-orange-600" : "text-slate-500"}`}
-          >
-            {isMissingOwner ? (
-              <span className="flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
-                </span>
-                Teacher account: Waiting for name update
-              </span>
-            ) : (
-              <>
-                Owned by:{" "}
-                <span className="font-semibold text-slate-600">
-                  {ownerName}
-                </span>
-              </>
-            )}
-          </p>
-        </div>
-
-        <div className="min-w-0">
-          <h4 className="text-md mb-1 truncate font-bold text-slate-900 transition-colors group-hover:text-blue-600">
-            {highlightText(doc.document_title, highlightTerms)}
-          </h4>
-          <p className="mb-3 text-xs font-medium text-slate-400">
-            {doc.extension.toUpperCase()} • {doc.file_size_in_mb} MB
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-slate-400">Issued</span>
-            <span className="text-slate-600">
-              {formatReadableDate(doc.issue_date)}
+        {/* Expired banner */}
+        {isExpired && (
+          <div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 text-white">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <span className="text-[11px] font-bold tracking-widest uppercase">
+              Document Expired
             </span>
-          </div>
-
-          {doc.expiry_date ? (
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="text-slate-400">Expires</span>
-              <span
-                className={
-                  new Date(doc.expiry_date) < new Date()
-                    ? "text-rose-600"
-                    : "text-slate-600"
-                }
-              >
-                {formatReadableDate(doc.expiry_date)}
-              </span>
-            </div>
-          ) : (
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="text-slate-400">Validity</span>
-              <span className="text-emerald-600 italic">Permanent</span>
-            </div>
-          )}
-        </div>
-
-        {matchContext.length > 0 && (
-          <div className="mb-4 space-y-1.5">
-            {matchContext.slice(0, 2).map((item, i) => (
-              <p
-                key={i}
-                className="line-clamp-1 border-l-2 border-slate-100 pl-2 text-[11px] text-slate-500 italic"
-              >
-                "{highlightText(item, highlightTerms)}"
-              </p>
-            ))}
+            <span className="ml-auto text-[10px] font-medium opacity-80">
+              {formatReadableDate(doc.expiry_date)}
+            </span>
           </div>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-50 pt-4">
-          {/* Status Badge - Reduced padding/text for better fit */}
-          <span
-            className={`${statusClassName.className} truncate rounded-full px-2 py-1 text-[9px] font-bold tracking-tight uppercase`}
-          >
-            {statusClassName.label}
-          </span>
+        <div className="p-4">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${isExpired ? "bg-red-50" : wrapperClassName}`}
+            >
+              <Icon
+                className={`h-6 w-6 ${isExpired ? "text-red-400" : iconClassName}`}
+                strokeWidth={2}
+              />
+            </div>
 
-          {/* Preview Button - Compact version */}
-          <button
-            type="button"
-            disabled={!previewSupported}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAction("preview");
-            }}
-            className={`flex shrink-0 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all ${
-              !isReady
-                ? "cursor-not-allowed bg-slate-100 text-slate-300"
-                : "bg-blue-600 text-white shadow-md hover:bg-blue-700"
-            }`}
-            title={isReady ? "View Preview" : "Prepare file first"}
+            <div ref={menuRef} className="relative flex items-center gap-2">
+              {/* Fetch status pill */}
+              <div
+                className={`flex h-8 items-center gap-2 rounded-lg px-2 text-[10px] font-bold transition-all ${
+                  fetchStatus === "fetching"
+                    ? "animate-pulse bg-blue-50 text-blue-500"
+                    : fetchStatus === "ready"
+                      ? "bg-emerald-50 text-emerald-600"
+                      : fetchStatus === "error"
+                        ? "bg-red-50 text-red-600"
+                        : "bg-slate-50 text-slate-400"
+                }`}
+              >
+                {fetchStatus === "fetching" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : fetchStatus === "ready" ? (
+                  <CheckCircle2 className="h-3 w-3" />
+                ) : fetchStatus === "error" ? (
+                  <FileWarning className="h-3 w-3" />
+                ) : (
+                  <CloudDownload className="h-3 w-3" />
+                )}
+                <span>{fetchStatus.toUpperCase()}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsContextOpen(!isContextOpen);
+                }}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-transparent bg-slate-50 text-slate-400 hover:border-slate-200 hover:bg-white"
+              >
+                <Ellipsis className="h-4 w-4" />
+              </button>
+
+              {isContextOpen && (
+                <div
+                  className="absolute top-11 right-0 z-50 w-44 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {!doc.is_archived ? (
+                    <>
+                      <button
+                        onClick={() => handleAction("download")}
+                        className={actionButtonClassName}
+                      >
+                        <Download className="h-4 w-4 text-slate-400" /> Download
+                      </button>
+                      <button
+                        onClick={() => handleAction("print")}
+                        className={actionButtonClassName}
+                      >
+                        <Printer className="h-4 w-4 text-slate-400" /> Print
+                      </button>
+                      <button
+                        onClick={() => onArchive?.()}
+                        className={`${actionButtonClassName} text-red-600 hover:bg-red-50`}
+                      >
+                        <Trash2 className="h-4 w-4" /> Archive
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => onRestore?.()}
+                      className={`${actionButtonClassName} text-emerald-600 hover:bg-emerald-50`}
+                    >
+                      <RotateCcw className="h-4 w-4" /> Restore
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Owner */}
+          <div
+            className={`mb-2 flex flex-col gap-1 rounded-lg px-2 py-1 transition-colors ${isMissingOwner ? "border border-dashed border-orange-200 bg-orange-50/50" : ""}`}
           >
-            <Eye className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">
-              {isReady ? "VIEW" : "WAIT"}
+            <p
+              className={`text-[11px] italic ${isMissingOwner ? "text-orange-600" : "text-slate-500"}`}
+            >
+              {isMissingOwner ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
+                  </span>
+                  Teacher account: Waiting for name update
+                </span>
+              ) : (
+                <>
+                  Owned by:{" "}
+                  <span className="font-semibold text-slate-600">
+                    {ownerName}
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+
+          <div className="min-w-0">
+            <h4
+              className={`text-md mb-1 font-bold break-words transition-colors group-hover:text-blue-600 ${isExpired ? "text-red-900" : "text-slate-900"}`}
+            >
+              {highlightText(doc.document_title, highlightTerms)}
+            </h4>
+            <p className="mb-3 text-xs font-medium text-slate-400">
+              {doc.extension.toUpperCase()} • {doc.file_size_in_mb} MB
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-slate-400">Issued</span>
+              <span className="text-slate-600">
+                {formatReadableDate(doc.issue_date)}
+              </span>
+            </div>
+            {doc.expiry_date ? (
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-slate-400">Expires</span>
+                <span
+                  className={
+                    isExpired
+                      ? "font-extrabold text-rose-600"
+                      : "text-slate-600"
+                  }
+                >
+                  {formatReadableDate(doc.expiry_date)}
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-slate-400">Validity</span>
+                <span className="text-emerald-600 italic">Permanent</span>
+              </div>
+            )}
+          </div>
+
+          {matchContext.length > 0 && (
+            <div className="mb-4 space-y-1.5">
+              {matchContext.slice(0, 2).map((item, i) => (
+                <p
+                  key={i}
+                  className="line-clamp-1 border-l-2 border-slate-100 pl-2 text-[11px] text-slate-500 italic"
+                >
+                  "{highlightText(item, highlightTerms)}"
+                </p>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-50 pt-4">
+            <span
+              className={`${statusClassName.className} truncate rounded-full px-2 py-1 text-[9px] font-bold tracking-tight uppercase`}
+            >
+              {statusClassName.label}
             </span>
-          </button>
+            <button
+              type="button"
+              disabled={!previewSupported}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAction("preview");
+              }}
+              className={`flex shrink-0 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all ${
+                !isReady
+                  ? "cursor-not-allowed bg-slate-100 text-slate-300"
+                  : "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+              }`}
+              title={isReady ? "View Preview" : "Prepare file first"}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {isReady ? "VIEW" : "WAIT"}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -440,7 +448,7 @@ const FileCard = ({
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
         doc={fullDoc}
-        isFetching={fetchStatus != "ready"}
+        isFetching={fetchStatus !== "ready"}
       />
     </>
   );

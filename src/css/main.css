@@ -1,35 +1,61 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap");
-
 /* main.css */
 
-/* Use this to hide things on screen but keep them for the printer */
+/* Hide on screen, show for print */
 .only-print {
   display: none !important;
 }
 
+.print-page {
+  break-before: page;
+  page-break-before: always;
+  break-inside: avoid-page;
+}
+
+.print-page:first-child {
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
 @media print {
-  /* 1. Hide the entire App root and any Dialogs/Overlays */
+  .print-page {
+    overflow: visible !important; /* let printer render full content */
+    height: auto !important; /* browser handles pagination */
+  }
+
+  /* but still break at the right spots */
+  .print-page {
+    break-before: page;
+    page-break-before: always;
+    height: 12in; /* content area, not paper size */
+    min-height: unset;
+    overflow: hidden;
+  }
+  .print-page:first-child {
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+
   #root,
   [role="dialog"],
   .no-print {
     display: none !important;
   }
 
-  /* 2. Show only the Portal content */
   .only-print {
     display: block !important;
-    position: absolute !important;
+    position: fixed !important; /* fixed, not absolute — prevents scroll offset issues */
     top: 0 !important;
     left: 0 !important;
     width: 100% !important;
     background: white !important;
+    z-index: 9999 !important;
   }
 
-  /* 3. Clear all browser margins */
   @page {
     margin: 0;
-    size: auto;
+    size: 8.5in 13in; /* Legal — DO NOT use "auto", that reads OS default */
   }
 
   html,
@@ -41,18 +67,30 @@
     overflow: visible !important;
   }
 
-  /* 4. Force colors (official PDS gray headers) */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* 5. Target your PDS root specifically */
   #pds-printable-root {
     margin: 0 !important;
     box-shadow: none !important;
-    border: none !important;
+    /* REMOVE border: none — it kills table borders */
     visibility: visible !important;
+  }
+
+  /* FIX: Force table borders to be visible on print */
+  #pds-printable-root table,
+  #pds-printable-root th,
+  #pds-printable-root td {
+    border-color: black !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  ,
+  #pds-printable-root td,
+  #pds-printable-root th {
+    border: 1px solid black !important;
   }
 }
 

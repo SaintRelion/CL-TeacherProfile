@@ -6,16 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   FileText,
   Printer,
@@ -26,18 +17,12 @@ import {
   Eye,
 } from "lucide-react";
 
-import {
-  PDS_CONFIG,
-  type PDSDataNode,
-  type PDSPrintTemplateData,
-} from "@/pds-schema";
+import { type PDSDataNode, type PDSPrintTemplateData } from "@/pds-schema";
 import type { User } from "@/models/user";
 import { transformDbToPrintData } from "@/lib/pds-mapper";
 import {
   PDSPrintTemplate,
   type PDSPrintMode,
-  type PDSPrintPaperSize,
-  type PDSPrintSectionId,
   type PDSPrintTemplateOptions,
 } from "./PDSPrintTemplate";
 import html2pdf from "html2pdf.js";
@@ -54,19 +39,14 @@ export const PDSExportOptions: React.FC<Props> = ({
   user,
 }) => {
   // --- States ---
-  const [paperSize, setPaperSize] = useState<PDSPrintPaperSize>("A4");
   const [printMode, setPrintMode] = useState<PDSPrintMode>("filled");
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
-  const [sectionsToPrint, setSectionsToPrint] = useState<
-    Record<string, boolean>
-  >(() =>
-    PDS_CONFIG.reduce(
-      (acc, s) => {
-        acc[s.id] = true;
-        return acc;
-      },
-      {} as Record<string, boolean>,
-    ),
+
+  const printOptions = useMemo<PDSPrintTemplateOptions>(
+    () => ({
+      mode: printMode,
+    }),
+    [printMode],
   );
 
   // --- Memos ---
@@ -75,80 +55,72 @@ export const PDSExportOptions: React.FC<Props> = ({
     return transformDbToPrintData(user.pds as PDSDataNode);
   }, [user]);
 
-  const printOptions = useMemo<PDSPrintTemplateOptions>(
-    () => ({
-      mode: printMode,
-      paperSize: paperSize,
-      includedSections: Object.keys(sectionsToPrint).filter(
-        (id) => sectionsToPrint[id],
-      ) as PDSPrintSectionId[],
-    }),
-    [printMode, paperSize, sectionsToPrint],
-  );
-
   // --- The "Golden" Print Function ---
   const handlePrint = () => {
     const content = document.getElementById("pds-printable-root");
     if (!content) return;
 
-    // 1. Create Isolation Window
     const printWindow = window.open("", "_blank", "width=1100,height=900");
     if (!printWindow) return;
 
-    // 2. Clone ALL application styles (Tailwind, Main CSS, Shadcn)
     const styleTags = Array.from(
       document.querySelectorAll('style, link[rel="stylesheet"]'),
     )
       .map((tag) => tag.outerHTML)
       .join("\n");
 
-    // 3. Construct the Print Document
+    // Clone and REMOVE the only-print class so it's visible in the new window
+    const cloned = content.cloneNode(true) as HTMLElement;
+    cloned.classList.remove("only-print");
+    cloned.style.display = "block";
+
     printWindow.document.write(`
-      <html>
-        <head>
-          <title>PDS Export - ${user.username}</title>
-          ${styleTags}
-          <style>
-            body { 
-              margin: 0 !important; 
-              padding: 20px !important; 
-              background: #f1f5f9 !important; 
-              display: flex;
-              justify-content: center;
+    <html>
+      <head>
+        <title>PDS Export - ${user.username}</title>
+        ${styleTags}
+        <style>
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+          }
+          #pds-printable-root {
+            margin: 0 auto !important;
+            box-shadow: none !important;
+            display: block !important;
+          }
+          table, th, td {
+            border-color: black !important;
+          }
+          @media print {
+            @page { margin: 0; size: auto; }
+            body { padding: 0 !important; background: white !important; }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
-            #pds-printable-root { 
-              margin: 0 auto !important; 
-              box-shadow: none !important; 
+            .print-page {
+              break-before: page;
+              page-break-before: always;
             }
-            @media print {
-              @page { 
-                margin: 0; 
-                size: auto; 
-              }
-              body { 
-                padding: 0 !important; 
-                background: white !important; 
-              }
-              * { 
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important; 
-              }
+            .print-page:first-child {
+              break-before: avoid;
+              page-break-before: avoid;
             }
-          </style>
-        </head>
-        <body>
-          ${content.outerHTML}
-          <script>
-            window.onload = () => {
-              setTimeout(() => {
-                window.print();
-                // Optional: window.close();
-              }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
+          }
+        </style>
+      </head>
+      <body>
+        ${cloned.outerHTML}
+        <script>
+          window.onload = () => {
+            setTimeout(() => { window.print(); }, 800);
+          };
+        </script>
+      </body>
+    </html>
+  `);
 
     printWindow.document.close();
   };
@@ -171,8 +143,8 @@ export const PDSExportOptions: React.FC<Props> = ({
       },
       jsPDF: {
         unit: "in",
-        format: "letter",
-        orientation: "portrait" as const, // Same here for orientation
+        format: [8.5, 13] as [number, number],
+        orientation: "portrait" as const,
       },
     };
 
@@ -188,81 +160,31 @@ export const PDSExportOptions: React.FC<Props> = ({
     <>
       {/* 1. CONFIGURATION DIALOG */}
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[500px] p-6">
+        <DialogContent className="max-w-[380px] p-6">
           <DialogHeader className="flex flex-row items-center gap-2">
             <Settings2 className="h-5 w-5 text-emerald-600" />
-            <DialogTitle>PDS Export Options</DialogTitle>
+            <DialogTitle>Export PDS</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">
-                  Paper Size
-                </label>
-                <Select
-                  value={paperSize}
-                  onValueChange={(v) => setPaperSize(v as PDSPrintPaperSize)}
+          <div className="py-4">
+            <label className="text-xs font-bold text-slate-500 uppercase">
+              Print Mode
+            </label>
+            <div className="mt-2 flex gap-3">
+              {(["filled", "blank"] as PDSPrintMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setPrintMode(mode)}
+                  className={`flex-1 rounded-xl border-2 py-3 text-[11px] font-black tracking-widest uppercase transition-all ${
+                    printMode === mode
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300"
+                  }`}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A4">A4 (Standard)</SelectItem>
-                    <SelectItem value="Letter">Letter (Short)</SelectItem>
-                    <SelectItem value="Legal">Legal (Long)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">
-                  Print Mode
-                </label>
-                <Select
-                  value={printMode}
-                  onValueChange={(v) => setPrintMode(v as PDSPrintMode)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="filled">Filled Data</SelectItem>
-                    <SelectItem value="blank">Blank Form</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">
-                Sections to Include
-              </label>
-              <ScrollArea className="h-[220px] rounded-lg border bg-slate-50 p-4">
-                {PDS_CONFIG.map((s) => (
-                  <div
-                    key={s.id}
-                    className="mb-3 flex items-center gap-3 last:mb-0"
-                  >
-                    <Checkbox
-                      id={`section-${s.id}`}
-                      checked={sectionsToPrint[s.id]}
-                      onCheckedChange={() =>
-                        setSectionsToPrint((prev) => ({
-                          ...prev,
-                          [s.id]: !prev[s.id],
-                        }))
-                      }
-                    />
-                    <label
-                      htmlFor={`section-${s.id}`}
-                      className="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {s.title}
-                    </label>
-                  </div>
-                ))}
-              </ScrollArea>
+                  {mode === "filled" ? "Filled Data" : "Blank Form"}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -270,7 +192,6 @@ export const PDSExportOptions: React.FC<Props> = ({
             <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            {/* ONLY ONE PRIMARY ACTION HERE: GENERATE PREVIEW */}
             <Button
               className="gap-2 bg-blue-600 px-8 shadow-md transition-all hover:bg-blue-700 active:scale-95"
               onClick={() => {
@@ -302,7 +223,7 @@ export const PDSExportOptions: React.FC<Props> = ({
                   PDS Digital Preview
                 </h3>
                 <p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                  Format: {paperSize} | Mode: {printMode}
+                  Mode: {printMode}
                 </p>
               </div>
             </div>
@@ -356,7 +277,13 @@ export const PDSExportOptions: React.FC<Props> = ({
           <div className="no-scrollbar custom-scroll flex-1 overflow-auto bg-slate-800 p-10">
             <div className="flex min-h-full items-start justify-center">
               {formData && (
-                <div className="transition-all duration-300 ease-in-out hover:shadow-[0_0_100px_rgba(0,0,0,0.6)]">
+                <div
+                  className="transition-all duration-300 ease-in-out hover:shadow-[0_0_100px_rgba(0,0,0,0.6)]"
+                  // Force show even though only-print hides it
+                  style={{ display: "block" }}
+                >
+                  {/* Inline override to defeat only-print */}
+                  <style>{`#pds-printable-root { display: block !important; }`}</style>
                   <PDSPrintTemplate
                     formData={formData}
                     options={printOptions}
