@@ -1,5 +1,4 @@
 import type { PDSPrintQuestion, PDSPrintTemplateData } from "@/pds-schema";
-import type { CSSProperties } from "react";
 import { PDSPage1 } from "./pds-templates/PDSPage1";
 import PDSPage2 from "./pds-templates/PDSPage2";
 import { PDSPage3 } from "./pds-templates/PDSPage3";
@@ -18,16 +17,11 @@ export type PDSPrintSectionId =
   | "VIII"
   | "IX";
 
-const paperSizes: Record<PDSPrintPaperSize, CSSProperties> = {
-  A4: { width: "210mm", minHeight: "297mm" },
-  Letter: { width: "8.5in", minHeight: "11in" },
-  Legal: { width: "8.5in", minHeight: "14in" },
-};
+const PAGE_WIDTH = "8.5in";
+const PAGE_HEIGHT = "12in";
 
 export interface PDSPrintTemplateOptions {
-  paperSize: PDSPrintPaperSize;
   mode: PDSPrintMode;
-  includedSections: PDSPrintSectionId[];
 }
 
 const createEmptyFormData = (): PDSPrintTemplateData => ({
@@ -122,28 +116,40 @@ export const PDSPrintTemplate = ({
   formData: PDSPrintTemplateData;
   options: PDSPrintTemplateOptions;
 }) => {
-  const show = (id: string) =>
-    options.includedSections.includes(id as PDSPrintSectionId);
-
-  // Use blank data if mode is blank, otherwise use the transformed formData
+  const show = () => true;
   const data = options.mode === "blank" ? createEmptyFormData() : formData;
 
   return (
     <div
       id="pds-printable-root"
-      className="bg-white font-sans text-black print:mx-0 print:shadow-none"
-      style={{
-        width: paperSizes[options.paperSize].width,
-        minHeight: paperSizes[options.paperSize].height,
-        minWidth: paperSizes[options.paperSize].width,
-      }}
+      className="only-print bg-white font-sans text-black"
+      style={{ width: PAGE_WIDTH, minWidth: PAGE_WIDTH }}
     >
-      <div className="border-2 border-black bg-white p-2 text-[8pt] leading-tight">
-        <PDSPage1 data={formData} show={show} />
-        <PDSPage2 data={data} show={show} />
-        <PDSPage3 data={data} show={show} />
-        <PDSPage4 data={data} show={show} />
-      </div>
+      {[
+        <PDSPage1 data={data} show={show} />,
+        <PDSPage2 data={data} show={show} />,
+        <PDSPage3 data={data} show={show} />,
+        <PDSPage4 data={data} show={show} />,
+      ].map((page, i) => (
+        <div
+          key={i}
+          className={i === 0 ? "" : "print-page"}
+          style={{
+            width: PAGE_WIDTH,
+            height: PAGE_HEIGHT,
+            overflow: "hidden",
+            boxSizing: "border-box",
+            border: "2px solid black",
+            borderTop: i === 0 ? "2px solid black" : "none",
+            background: "white",
+            padding: "6px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {page}
+        </div>
+      ))}
     </div>
   );
 };

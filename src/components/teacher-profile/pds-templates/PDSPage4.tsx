@@ -27,7 +27,7 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
     value?: PDSPrintQuestion;
     extra?: string[];
   }) => (
-    <div className="grid grid-cols-12 border-b border-black bg-white">
+    <div className="grid grid-cols-12 border-b border-black bg-white pb-5">
       <div className={`col-span-7 flex border-r border-black p-1`}>
         <div className="w-8 flex-shrink-0 text-[12px] font-normal">
           {number}
@@ -65,10 +65,16 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
   );
 
   return (
-    <div className="flex h-full w-full flex-col font-sans text-black">
+    <div
+      className="relative flex flex-col font-sans text-black"
+      style={{ height: "100%", minHeight: 0, width: "100%" }}
+    >
       {/* --- SECTION IX. QUESTIONS & DECLARATION --- */}
       {show("additionalInformation") && (
-        <div className="flex flex-grow flex-col border-t border-l border-black">
+        <div
+          className="flex flex-grow flex-col border-t border-l border-black"
+          style={{ minHeight: 0 }}
+        >
           <div className="border-t border-black">
             <QuestionRow
               number="34.a"
@@ -139,15 +145,26 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
               </thead>
               <tbody>
                 {referenceRows.map((row, index) => (
-                  <tr key={index} className="bg-white text-[12px] font-normal">
-                    <td className={`${borderClass} p-3 uppercase`}>
+                  <tr
+                    key={index}
+                    className="bg-white text-[12px] font-normal"
+                    style={{ height: `${120 / referenceRows.length}%` }}
+                  >
+                    <td
+                      className={`${borderClass} px-1 uppercase`}
+                      style={{ paddingTop: "1.2rem", paddingBottom: "1.2rem" }}
+                    >
                       {toValue(row.name)}
                     </td>
-                    <td className={`${borderClass} p-3 uppercase`}>
+                    <td
+                      className={`${borderClass} px-1 uppercase`}
+                      style={{ paddingTop: "1.2rem", paddingBottom: "1.2rem" }}
+                    >
                       {toValue(row.address)}
                     </td>
                     <td
-                      className={`${borderClass} !border-r-0 p-3 text-center uppercase`}
+                      className={`${borderClass} !border-r-0 px-1 text-center uppercase`}
+                      style={{ paddingTop: "1.2rem", paddingBottom: "1.2rem" }}
                     >
                       {toValue(row.contact)}
                     </td>
@@ -156,9 +173,10 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
               </tbody>
             </table>
           </div>
+          <div className="flex-grow bg-white" />
 
           {/* --- DECLARATION / OATH & FOOTER SECTION --- */}
-          <div className="mt-auto flex flex-col">
+          <div className="flex flex-col">
             {/* Oath & Photo Row */}
             <div className="flex border-b border-black bg-white">
               <div className="flex-grow p-4 text-justify text-[12px] leading-tight font-normal">
@@ -191,9 +209,9 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
             {/* Govt ID, Signature, and Thumbmark Row */}
             <div className="flex border-b border-black bg-white">
               {/* Govt ID Box */}
-              <div className="flex w-[40%] flex-col border-r border-black">
+              <div className="flex w-[40%] flex-col border border-black">
                 <div
-                  className={`${labelBg} border-b border-black p-1 text-[12px] leading-tight font-normal`}
+                  className={`${labelBg} border-b border-black p-1 py-0.5 text-[12px] leading-tight font-normal`}
                 >
                   Government Issued ID (i.e.Passport, GSIS, SSS, PRC, Driver's
                   License, etc.)
@@ -201,19 +219,19 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
                   PLEASE INDICATE ID Number and Date of Issuance
                 </div>
                 <div className="flex flex-col gap-1 p-2">
-                  <div className="flex text-[12px] font-normal">
+                  <div className="flex py-1 text-[12px] font-normal">
                     Government Issued ID:
                     <span className="ml-2 flex-grow border-b border-black px-1 text-[12px] uppercase">
                       {toValue(data.declaration?.governmentIdType)}
                     </span>
                   </div>
-                  <div className="flex text-[12px] font-normal">
+                  <div className="flex py-1 text-[12px] font-normal">
                     ID/License/Passport No.:
                     <span className="ml-2 flex-grow border-b border-black px-1 text-[12px] uppercase">
                       {toValue(data.declaration?.governmentIdNumber)}
                     </span>
                   </div>
-                  <div className="flex text-[12px] font-normal">
+                  <div className="flex py-1 text-[12px] font-normal">
                     Date/Place of Issuance:
                     <span className="ml-2 flex-grow border-b border-black px-1 text-[12px] uppercase">
                       {toValue(data.declaration?.dateAccomplished)}{" "}
@@ -224,7 +242,7 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
               </div>
 
               {/* Signature & Date Box */}
-              <div className="flex w-[40%] flex-col border-r border-black p-2">
+              <div className="flex w-[40%] flex-col border border-black p-2">
                 <div className="mt-4 flex flex-grow flex-col justify-end">
                   <div className="border-b border-black text-center text-[12px] uppercase"></div>
                   <div className="mt-1 text-center text-[12px] font-normal">
@@ -251,14 +269,14 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
             </div>
 
             {/* Sworn Statement Row */}
-            <div className="flex flex-col bg-white p-2">
+            <div className="mt-3 flex flex-col bg-white p-2">
               <div className="text-center text-[12px] leading-loose font-normal">
                 SUBSCRIBED AND SWORN to before me this{" "}
                 <span className="inline-block w-40 border-b border-black"></span>
                 , affiant exhibiting his/her validly issued government ID as
                 indicated above.
               </div>
-              <div className="mt-6 flex w-[300px] flex-col items-center self-center">
+              <div className="mt-16 flex w-[300px] flex-col items-center self-center">
                 <div className="w-full border-b border-black"></div>
                 <div className="mt-1 text-center text-[12px] font-normal">
                   Person Administering Oath
@@ -270,7 +288,7 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
       )}
 
       {/* PAGE 4 IDENTIFIER */}
-      <div className="absolute right-0 -bottom-4 text-[12px] font-normal text-black italic">
+      <div className="mt-auto pt-1 text-right text-[10px] font-normal text-black italic">
         CS FORM 212 (Revised 2025), Page 4 of 4
       </div>
     </div>

@@ -50,29 +50,29 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
   ];
 
   return (
-    <div>
+    <div className="flex flex-col" style={{ height: "100%", minHeight: 0 }}>
       {/* HEADER SECTION */}
       <div className="mb-1 w-full text-black">
         <p className="text-[6.5pt] leading-tight font-bold italic">
           CS Form No. 212 <br /> Revised 2025
         </p>
 
-        <h1 className="mt-0 text-center text-[32px] leading-none font-black tracking-tighter">
+        <h1 className="mt-0 text-center text-[16px] leading-none font-black tracking-tighter">
           PERSONAL DATA SHEET
         </h1>
 
-        <p className="mt-3 text-justify text-[12px] leading-tight font-bold italic">
+        <p className="mt-0.5 text-justify text-[8px] leading-tight font-bold italic">
           WARNING: Any misrepresentation made in the Personal Data Sheet and the
           Work Experience Sheet shall cause the filing of
           administrative/criminal case/s against the person concerned.
         </p>
 
-        <p className="mt-1 text-[12px] leading-tight font-bold italic">
+        <p className="mt-0.5 text-[8px] leading-tight font-bold italic">
           READ THE ATTACHED GUIDE TO FILLING OUT THE PERSONAL DATA SHEET (PDS)
           BEFORE ACCOMPLISHING THE PDS FORM.
         </p>
 
-        <p className="mt-1 text-[10px] leading-tight">
+        <p className="mt-0.5 text-[8px] leading-tight">
           Print legibly if accomplished through own handwriting. Tick
           appropriate boxes ({" "}
           <span className="inline-block w-3 border-b border-black"></span> ) and
@@ -83,7 +83,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
 
       {/* --- SECTION I. PERSONAL INFORMATION --- */}
       {show("personalInfo") && (
-        <div className="mt-2 border-l border-black">
+        <div className="mt-1 border-l border-black">
           <SectionHeader title="I. PERSONAL INFORMATION" />
 
           <div className="grid grid-cols-12 border-t border-black">
@@ -562,107 +562,118 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
 
       {/* --- SECTION III. EDUCATIONAL BACKGROUND --- */}
       {show("educationalBackground") && (
-        <div className="mt-0 flex flex-grow flex-col border-l border-black text-black">
+        <div
+          className="mt-0 flex-col border-l border-black text-black"
+          style={{ minHeight: 0 }}
+        >
           <SectionHeader title="III. EDUCATIONAL BACKGROUND" />
 
           <table className="w-full table-fixed border-collapse border-b border-black">
             <thead>
               <tr
-                className={`${sideLabelBg} text-center text-[12px] font-normal uppercase`}
+                className={`${sideLabelBg} text-center text-[7pt] font-normal uppercase`}
               >
                 <th
-                  className={`${borderClass} w-[13%] p-1 font-normal`}
+                  className={`${borderClass} w-[11%] px-1 py-0 font-normal`}
                   rowSpan={2}
                 >
                   26. LEVEL
                 </th>
                 <th
-                  className={`${borderClass} w-[20%] p-1 leading-tight font-normal`}
+                  className={`${borderClass} w-[22%] px-1 py-0 leading-tight font-normal`}
                   rowSpan={2}
                 >
                   NAME OF SCHOOL
                   <br />
-                  <span className="text-[10px] font-normal normal-case">
+                  <span className="font-normal normal-case">
                     (Write in full)
                   </span>
                 </th>
                 <th
-                  className={`${borderClass} w-[20%] p-1 leading-tight font-normal`}
+                  className={`${borderClass} w-[18%] px-1 py-0 leading-tight font-normal`}
                   rowSpan={2}
                 >
-                  BASIC EDUCATION/
+                  BASIC EDUCATION/DEGREE/COURSE
                   <br />
-                  DEGREE/COURSE
-                  <br />
-                  <span className="text-[10px] font-normal normal-case">
+                  <span className="font-normal normal-case">
                     (Write in full)
                   </span>
                 </th>
                 <th
-                  className={`${borderClass} w-[12%] p-1 leading-tight font-normal`}
+                  className={`${borderClass} w-[12%] px-1 py-0 leading-tight font-normal`}
                   colSpan={2}
                 >
                   PERIOD OF ATTENDANCE
+                  <br />
+                  <span className="font-normal normal-case">(mm/dd/yyyy)</span>
                 </th>
                 <th
-                  className={`${borderClass} w-[11%] p-1 leading-tight font-normal`}
+                  className={`${borderClass} w-[12%] px-1 py-0 leading-tight font-normal`}
                   rowSpan={2}
                 >
-                  HIGHEST LEVEL/UNITS EARNED
+                  HIGHEST LEVEL/
                   <br />
-                  <span className="text-[10px] font-normal normal-case">
+                  UNITS EARNED
+                  <br />
+                  <span className="font-normal normal-case">
                     (if not graduated)
                   </span>
                 </th>
                 <th
-                  className={`${borderClass} w-[9%] p-1 leading-tight font-normal`}
+                  className={`${borderClass} w-[10%] px-1 py-0 leading-tight font-normal`}
                   rowSpan={2}
                 >
                   YEAR GRADUATED
                 </th>
                 <th
-                  className={`${borderClass} w-[15%] !border-r-0 p-1 leading-tight font-normal`}
+                  className={`${borderClass} w-[17%] !border-r-0 px-1 py-0 leading-tight font-normal`}
                   rowSpan={2}
                 >
                   SCHOLARSHIP/ ACADEMIC HONORS RECEIVED
                 </th>
               </tr>
               <tr
-                className={`${sideLabelBg} text-center text-[12px] font-normal uppercase`}
+                className={`${sideLabelBg} text-center text-[7pt] font-normal uppercase`}
               >
-                <th className={`${borderClass} w-[6%] p-1 font-normal`}>
+                <th className={`${borderClass} w-[5%] px-1 py-0 font-normal`}>
                   From
                 </th>
-                <th className={`${borderClass} w-[6%] p-1 font-normal`}>To</th>
+                <th className={`${borderClass} w-[5%] px-1 py-0 font-normal`}>
+                  To
+                </th>
               </tr>
             </thead>
             <tbody>
               {eduRows.map((row, index) => (
-                <tr key={index} className="bg-white text-[12px] font-normal">
+                <tr key={index} className="bg-white text-[7pt] font-normal">
                   <td
-                    className={`${borderClass} p-1 text-center font-normal ${sideLabelBg} !text-[12px]`}
+                    className={`${borderClass} px-1 py-0.5 text-center font-normal ${sideLabelBg} `}
                   >
                     {eduLabels[index]}
                   </td>
-                  <td className={`${borderClass} p-1 uppercase`}>
+                  <td className={`${borderClass} px-1 py-0.5 uppercase`}>
                     {toValue(row.school)}
                   </td>
-                  <td className={`${borderClass} p-1 uppercase`}>
+                  <td className={`${borderClass} px-1 py-0.5 uppercase`}>
                     {toValue(row.course)}
                   </td>
-                  <td className={`${borderClass} p-1 text-center`}>
+                  <td className={`${borderClass} px-1 py-0.5 text-center`}>
                     {toValue(row.attendanceFrom)}
                   </td>
-                  <td className={`${borderClass} p-1 text-center`}>
+                  <td className={`${borderClass} px-1 py-0.5 text-center`}>
                     {toValue(row.attendanceTo)}
                   </td>
-                  <td className={`${borderClass} p-1 text-center uppercase`}>
+                  <td
+                    className={`${borderClass} px-1 py-0.5 text-center uppercase`}
+                  >
                     {toValue(row.highestLevel)}
                   </td>
-                  <td className={`${borderClass} p-1 text-center`}>
+                  <td className={`${borderClass} px-1 py-0.5 text-center`}>
                     {toValue(row.yearGraduated)}
                   </td>
-                  <td className={`${borderClass} !border-r-0 p-1 uppercase`}>
+                  <td
+                    className={`${borderClass} !border-r-0 px-1 py-0.5 uppercase`}
+                  >
                     {toValue(row.honors)}
                   </td>
                 </tr>
@@ -672,33 +683,34 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
         </div>
       )}
 
+      <div className="col-span-3 min-h-[2px]"></div>
+
       {/* --- PAGE 1 FOOTER --- */}
-      <div className="mt-4 flex flex-col text-black">
-        {/* Top of footer: Disclaimer (Removed border-t to avoid double borders with the table above) */}
-        <div className="border-b border-black bg-[#f2f2f2] p-1 px-2 text-[10px] font-normal italic">
+      <div className="mt-1 flex flex-col text-black">
+        {/* Top of footer: Disclaimer */}
+        <div className="bg-[#f2f2f2] px-2 text-[10px] font-normal italic">
           (Continue on separate sheet if necessary)
         </div>
 
         {/* Bottom of footer: Signatures */}
-        <div className="grid grid-cols-12 bg-white">
+        <div className="grid grid-cols-12 border-2 border-black bg-white">
           <div
             className={`${sideLabelBg} col-span-2 flex items-center justify-center border-r border-black p-1 text-[12px] font-bold`}
           >
             SIGNATURE
           </div>
-          <div className="col-span-6 min-h-[26px] border-r border-black"></div>
+          <div className="col-span-6 min-h-[26px]"></div>
           <div
-            className={`${sideLabelBg} col-span-1 flex items-center justify-center border-r border-black p-1 text-[12px] font-bold`}
+            className={`${sideLabelBg} col-span-1 flex items-center justify-center border-r border-l border-black p-1 text-[12px] font-bold`}
           >
             DATE
           </div>
-          <div className="col-span-3 min-h-[26px]"></div>
         </div>
-      </div>
 
-      {/* PAGE 1 IDENTIFIER */}
-      <div className="absolute right-0 -bottom-4 text-[10px] font-normal text-black italic">
-        CS FORM 212 (Revised 2025), Page 1 of 4
+        {/* PAGE 1 IDENTIFIER */}
+        <div className="text-right text-[6pt] font-normal text-black italic">
+          CS FORM 212 (Revised 2025), Page 1 of 4
+        </div>
       </div>
     </div>
   );

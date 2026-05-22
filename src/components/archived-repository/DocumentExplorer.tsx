@@ -359,7 +359,10 @@ const DocumentExplorer = ({
                             if (!updateDocument.isLocked) {
                               updateDocument.run({
                                 id: result.doc.id,
-                                payload: { is_archived: false },
+                                payload: {
+                                  is_archived: false,
+                                  restored_at: new Date().toISOString(),
+                                },
                               });
                             }
                           }}

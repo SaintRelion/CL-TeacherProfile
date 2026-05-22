@@ -11,6 +11,7 @@ export interface TeacherDocument {
   created_at: string;
   updated_at: string;
   is_archived: boolean;
+  restored_at?: string | null;
 }
 
 export interface CreateTeacherDocument {
@@ -26,4 +27,5 @@ export interface CreateTeacherDocument {
 
 export interface UpdateTeacherDocument {
   is_archived: boolean;
+  restored_at?: string | null;
 }
