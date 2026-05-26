@@ -4,7 +4,7 @@ import PDSPage2 from "./pds-templates/PDSPage2";
 import { PDSPage3 } from "./pds-templates/PDSPage3";
 import { PDSPage4 } from "./pds-templates/PDSPage4";
 
-export type PDSPrintPaperSize = "A4" | "Letter" | "Legal";
+export type PDSPrintPaperSize = "Long";
 export type PDSPrintMode = "filled" | "blank";
 export type PDSPrintSectionId =
   | "I"
@@ -17,8 +17,8 @@ export type PDSPrintSectionId =
   | "VIII"
   | "IX";
 
-const PAGE_WIDTH = "8.5in";
-const PAGE_HEIGHT = "12in";
+const PAGE_WIDTH = "816px";
+const PAGE_HEIGHT = "1248px";
 
 export interface PDSPrintTemplateOptions {
   mode: PDSPrintMode;
@@ -133,16 +133,15 @@ export const PDSPrintTemplate = ({
       ].map((page, i) => (
         <div
           key={i}
-          className={i === 0 ? "" : "print-page"}
+          // className={i === 0 ? "" : "print-page"}
           style={{
             width: PAGE_WIDTH,
             height: PAGE_HEIGHT,
-            overflow: "hidden",
-            boxSizing: "border-box",
-            border: "2px solid black",
-            borderTop: i === 0 ? "2px solid black" : "none",
+            minHeight: PAGE_HEIGHT,
+            maxHeight: PAGE_HEIGHT,
+            // boxSizing: "border-box",
+            // overflow: "hidden",
             background: "white",
-            padding: "6px",
             display: "flex",
             flexDirection: "column",
           }}

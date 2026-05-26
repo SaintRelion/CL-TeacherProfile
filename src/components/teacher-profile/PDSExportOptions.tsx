@@ -133,18 +133,20 @@ export const PDSExportOptions: React.FC<Props> = ({
       margin: 0,
       filename: `PDS_${user.username}.pdf`,
       image: {
-        type: "jpeg" as const, // Force TS to treat this as the literal "jpeg"
+        type: "jpeg" as const,
         quality: 0.98,
       },
       html2canvas: {
         scale: 2,
         useCORS: true,
         letterRendering: true,
+        windowWidth: 816,
       },
       jsPDF: {
-        unit: "in",
-        format: [8.5, 13] as [number, number],
+        unit: "px",
+        format: [816, 1248] as [number, number],
         orientation: "portrait" as const,
+        hotfixes: ["px_scaling"],
       },
     };
 
@@ -275,6 +277,17 @@ export const PDSExportOptions: React.FC<Props> = ({
 
           {/* VIEWPORT AREA */}
           <div className="no-scrollbar custom-scroll flex-1 overflow-auto bg-slate-800 p-10">
+            {/* STICKY PAPER SIZE NOTICE */}
+            <div className="sticky top-0 z-50 mx-auto mb-6 flex w-fit items-start gap-2 rounded-lg border border-amber-400 bg-amber-50 px-4 py-2.5 shadow-lg">
+              <span className="mt-0.5 text-amber-500">⚠</span>
+              <span className="text-[11px] font-bold text-amber-800">
+                When printing, make sure to select{" "}
+                <span className="underline">Long bond paper (8.5" × 13")</span>{" "}
+                as the paper size, that option should be there. If it's missing,
+                it may need to be set up in your printer or OS settings first.
+              </span>
+            </div>
+
             <div className="flex min-h-full items-start justify-center">
               {formData && (
                 <div

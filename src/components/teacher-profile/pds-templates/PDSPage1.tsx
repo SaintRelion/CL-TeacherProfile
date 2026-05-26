@@ -50,29 +50,32 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
   ];
 
   return (
-    <div className="flex flex-col" style={{ height: "100%", minHeight: 0 }}>
+    <div
+      className="flex flex-col"
+      style={{ height: "100%", minHeight: 0, padding: "6px" }}
+    >
       {/* HEADER SECTION */}
       <div className="mb-1 w-full text-black">
         <p className="text-[6.5pt] leading-tight font-bold italic">
           CS Form No. 212 <br /> Revised 2025
         </p>
 
-        <h1 className="mt-0 text-center text-[16px] leading-none font-black tracking-tighter">
+        <h1 className="mt-0 pb-[4pt] text-center text-[12pt] leading-none font-black tracking-tighter">
           PERSONAL DATA SHEET
         </h1>
 
-        <p className="mt-0.5 text-justify text-[8px] leading-tight font-bold italic">
+        <p className="pb-[1pt] text-justify text-[7pt] leading-tight font-bold italic">
           WARNING: Any misrepresentation made in the Personal Data Sheet and the
           Work Experience Sheet shall cause the filing of
           administrative/criminal case/s against the person concerned.
         </p>
 
-        <p className="mt-0.5 text-[8px] leading-tight font-bold italic">
+        <p className="pb-[3pt] text-[7pt] leading-tight font-bold italic">
           READ THE ATTACHED GUIDE TO FILLING OUT THE PERSONAL DATA SHEET (PDS)
           BEFORE ACCOMPLISHING THE PDS FORM.
         </p>
 
-        <p className="mt-0.5 text-[8px] leading-tight">
+        <p className="pb-[4pt] text-[7pt] leading-tight">
           Print legibly if accomplished through own handwriting. Tick
           appropriate boxes ({" "}
           <span className="inline-block w-3 border-b border-black"></span> ) and
@@ -96,7 +99,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
             <ValueBox value={data.personalInfo.nameGroup.firstName} span={7} />
 
             <div
-              className={`${labelBg} ${borderClass} col-span-3 flex items-center justify-between p-1 text-[12px]`}
+              className={`${labelBg} ${borderClass} col-span-3 flex items-center justify-between pb-[5pt] pl-[2pt] text-[7pt]`}
             >
               NAME EXTENSION (JR., SR)
               <span className="min-w-[40px] px-2 py-0.5 text-center text-[12px] font-medium uppercase">
@@ -408,7 +411,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                 span={2}
               />
               <div
-                className={`${labelBg} ${borderClass} col-span-3 flex items-center justify-between p-1 text-[12px]`}
+                className={`${labelBg} ${borderClass} col-span-3 flex items-center justify-between pb-[5pt] pl-[2pt] text-[7pt]`}
               >
                 NAME EXTENSION (JR., SR)
                 <span className="min-w-[30px] px-1 py-0.5 text-center text-[12px] font-medium uppercase">
@@ -471,7 +474,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                 span={2}
               />
               <div
-                className={`${labelBg} ${borderClass} col-span-3 flex items-center justify-between p-1 text-[12px]`}
+                className={`${labelBg} ${borderClass} col-span-3 flex items-center justify-between pb-[5pt] pl-[2pt] text-[7pt]`}
               >
                 NAME EXTENSION (JR., SR)
                 <span className="min-w-[30px] px-1 py-0.5 text-center text-[12px] font-medium uppercase">
@@ -526,17 +529,17 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
             {/* RIGHT SIDE: Children (5 columns) */}
             <div className="col-span-5 flex flex-col">
               <div
-                className={`${labelBg} ${borderClass} !border-r-0 p-1 text-center text-[10px] leading-tight`}
+                className={`${labelBg} ${borderClass} !border-r-0 pb-[5pt] text-center text-[10px] leading-tight`}
               >
                 23. NAME of CHILDREN (Write full name and list all)
               </div>
               <div
                 className={`grid grid-cols-5 ${sideLabelBg} ${borderClass} !border-r-0`}
               >
-                <div className="col-span-3 border-r border-black p-1 text-center text-[10px]">
+                <div className="col-span-3 border-r border-black pb-[5pt] text-center text-[10px]">
                   NAME
                 </div>
-                <div className="col-span-2 p-1 text-center text-[10px] leading-tight">
+                <div className="col-span-2 pb-[5pt] text-center text-[10px] leading-tight">
                   DATE OF BIRTH (mm/dd/yyyy)
                 </div>
               </div>
@@ -562,25 +565,21 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
 
       {/* --- SECTION III. EDUCATIONAL BACKGROUND --- */}
       {show("educationalBackground") && (
-        <div
-          className="mt-0 flex-col border-l border-black text-black"
-          style={{ minHeight: 0 }}
-        >
+        <div className="mt-0 flex flex-col text-black">
           <SectionHeader title="III. EDUCATIONAL BACKGROUND" />
-
-          <table className="w-full table-fixed border-collapse border-b border-black">
+          <table className="w-full table-fixed border-black">
             <thead>
               <tr
                 className={`${sideLabelBg} text-center text-[7pt] font-normal uppercase`}
               >
                 <th
-                  className={`${borderClass} w-[11%] px-1 py-0 font-normal`}
+                  className={`${borderClass} h-full w-[10%] px-1 pb-[4pt] align-top font-normal`}
                   rowSpan={2}
                 >
                   26. LEVEL
                 </th>
                 <th
-                  className={`${borderClass} w-[22%] px-1 py-0 leading-tight font-normal`}
+                  className={`${borderClass} h-full w-[22%] px-1 pb-[4pt] align-top leading-tight font-normal`}
                   rowSpan={2}
                 >
                   NAME OF SCHOOL
@@ -590,7 +589,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                   </span>
                 </th>
                 <th
-                  className={`${borderClass} w-[18%] px-1 py-0 leading-tight font-normal`}
+                  className={`${borderClass} h-full w-[18%] px-1 pb-[4pt] align-top leading-tight font-normal`}
                   rowSpan={2}
                 >
                   BASIC EDUCATION/DEGREE/COURSE
@@ -600,15 +599,20 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                   </span>
                 </th>
                 <th
-                  className={`${borderClass} w-[12%] px-1 py-0 leading-tight font-normal`}
+                  className={`${borderClass} w-[12%] px-1 pb-[4pt] leading-tight font-normal`}
                   colSpan={2}
                 >
                   PERIOD OF ATTENDANCE
                   <br />
                   <span className="font-normal normal-case">(mm/dd/yyyy)</span>
+                  <br />
+                  <div className="flex justify-around pt-[5pt]">
+                    <span className="font-normal">FROM </span>
+                    <span className="font-normal">TO</span>
+                  </div>
                 </th>
                 <th
-                  className={`${borderClass} w-[12%] px-1 py-0 leading-tight font-normal`}
+                  className={`${borderClass} h-full w-[12%] px-1 pb-[4pt] align-top leading-tight font-normal`}
                   rowSpan={2}
                 >
                   HIGHEST LEVEL/
@@ -620,26 +624,16 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
                   </span>
                 </th>
                 <th
-                  className={`${borderClass} w-[10%] px-1 py-0 leading-tight font-normal`}
+                  className={`${borderClass} h-full w-[10%] px-1 pb-[4pt] align-top leading-tight font-normal`}
                   rowSpan={2}
                 >
                   YEAR GRADUATED
                 </th>
                 <th
-                  className={`${borderClass} w-[17%] !border-r-0 px-1 py-0 leading-tight font-normal`}
+                  className={`${borderClass} h-full w-[16%] !border-r-0 px-1 pb-[4pt] align-top leading-tight font-normal`}
                   rowSpan={2}
                 >
                   SCHOLARSHIP/ ACADEMIC HONORS RECEIVED
-                </th>
-              </tr>
-              <tr
-                className={`${sideLabelBg} text-center text-[7pt] font-normal uppercase`}
-              >
-                <th className={`${borderClass} w-[5%] px-1 py-0 font-normal`}>
-                  From
-                </th>
-                <th className={`${borderClass} w-[5%] px-1 py-0 font-normal`}>
-                  To
                 </th>
               </tr>
             </thead>
@@ -647,32 +641,32 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
               {eduRows.map((row, index) => (
                 <tr key={index} className="bg-white text-[7pt] font-normal">
                   <td
-                    className={`${borderClass} px-1 py-0.5 text-center font-normal ${sideLabelBg} `}
+                    className={`${borderClass} px-1 pb-[8pt] text-center font-normal ${sideLabelBg} `}
                   >
                     {eduLabels[index]}
                   </td>
-                  <td className={`${borderClass} px-1 py-0.5 uppercase`}>
+                  <td className={`${borderClass} px-1 pb-[8pt] uppercase`}>
                     {toValue(row.school)}
                   </td>
-                  <td className={`${borderClass} px-1 py-0.5 uppercase`}>
+                  <td className={`${borderClass} px-1 pb-[8pt] uppercase`}>
                     {toValue(row.course)}
                   </td>
-                  <td className={`${borderClass} px-1 py-0.5 text-center`}>
+                  <td className={`${borderClass} px-1 pb-[8pt] text-center`}>
                     {toValue(row.attendanceFrom)}
                   </td>
-                  <td className={`${borderClass} px-1 py-0.5 text-center`}>
+                  <td className={`${borderClass} px-1 pb-[8pt] text-center`}>
                     {toValue(row.attendanceTo)}
                   </td>
                   <td
-                    className={`${borderClass} px-1 py-0.5 text-center uppercase`}
+                    className={`${borderClass} px-1 pb-[8pt] text-center uppercase`}
                   >
                     {toValue(row.highestLevel)}
                   </td>
-                  <td className={`${borderClass} px-1 py-0.5 text-center`}>
+                  <td className={`${borderClass} px-1 pb-[8pt] text-center`}>
                     {toValue(row.yearGraduated)}
                   </td>
                   <td
-                    className={`${borderClass} !border-r-0 px-1 py-0.5 uppercase`}
+                    className={`${borderClass} !border-r-0 px-1 pb-[8pt] uppercase`}
                   >
                     {toValue(row.honors)}
                   </td>
@@ -682,26 +676,24 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
           </table>
         </div>
       )}
-
-      <div className="col-span-3 min-h-[2px]"></div>
-
+      <div className="flex-1" />
       {/* --- PAGE 1 FOOTER --- */}
-      <div className="mt-1 flex flex-col text-black">
+      <div className="flex flex-col text-black">
         {/* Top of footer: Disclaimer */}
-        <div className="bg-[#f2f2f2] px-2 text-[10px] font-normal italic">
+        <div className="bg-[#f2f2f2] px-2 pb-[5pt] text-[7pt] font-normal italic">
           (Continue on separate sheet if necessary)
         </div>
 
         {/* Bottom of footer: Signatures */}
         <div className="grid grid-cols-12 border-2 border-black bg-white">
           <div
-            className={`${sideLabelBg} col-span-2 flex items-center justify-center border-r border-black p-1 text-[12px] font-bold`}
+            className={`${sideLabelBg} col-span-2 flex items-center justify-center border-r border-black pb-[5pt] text-[8pt] font-bold`}
           >
             SIGNATURE
           </div>
           <div className="col-span-6 min-h-[26px]"></div>
           <div
-            className={`${sideLabelBg} col-span-1 flex items-center justify-center border-r border-l border-black p-1 text-[12px] font-bold`}
+            className={`${sideLabelBg} col-span-1 flex items-center justify-center border-r border-l border-black pb-[5pt] text-[8pt] font-bold`}
           >
             DATE
           </div>
