@@ -53,7 +53,7 @@ export const PDSPage4 = ({ data, show }: PDSPageProps) => {
           </div>
           {extra?.map((ext, idx) => (
             <div key={idx} className="flex gap-1">
-              <span className="flex-grow border-b border-black px-1 text-[7pt] uppercase">
+              <span className="flex-grow border-b border-black px-1 pb-[5pt] text-[7pt] uppercase">
                 {ext}
               </span>
             </div>
