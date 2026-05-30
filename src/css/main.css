@@ -28,7 +28,7 @@
   .print-page {
     break-before: page;
     page-break-before: always;
-    height: 12in; /* content area, not paper size */
+    height: 13in; /* content area, not paper size */
     min-height: unset;
     overflow: hidden;
   }

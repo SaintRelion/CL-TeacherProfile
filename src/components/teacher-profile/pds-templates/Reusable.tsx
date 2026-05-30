@@ -11,8 +11,8 @@ export const labelBg = "bg-[#f2f2f2]";
 export const borderClass = "border-black border";
 
 export const SectionHeader = ({ title }: { title: string }) => (
-  <div className="mt-[-1px] border-t border-b border-black bg-[#969696] px-1 py-0">
-    <h2 className="text-[8pt] leading-tight font-extrabold text-white uppercase italic">
+  <div className="border-t border-b border-black bg-[#969696] px-1">
+    <h2 className="pb-[6pt] text-[8pt] leading-tight font-extrabold text-white uppercase italic">
       {title}
     </h2>
   </div>
@@ -30,7 +30,7 @@ export const LabelBox = ({
   rowSpan?: number;
 }) => (
   <div
-    className={`${sideLabelBg} ${borderClass} flex flex-col justify-center px-1 py-0.5 text-[10px] text-black ${className}`}
+    className={`${sideLabelBg} ${borderClass} flex flex-col justify-center px-1 pb-[5pt] text-[7pt] text-black ${className}`}
     style={{ gridColumn: `span ${span}`, gridRow: `span ${rowSpan}` }}
   >
     {label}
@@ -47,7 +47,7 @@ export const ValueBox = ({
   className?: string;
 }) => (
   <div
-    className={`bg-white ${borderClass} flex items-center px-1 py-0.5 text-[10px] font-medium text-black uppercase ${className}`}
+    className={`bg-white ${borderClass} flex items-center px-1 py-[3pt] text-[7pt] font-medium text-black uppercase ${className}`}
     style={{ gridColumn: `span ${span}` }}
   >
     {value || ""}
@@ -64,7 +64,7 @@ export const AddressCell = ({
   span?: number;
 }) => (
   <div
-    className={`bg-white ${borderClass} flex flex-col p-1`}
+    className={`bg-white ${borderClass} flex flex-col pb-[7pt] pl-[3pt]`}
     style={{ gridColumn: `span ${span}` }}
   >
     <div className="flex-grow text-[12px] leading-tight font-medium text-black uppercase">
