@@ -50,10 +50,7 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
   ];
 
   return (
-    <div
-      className="flex flex-col"
-      style={{ height: "100%", minHeight: 0, padding: "6px" }}
-    >
+    <div className="flex flex-col" style={{ height: "100%", minHeight: 0 }}>
       {/* HEADER SECTION */}
       <div className="mb-1 w-full text-black">
         <p className="text-[6.5pt] leading-tight font-bold italic">
@@ -641,32 +638,32 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
               {eduRows.map((row, index) => (
                 <tr key={index} className="bg-white text-[7pt] font-normal">
                   <td
-                    className={`${borderClass} px-1 pb-[8pt] text-center font-normal ${sideLabelBg} `}
+                    className={`${borderClass} px-1 pb-[5pt] text-center font-normal ${sideLabelBg} `}
                   >
                     {eduLabels[index]}
                   </td>
-                  <td className={`${borderClass} px-1 pb-[8pt] uppercase`}>
+                  <td className={`${borderClass} px-1 pb-[5pt] uppercase`}>
                     {toValue(row.school)}
                   </td>
-                  <td className={`${borderClass} px-1 pb-[8pt] uppercase`}>
+                  <td className={`${borderClass} px-1 pb-[5pt] uppercase`}>
                     {toValue(row.course)}
                   </td>
-                  <td className={`${borderClass} px-1 pb-[8pt] text-center`}>
+                  <td className={`${borderClass} px-1 pb-[5pt] text-center`}>
                     {toValue(row.attendanceFrom)}
                   </td>
-                  <td className={`${borderClass} px-1 pb-[8pt] text-center`}>
+                  <td className={`${borderClass} px-1 pb-[5pt] text-center`}>
                     {toValue(row.attendanceTo)}
                   </td>
                   <td
-                    className={`${borderClass} px-1 pb-[8pt] text-center uppercase`}
+                    className={`${borderClass} px-1 pb-[5pt] text-center uppercase`}
                   >
                     {toValue(row.highestLevel)}
                   </td>
-                  <td className={`${borderClass} px-1 pb-[8pt] text-center`}>
+                  <td className={`${borderClass} px-1 pb-[5pt] text-center`}>
                     {toValue(row.yearGraduated)}
                   </td>
                   <td
-                    className={`${borderClass} !border-r-0 px-1 pb-[8pt] uppercase`}
+                    className={`${borderClass} !border-r-0 px-1 pb-[5pt] uppercase`}
                   >
                     {toValue(row.honors)}
                   </td>

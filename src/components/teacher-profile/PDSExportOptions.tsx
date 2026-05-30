@@ -282,9 +282,11 @@ export const PDSExportOptions: React.FC<Props> = ({
               <span className="mt-0.5 text-amber-500">⚠</span>
               <span className="text-[11px] font-bold text-amber-800">
                 When printing, make sure to select{" "}
-                <span className="underline">Long bond paper (8.5" × 13")</span>{" "}
+                <span className="underline">
+                  Long bond paper - Legal (8.5" × 14")
+                </span>{" "}
                 as the paper size, that option should be there. If it's missing,
-                it may need to be set up in your printer or OS settings first.
+                it may need to be set up in your printer or missing drivers.
               </span>
             </div>
 

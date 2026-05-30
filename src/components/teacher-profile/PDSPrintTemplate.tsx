@@ -139,11 +139,14 @@ export const PDSPrintTemplate = ({
             height: PAGE_HEIGHT,
             minHeight: PAGE_HEIGHT,
             maxHeight: PAGE_HEIGHT,
-            // boxSizing: "border-box",
-            // overflow: "hidden",
             background: "white",
             display: "flex",
             flexDirection: "column",
+            boxSizing: "border-box",
+            overflow: "hidden",
+            padding: "0.25in 0.3in", // ← top/bottom 0.25in, left/right 0.3in
+            pageBreakBefore: i === 0 ? "auto" : "always",
+            breakBefore: i === 0 ? "auto" : "page",
           }}
         >
           {page}
