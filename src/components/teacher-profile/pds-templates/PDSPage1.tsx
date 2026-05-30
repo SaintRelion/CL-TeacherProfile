@@ -57,11 +57,11 @@ export const PDSPage1 = ({ data, show }: PDSPageProps) => {
           CS Form No. 212 <br /> Revised 2025
         </p>
 
-        <h1 className="mt-0 pb-[4pt] text-center text-[12pt] leading-none font-black tracking-tighter">
+        <h1 className="mt-0 pb-[4pt] text-center text-[11pt] leading-none font-black tracking-tighter">
           PERSONAL DATA SHEET
         </h1>
 
-        <p className="pb-[1pt] text-justify text-[7pt] leading-tight font-bold italic">
+        <p className="pb-[1pt] text-justify text-[6pt] leading-tight font-bold italic">
           WARNING: Any misrepresentation made in the Personal Data Sheet and the
           Work Experience Sheet shall cause the filing of
           administrative/criminal case/s against the person concerned.
